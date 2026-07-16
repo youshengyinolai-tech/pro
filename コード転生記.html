@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>コード転生記 — 期末試験クエスト</title>
+</head>
+<body>
+<style>
+  :root{
+    --bg:#f3ead9;
+    --bg-2:#ece0c8;
+    --panel:#fbf4e4;
+    --panel-2:#f1e5c8;
+    --ink:#2b2318;
+    --ink-dim:#6b5b3e;
+    --accent:#a8752c;
+    --accent-ink:#fff8ec;
+    --hero:#3f7a4a;
+    --danger:#a33f2d;
+    --line:rgba(168,117,44,0.35);
+    --shadow:rgba(43,35,24,0.18);
+    --code-bg:#efe3ca;
+    --code-ink:#3a2f1d;
+    --font-display:"Hiragino Mincho ProN","YuMincho","Yu Mincho",Georgia,serif;
+    --font-body:"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,-apple-system,sans-serif;
+    --font-mono:ui-monospace,"SF Mono","Cascadia Code",Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#171225;
+      --bg-2:#1f1830;
+      --panel:#241b36;
+      --panel-2:#2c2140;
+      --ink:#f1e9d8;
+      --ink-dim:#cbb99a;
+      --accent:#e0a458;
+      --accent-ink:#2b1c08;
+      --hero:#7fb685;
+      --danger:#e2765f;
+      --line:rgba(224,164,88,0.35);
+      --shadow:rgba(0,0,0,0.45);
+      --code-bg:#120f1e;
+      --code-ink:#e9e1c9;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#171225; --bg-2:#1f1830; --panel:#241b36; --panel-2:#2c2140;
+    --ink:#f1e9d8; --ink-dim:#cbb99a; --accent:#e0a458; --accent-ink:#2b1c08;
+    --hero:#7fb685; --danger:#e2765f; --line:rgba(224,164,88,0.35); --shadow:rgba(0,0,0,0.45);
+    --code-bg:#120f1e; --code-ink:#e9e1c9;
+  }
+  :root[data-theme="light"]{
+    --bg:#f3ead9; --bg-2:#ece0c8; --panel:#fbf4e4; --panel-2:#f1e5c8;
+    --ink:#2b2318; --ink-dim:#6b5b3e; --accent:#a8752c; --accent-ink:#fff8ec;
+    --hero:#3f7a4a; --danger:#a33f2d; --line:rgba(168,117,44,0.35); --shadow:rgba(43,35,24,0.18);
+    --code-bg:#efe3ca; --code-ink:#3a2f1d;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+      radial-gradient(ellipse 900px 600px at 90% 110%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.6;
+    padding:32px 18px 64px;
+  }
+  h1,h2,h3{font-family:var(--font-display); text-wrap:balance; margin:0;}
+  .num{font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+  ::selection{background:var(--accent); color:var(--accent-ink);}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+  }
+
+  .stage{max-width:920px; margin:0 auto;}
+
+  /* ---- top bar ---- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    margin-bottom:26px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:baseline; gap:10px;}
+  .brand .glyph{font-size:1.6rem;}
+  .brand h1{font-size:1.5rem; letter-spacing:.02em;}
+  .brand small{display:block; font-size:.75rem; color:var(--ink-dim); letter-spacing:.12em; text-transform:uppercase; margin-top:2px;}
+  .tally{
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--font-mono); font-size:.85rem; color:var(--ink-dim);
+    background:var(--panel); border:1px solid var(--line); padding:8px 14px;
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+  }
+  .tally .stars{color:var(--accent); letter-spacing:.05em;}
+
+  /* ---- frame / card base ---- */
+  .frame{
+    background:var(--panel);
+    border:1px solid var(--line);
+    box-shadow:0 10px 28px -14px var(--shadow);
+    clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);
+  }
+
+  /* ---- map screen ---- */
+  .intro{padding:22px 26px; margin-bottom:26px;}
+  .intro p{margin:.5em 0 0; max-width:64ch; color:var(--ink-dim);}
+  .intro h2{font-size:1.3rem; margin-bottom:4px;}
+
+  .stagegrid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:14px;
+  }
+  .stagecard{
+    position:relative; padding:18px 16px 16px; cursor:pointer; text-align:left;
+    background:var(--panel); border:1px solid var(--line); color:var(--ink);
+    font-family:var(--font-body); font-size:.95rem;
+    clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .stagecard:hover:not(.locked){transform:translateY(-3px); box-shadow:0 14px 26px -14px var(--shadow); background:var(--panel-2);}
+  .stagecard .row1{display:flex; align-items:center; justify-content:space-between;}
+  .stagecard .emoji{font-size:1.9rem;}
+  .stagecard .idx{font-family:var(--font-mono); font-size:.72rem; color:var(--ink-dim); letter-spacing:.1em;}
+  .stagecard h3{font-size:1.05rem; margin-top:2px;}
+  .stagecard .sub{font-size:.78rem; color:var(--ink-dim);}
+  .stagecard .stars{font-size:.9rem; color:var(--accent); letter-spacing:.08em; margin-top:auto;}
+  .stagecard.locked{cursor:not-allowed; opacity:.5; filter:grayscale(.5);}
+  .stagecard.locked::after{
+    content:"🔒 未解放"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:.8rem; color:var(--ink-dim); background:color-mix(in srgb, var(--bg) 55%, transparent);
+  }
+
+  /* ---- shared bars / buttons ---- */
+  .battlebar{display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+  .backbtn{
+    font-family:var(--font-body); font-size:.85rem; color:var(--ink-dim); background:none; border:1px solid var(--line);
+    padding:6px 12px; cursor:pointer; clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
+  }
+  .backbtn:hover{color:var(--ink); border-color:var(--accent);}
+
+  /* ---- lesson (training ground) screen ---- */
+  .lessonintro{padding:22px 26px; margin-bottom:20px;}
+  .lessonintro h2{font-size:1.3rem; margin-bottom:6px;}
+  .lessonintro p{margin:0; max-width:64ch; color:var(--ink-dim);}
+  .lessongrid{display:flex; flex-direction:column; gap:14px; margin-bottom:22px;}
+  .lessoncard{padding:18px 20px 20px;}
+  .lessoncard .lstep{font-family:var(--font-mono); font-size:.7rem; color:var(--accent); letter-spacing:.12em; text-transform:uppercase; margin-bottom:4px;}
+  .lessoncard h3{font-size:1.05rem; margin-bottom:10px;}
+  .lessonexplain{margin:12px 0 0; color:var(--ink-dim); font-size:.92rem;}
+
+  .combatants{display:grid; grid-template-columns:1fr auto 1fr; gap:14px; align-items:stretch; margin-bottom:18px;}
+  .fighter{padding:16px; display:flex; flex-direction:column; gap:8px;}
+  .fighter .who{display:flex; align-items:center; gap:10px;}
+  .fighter .who .emoji{font-size:2rem;}
+  .fighter .who .name{font-weight:600;}
+  .fighter .who .name small{display:block; font-weight:400; font-size:.7rem; color:var(--ink-dim);}
+  .hpbar{height:12px; background:var(--bg-2); border:1px solid var(--line); position:relative; overflow:hidden;}
+  .hpbar i{
+    position:absolute; inset:0; width:100%; display:block; transform-origin:left;
+    transition:transform .5s cubic-bezier(.3,.9,.4,1);
+  }
+  .hpbar.hero i{background:linear-gradient(90deg, color-mix(in srgb, var(--hero) 70%, black 0%), var(--hero));}
+  .hpbar.monster i{background:linear-gradient(90deg, var(--danger), color-mix(in srgb, var(--danger) 70%, black 10%));}
+  .hpnum{font-family:var(--font-mono); font-size:.78rem; color:var(--ink-dim); display:flex; justify-content:space-between;}
+  .vs{align-self:center; font-family:var(--font-display); font-size:1.1rem; color:var(--ink-dim);}
+
+  .qcard{padding:26px 26px 22px; margin-bottom:16px;}
+  .qmeta{display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:.72rem; color:var(--ink-dim); letter-spacing:.08em; text-transform:uppercase; margin-bottom:14px;}
+  .qlead{font-size:.92rem; color:var(--ink-dim); margin-bottom:10px;}
+
+  .codeblock{
+    background:var(--code-bg); color:var(--code-ink); font-family:var(--font-mono); font-size:.92rem;
+    padding:16px 18px; margin:0 0 18px; white-space:pre-wrap; word-break:break-word; line-height:1.7;
+    border:1px solid var(--line); border-left:3px solid var(--accent);
+  }
+  .lessoncard .codeblock{margin-bottom:0;}
+  .blank{
+    color:var(--accent-ink); background:var(--accent); font-weight:700; letter-spacing:.04em;
+    padding:0 4px; border-radius:2px;
+  }
+
+  .answerrow{display:flex; gap:10px; flex-wrap:wrap;}
+  .codeinput{
+    flex:1 1 260px; min-width:200px; font-family:var(--font-mono); font-size:.95rem;
+    background:var(--bg-2); color:var(--ink); border:1px solid var(--line); padding:12px 14px;
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+  }
+  .codeinput:disabled{opacity:.7;}
+  .codeinput::placeholder{color:var(--ink-dim);}
+
+  .feedback{padding:18px 20px; margin-bottom:16px; font-size:.92rem;}
+  .feedback .head{font-weight:700; margin-bottom:10px; font-size:1rem;}
+  .feedback.good .head{color:var(--hero);}
+  .feedback.bad .head{color:var(--danger);}
+  .feedback .yourans, .feedback .correctans{margin:0 0 10px; display:flex; gap:8px; align-items:baseline; flex-wrap:wrap;}
+  .feedback .label{font-size:.75rem; color:var(--ink-dim); letter-spacing:.06em; text-transform:uppercase; flex:none;}
+  .feedback .chip{font-family:var(--font-mono); background:var(--bg-2); border:1px solid var(--line); padding:2px 8px; border-radius:3px;}
+  .feedback .explain{margin:12px 0 0; color:var(--ink); border-top:1px dashed var(--line); padding-top:12px;}
+  .feedback .explain .tag{display:block; font-size:.72rem; color:var(--accent); letter-spacing:.1em; text-transform:uppercase; margin-bottom:6px;}
+
+  .primary{
+    font-family:var(--font-body); font-weight:600; font-size:.95rem;
+    background:var(--accent); color:var(--accent-ink); border:none; padding:11px 22px; cursor:pointer;
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+  }
+  .primary:hover:not(:disabled){filter:brightness(1.06);}
+  .primary:disabled{opacity:.5; cursor:default;}
+  .actionrow{display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;}
+
+  .shake{animation:shake .35s ease;}
+  @keyframes shake{
+    10%,90%{transform:translateX(-1px);} 20%,80%{transform:translateX(2px);}
+    30%,50%,70%{transform:translateX(-4px);} 40%,60%{transform:translateX(4px);}
+  }
+  .pulse{animation:pulse .4s ease;}
+  @keyframes pulse{0%{filter:brightness(1);}40%{filter:brightness(1.35);}100%{filter:brightness(1);}}
+
+  /* ---- result screen ---- */
+  .result{padding:34px 30px; text-align:center;}
+  .result .bigemoji{font-size:3rem; display:block; margin-bottom:6px;}
+  .result h2{font-size:1.5rem; margin-bottom:6px;}
+  .result .starsline{font-size:1.6rem; color:var(--accent); margin:10px 0 14px; letter-spacing:.1em;}
+  .result p{color:var(--ink-dim); max-width:48ch; margin:0 auto 20px;}
+  .resultbtns{display:flex; justify-content:center; gap:12px; flex-wrap:wrap;}
+  .ghost{
+    font-family:var(--font-body); font-size:.9rem; color:var(--ink); background:none;
+    border:1px solid var(--line); padding:10px 20px; cursor:pointer;
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+  }
+  .ghost:hover{border-color:var(--accent);}
+
+  .allclear{padding:30px; text-align:center; margin-top:20px;}
+  .footer-note{text-align:center; color:var(--ink-dim); font-size:.78rem; margin-top:30px;}
+</style>
+
+<div class="stage" id="app"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /*
+   lesson         : 戦闘の前に読む「訓練場」の例題(完成済みコード+解説)。
+   before / after : 空欄問題のコード片(改行は\nで表現)。この間に空欄(______)が入る。
+   answers        : 正解として受け付ける入力(複数可)。空白の有無・大小文字は自動で吸収する。
+   explain        : 完全初学者向けの解説。
+  */
+  var STAGES = [
+    {id:'w1', title:'入出力の間', sub:'Week1 C++の入出力', emoji:'👺', mon:'出力ゴブリン',
+      lesson:[
+        {title:'画面に文字を出す', code:'#include <iostream>\nusing namespace std;\nint main(){\n  cout << "Hello World!" << endl;\n}',
+         explain:'coutは画面(コンソール)に文字を出すための「出力ストリーム」というオブジェクトです。ストリームとは「データが流れる川」のようなイメージで、coutは「画面という川の出口」だと考えるとわかりやすいです。<<(出力演算子)を使って、coutの右側に出したい値をどんどんつなげていくと、その値が左から順番に画面に表示されます。この例では文字列"Hello World!"のあとにendlが続いていますが、endlは改行をしたうえで、プログラムが一時的にためている出力データ(バッファ)を確実に画面に反映させる働きをします。C++のプログラムはmain関数の中に書かれた命令が上から順番に実行されるので、この1行が実行された瞬間に画面に文字が現れます。'},
+        {title:'表示形式を変えるマニピュレータ', code:'cout << hex << 255 << endl; // ff\ncout << dec << 255 << endl; // 255',
+         explain:'hex, oct, decは「マニピュレータ」と呼ばれる特別な単語で、coutに<<でつなぐと、その後ろに続く数値の見た目(表示形式)を切り替えることができます。普段私たちが使っている0〜9の数字の数え方が10進数(dec)、0〜7だけを使うのが8進数(oct)、0〜9とa〜fを使うのが16進数(hex)です。コンピュータの内部ではすべて2進数(0と1)でデータが扱われていますが、2進数は人間には読みにくいため、プログラムでは16進数がよく使われます(4桁の2進数がちょうど16進数の1桁に対応するため、読み替えがしやすいのです)。マニピュレータは出力(cout)だけでなく、cin >> hex >> n; のように入力(cin)にもつけることができ、キーボードから入力された文字列を指定した形式の数値として読み取ってくれます。一度hexを指定すると、その後は指定し直すまでずっとその形式が続く点にも注意しましょう。'},
+        {title:'std::を省略する', code:'using namespace std;\n// これ以降 std:: を省略できる\ncout << "Hi" << endl;',
+         explain:'C++の標準ライブラリにあるcoutやendlは、正式にはstd::cout、std::endlのように「std::」という接頭辞をつけて書く必要があります。これはcoutやendlがstdという「名前空間(namespace)」に属しているからです。名前空間は、たくさんの人が作ったプログラム部品を組み合わせて使うときに、同じ名前の関数や変数がぶつかってしまわないように整理する「引き出し」や「タグ」のようなものだと考えてください。毎回std::と書くのは面倒なので、プログラムの先頭で using namespace std; と宣言しておくと、それ以降はstd名前空間にあるものをstd::なしでそのまま書けるようになります。ただし大きなプログラムでは複数のライブラリで同じ名前が使われて衝突する可能性があるため、using namespace stdを使わずに毎回std::をつけて書くスタイルが好まれることもあります。'}
+      ],
+      qs:[
+        {before:'int main(){\n  ', after:' << "Hello World!" << endl;\n}',
+         answers:['cout','std::cout'],
+         explain:'coutはC++が標準で用意している「出力ストリーム」というオブジェクトです。画面(コンソール)に文字や数値を出すための窓口だと考えてください。coutの後ろに<<(出力演算子)をつけて出したい値を書くと、その値が画面に表示されます。<<は複数つなげることもでき、cout << "a" << "b" << endl; のように書けば"a"と"b"が続けて表示されます。もしプログラムの先頭で using namespace std; を書いていなければ、std::cout << ... と、std::をつけて書く必要がある点も覚えておきましょう。cOutのように綴りを間違えるとコンパイルエラーになるので、正確に小文字で cout と書くことが大切です。'},
+        {before:'#include <', after:'>\nusing namespace std;\nint main(){\n  cout << "Hi" << endl;\n}',
+         answers:['iostream'],
+         explain:'coutやcin、endlといった画面への入出力に関する機能は、C++の標準ライブラリの中でも「iostream」という部品(ヘッダファイル)にまとめられています。自分のプログラムでこれらの機能を使いたいときは、ファイルの一番上で #include <iostream> と書いて、その部品を読み込む(取り込む)必要があります。includeは英語で「含める・取り込む」という意味です。もしこの1行を書き忘れると、coutなどが「定義されていない」というコンパイルエラーになってしまいます。ちなみに、ファイルの読み書きをしたいときは<fstream>、文字列専用の便利なクラスを使いたいときは<string>というように、機能ごとに読み込むヘッダファイルが分かれているので、目的に応じて必要なヘッダを追加していくのがC++プログラミングの基本の流れです。'},
+        {before:'cout << "10進数表示 " << ', after:' << n << endl; // nを10進数で表示したい',
+         answers:['dec'],
+         explain:'マニピュレータとは、coutに<<でつなげることで、それ以降に出力する数値の表示形式を切り替えられる特別な単語のことです。decは「decimal(10進数)」の略で、私たちが日常生活で使っている0〜9の数字だけを使う数え方のことです。実はマニピュレータを何も指定しなければ、coutは最初からdec(10進数)で数値を表示するようになっています。つまりdecを明示的に指定するのは「これから10進数に戻しますよ」という合図であり、hexやoctで表示形式を変えたあとに元の10進数表示に戻したいときによく使われます。'},
+        {before:'cout << "16進数表示 " << ', after:' << n << endl;',
+         answers:['hex'],
+         explain:'hexは「hexadecimal(16進数)」の略で、0から9の数字に加えてa,b,c,d,e,fの6文字を使い、合計16種類の記号で数を表す方法です。たとえば10進数の255は16進数だとffになります。コンピュータのメモリのアドレスや、色のコード(例:#ff0000)など、2進数と相性が良い場面でよく使われます。マニピュレータは一度指定すると、明示的にdecなどに変更するまでずっとその表示形式が続く「状態を切り替えるスイッチ」のようなものであることも覚えておきましょう。'},
+        {before:'cout << "Hello World!" << ', after:'; // 改行し、かつ画面にすぐ表示したい',
+         answers:['endl'],
+         explain:'endlは「end of line(行の終わり)」の略で、2つの役割を同時にこなす便利なマニピュレータです。1つ目は改行文字を出力すること、2つ目はバッファ(まだ画面に表示されず、プログラム内部に一時的にためられている出力データ)の中身を強制的に画面へ送り出す(flushする)ことです。似たものに"\\n"という改行文字がありますが、"\\n"は改行するだけでflushはしません。通常のプログラムでは違いを意識しなくても動きますが、大量に出力する処理では"\\n"の方が高速に動作することがある、という違いも知っておくと応用が効きます。'},
+        {before:'// std名前空間に属する機能を毎回省略して書けるようにする宣言\n', after:' std;',
+         answers:['using namespace'],
+         explain:'using namespace std; という1行を書いておくと、std(標準)という名前空間に属しているcout, cin, endlなどの機能を、std::という接頭辞を省略してそのまま書けるようになります。これは「std という引き出しの中身を、いちいち住所を書かなくても取り出せるようにする」ことを宣言しているとイメージしてください。namespace(名前空間)は、様々なライブラリで同じ名前の関数や変数が使われていても、名前空間ごとに区別することで名前の衝突(バッティング)を防ぐ仕組みです。学習中のプログラムでは using namespace std; を書いておくと記述がシンプルになりますが、実務では意図しない名前の衝突を避けるため、あえて省略せずにstd::を毎回書くコーディングスタイルもよく使われます。'},
+        {before:'cin >> ', after:' >> n; // nに16進数として入力された値を読み込みたい',
+         answers:['hex'],
+         explain:'マニピュレータは出力用のcoutだけでなく、入力用のcinにもそのまま使うことができます。cin >> hex >> n; と書くと、キーボードから入力された文字列を「16進数の数値」として解釈し、変換した結果をnに代入します。たとえばユーザーが"ff"と入力した場合、nには10進数で255が格納されます。マニピュレータは一度cinに対して指定すると、次にまた別のマニピュレータ(decなど)を指定するまで、その解釈方式がずっと有効なままになる点にも注意しましょう。'}
+      ]},
+    {id:'w2', title:'ポインタの回廊', sub:'Week2 ポインタと参照', emoji:'💀', mon:'ポインタスケルトン',
+      lesson:[
+        {title:'アドレスとポインタ', code:'int a = 10;\nint* p = &a;   // pはaのアドレスを持つ\ncout << p << endl;   // aのアドレス\ncout << *p << endl;  // aの中身(10)',
+         explain:'コンピュータのメモリは、1バイトごとに「住所」がついた広大な棚のようなものです。変数を宣言すると、この棚のどこかにその変数専用の場所が確保され、値が保管されます。&(アドレス演算子)を変数の前につけると「その変数が棚の何番地に置かれているか」を調べることができ、これを「アドレス」と呼びます。int* pのように型の後ろに*をつけて宣言した変数は「ポインタ」と呼ばれ、住所(アドレス)だけを保管する専用の箱です。p = &a; と書くとpの中には「aの住所」が入ります。そして*p(間接参照)と書くと、逆に「pに書かれた住所の場所に実際に何が置かれているか」を覗きに行くことができます。&で住所を調べ、*でその住所の中身を見に行く、この2つはペアで使う演算子だと覚えておくと理解しやすくなります。'},
+        {title:'参照(別名)', code:'int a = 10;\nint& x = a;  // xはaの別名\nx = 20;\ncout << a << endl; // 20',
+         explain:'参照(リファレンス)は、すでにある変数につける「別名(あだ名)」のようなものです。int& x = a; と書くと、xという新しい変数が作られるのではなく、xはaと全く同じメモリ上の場所を指す別名になります。そのためxに値を代入するとaの中身も一緒に変わりますし、逆にaを変えるとxを読んだときの値も変わります。ポインタと似ていますが、参照は宣言と同時に必ず初期化しなければならず(int& x; だけの宣言はエラーになります)、一度ある変数の別名になったら、後で別の変数を指すように変更することもできません。この「一度決めたらずっとそのまま」という性質が、ポインタとの大きな違いです。'},
+        {title:'ポインタのサイズ', code:'cout << sizeof(int*) << endl; // 8 (64bit環境)',
+         explain:'ポインタは「どの型を指すか」に関わらず、中身は「アドレス(住所)」という数値を保存しているだけです。現在主流の64bit環境では、メモリの住所を表現するのに64ビット=8バイトの情報量が必要になるため、int型を指すポインタでもdouble型を指すポインタでも、ポインタ変数自体のサイズは常に8バイトになります(int自体は4バイト、double自体は8バイトというように「指す先」のサイズは型によって違いますが、それとポインタ自体のサイズは別の話です)。'}
+      ],
+      qs:[
+        {before:'int a;\nint', after:' p = &a; // aのアドレスを指すポインタ変数pを宣言',
+         answers:['*'],
+         explain:'変数の型の後ろに*をつけると「ポインタ型」になります。ポインタとは「住所(アドレス)」を保管できる箱のようなものです。int* p; は「int型変数のアドレスを格納できる変数pを宣言する」という意味になります。int* pでもint *pでも意味は同じで、どちらも「pという名前のint型ポインタ変数」を宣言しています。宣言した直後のポインタは、まだどこも指していない(あるいはどこか不明な場所を指している)危険な状態なので、続けて &変数名 を代入してあげる必要があります。'},
+        {before:'int a = 10;\ncout << ', after:'a << endl; // aのアドレスを表示したい',
+         answers:['&'],
+         explain:'&(アドレス演算子)を変数の前につけると、その変数がメモリ上のどこに置かれているか、つまり「アドレス(住所)」を取得できます。&aは「aのアドレス」という意味で、実行するたびに0x7ff...のような16進数の値が表示されます(この値はプログラムを実行するたびに変わることがあります)。この&は、ポインタ変数にアドレスを代入するとき(int* p = &a;)にも同じ記号を使うので、「アドレスを取り出す記号は&」としっかり覚えておきましょう。'},
+        {before:'int a = 10;\nint* p = &a;\ncout << ', after:'p << endl; // pが指す先にある実際の値(10)を表示したい',
+         answers:['*'],
+         explain:'*(間接参照演算子、デリファレンス演算子)をポインタ変数の前につけると、そのポインタに書かれているアドレスの場所まで実際に見に行き、そこに置かれている「実際の値」を取り出せます。pにはaのアドレスが入っているので、*pは「pが指す場所、つまりaの中身」を意味し、結果として10が表示されます。&(アドレスを取る)と*(アドレス先の値を取る)はちょうど逆の働きをするペアの演算子なので、セットで覚えておくと混乱しにくくなります。'},
+        {before:'int a = 5;\nint', after:' x = a; // aの別名(参照)としてxを宣言',
+         answers:['&'],
+         explain:'型の後ろに&をつけると「参照」という、別の変数の別名(あだ名)を作れます。int& x = a; と書くとxはaの別名になり、xを変更するとaの中身も一緒に変わります。参照はポインタと違って*で中身を取り出す必要がなく、普通の変数と同じ感覚でそのまま使えるのが特徴です。ただし参照は宣言と同時に必ず初期化する必要があり(int& x; だけではエラーになります)、一度どの変数の別名になるかが決まったら、後から別の変数に結びつけ直すこともできません。'},
+        {before:'// pをaのアドレスで初期化しながら宣言する(望ましい書き方)\nint* p = ', after:';',
+         answers:['&a'],
+         explain:'int* p; とだけ書いてすぐに使うと、pの中には何が入っているか分からない状態(ゴミデータ)になっており、そのまま*pで中身を読もうとすると、プログラムが予期しない場所のメモリを触ってしまい、クラッシュ(異常終了)する原因になります。これを避けるため、ポインタは宣言と同時に正しいアドレスで初期化しておくのが望ましいとされています。int* p = &a; と書けば、変数aのアドレスをその場でpに代入でき、pは最初から「aを指している」安全な状態になります。指す先がまだ決まっていない場合は、nullptr(何も指していないことを表す特別な値)で初期化しておく方法もあります。'},
+        {before:'// 64bitマシンでのポインタ変数(int*など)のサイズは何バイトか、半角数字で答えなさい\nint pointerSize = ', after:';',
+         answers:['8'],
+         explain:'現在主流の64bitマシンでは、メモリ上のすべての住所(アドレス)を表現するために64ビット=8バイトの情報を使います。ポインタ変数はまさにこの「住所そのもの」を保管する箱なので、そのサイズは指し示す先のデータの型がintであろうとdoubleであろうと関係なく、常に8バイトになります。一方でint自体は4バイト、double自体は8バイトというように、扱うデータそのもののサイズは型ごとに違います。「ポインタのサイズ」と「指している先のデータのサイズ」は別の話だという点を混同しないようにしましょう。'},
+        {before:'// 1バイトは何ビットか、半角数字で答えなさい\nint bitsPerByte = ', after:';',
+         answers:['8'],
+         explain:'コンピュータの世界では、1バイト(byte)は8ビット(bit)と決められています。ビット(bit)は「0」か「1」だけを表せる、情報の最小単位です。電球のスイッチが「オン」か「オフ」の2状態しか持たないのと同じイメージです。このビットを8個集めてひとまとめにしたものが1バイトで、8個の0/1の組み合わせなので2の8乗=256通りの値を表現できます(これがchar型が256通りの値を表せる理由でもあります)。バイトは、データの大きさを表すときの基本的な単位として、int型は4バイト、ポインタは8バイトというように、いろいろな型のサイズを説明する際によく登場します。'}
+      ]},
+    {id:'w3', title:'関数の迷宮', sub:'Week3 関数', emoji:'🐙', mon:'オーバーロードオクトパス',
+      lesson:[
+        {title:'戻り値なしの関数', code:'void show(int x){\n  cout << x << endl;\n}',
+         explain:'関数の中には、計算した結果を呼び出し元に返す(returnする)ものと、画面に表示するだけなど「返す値が無い」ものがあります。後者を作るときは、戻り値の型としてvoid(空っぽ、という意味の英単語)を書きます。voidの関数はreturn文で値を返す必要が無く、途中で処理を終わらせたいときはreturn;とだけ書くこともできます。int型などの戻り値がある関数では、必ずreturn 値; のように何かしらの値を返さなければコンパイラに警告されますが、voidの関数にはその制約がありません。'},
+        {title:'オーバーロード', code:'int add(int x,int y){ return x+y; }\ndouble add(double x,double y){ return x+y; }',
+         explain:'普通は同じ名前の関数を2つ定義するとエラーになりますが、C++では引数の型や個数が違っていれば、同じ名前の関数をいくつも定義することができます。これを「関数オーバーロード」と呼びます。add(1,3)のようにint型の引数で呼び出せば上のadd(int,int)が、add(1.5,3.2)のようにdouble型の引数で呼び出せば下のadd(double,double)が、それぞれ自動的に選ばれて実行されます。人間が「整数の足し算」と「小数の足し算」を1つの関数名addで呼び分けられるので、覚える関数名を減らせるのがオーバーロードの利点です。'},
+        {title:'ポインタ渡し・参照渡し', code:'void swap(int* px, int* py){\n  int t=*px; *px=*py; *py=t;\n}\nint main(){\n  int x=1,y=2;\n  swap(&x,&y);\n}',
+         explain:'関数に変数をそのまま渡す「値渡し」では、関数の中で使われる仮引数(このコード例だとxやy)は、実際には呼び出し元の変数のコピーにすぎません。そのためswap(x,y)のように普通に値渡しでswap関数を書いても、関数の中でコピーを入れ替えているだけで、呼び出し元のx,y自体は変化しません。呼び出し元の変数の中身そのものを書き換えたいときは、「その変数がどこにあるか(アドレス)」を関数に伝えて、その場所を直接書き換えてもらう必要があります。これを実現する方法が2つあり、1つはポインタ渡し(呼び出し側で&をつけてアドレスを渡し、関数の中では*をつけて中身を触る)、もう1つは参照渡し(呼び出し側はそのまま渡し、関数の仮引数の型に&をつけておく)です。'}
+      ],
+      qs:[
+        {before:'', after:' show(int x, int y){\n  cout << x + y << endl;\n} // 戻り値の無い関数の戻り値の型はどう書く？',
+         answers:['void'],
+         explain:'戻り値(関数が計算した結果として返す値)が無い関数を作るときは、戻り値の型としてvoidを書きます。voidは英語で「空っぽ」という意味です。この例のshow関数は、x+yの計算結果をreturnで返すのではなく、cout << ... で直接画面に表示してしまっているので、呼び出し元に何かを返す必要がありません。そのためintではなくvoidを戻り値の型にします。voidの関数は、途中で処理を終わらせたいときreturn;とだけ書くこともできます(値をつけて return 何か; とは書けません)。'},
+        {before:'int add(int x, int y){ return x+y; }\ndouble add(double x, double y){ return x+y; }\n// このように同じ名前addで引数の型が異なる関数を複数定義することを何と呼ぶか(カタカナで)\n', after:'',
+         answers:['オーバーロード','関数オーバーロード'],
+         explain:'引数の型や数が異なれば、同じ名前の関数をいくつも定義できます。これを「関数オーバーロード」と呼びます。呼び出すときに渡した引数の型や数を見て、コンパイラがどの関数を使うか自動的に判断してくれるので、呼び出す側は「addという名前で足し算する」とだけ覚えておけば十分です。一方、引数の型と個数が完全に同じで戻り値の型だけを変えた関数(例えばint add(int,int)とdouble add(int,int))は定義できません。呼び出すときにコンパイラがどちらを使うべきか判断できず、あいまいになってしまうからです。'},
+        {before:'void swap(int* px, int* py){\n  int a;\n  a = ', after:'px;\n  *px = *py;\n  *py = a;\n}',
+         answers:['*'],
+         explain:'仮引数pxはint型へのポインタ(int*)なので、pxという変数そのものに入っているのは「あるint変数のアドレス」です。もしただ a = px; と書いてしまうと、値ではなくアドレス(住所を表す数値)をaに代入することになり、意図した動作になりません。呼び出し元にある本当のint変数の中身を取り出したり書き換えたりするには、*px のように間接参照演算子*をつけて「pxが指すアドレスまで行って、そこにある実際の値を見る/書き換える」という操作をする必要があります。この関数全体では、a=*px; *px=*py; *py=a; という3行によって、pxとpyが指す先の2つの変数の中身を入れ替えています。'},
+        {before:'void swap(int* px, int* py){ ... }\nint main(){\n  int x=3, y=5;\n  swap(', after:'); // ポインタ渡しの場合、実引数はどう渡す？\n}',
+         answers:['&x,&y'],
+         explain:'swap関数の仮引数(px, py)はint*型、つまり「int型の変数のアドレスを受け取る」ように定義されています。そのため呼び出す側でも、渡したい変数の「アドレス」を用意してあげる必要があり、それには変数の前に&(アドレス演算子)をつけます。もしうっかり swap(x, y); のようにアドレスではなく値そのものを渡してしまうと、int*型が必要なところにint型を渡すことになり、コンパイルエラーになります。ちなみに同じ目的を果たす「参照渡し」を使う場合は、仮引数の型に&をつける代わりに、呼び出し側では &をつけずに swap(x, y); とそのまま渡します。ポインタ渡しは呼び出す側にも&が必要、参照渡しは呼び出す側は普通に渡すだけ、という違いを整理して覚えておきましょう。'},
+        {before:'int main(){\n  int n = 10;\n  {\n    int n = 3; // 内側のブロックだけで有効な別のn\n    cout << n << endl; // 内側のcoutで出力される値を半角数字で書きなさい\n  }\n  cout << n << endl;\n}\nint innerOutput = ', after:';',
+         answers:['3'],
+         explain:'波括弧{ }で囲まれた範囲のことを「ブロック」と呼び、変数はそれが宣言されたブロックの中でだけ有効です(これを「スコープ」と呼びます)。この例では、外側でn=10という変数が宣言された後、内側の{ }の中でもう一度 int n = 3; と、同じ名前の変数が新しく宣言されています。C++ではこのように内側のブロックで同じ名前の変数を宣言すると、そのブロックの中に限っては内側のnが優先され、外側のnは一時的に見えなくなります(これを「シャドーイング」、影に隠れることと呼びます)。そのため内側のcoutでは3が出力されます。そして内側のブロックを抜けると、内側のnはメモリごと消えてなくなり、再び外側のn(10)が見えるようになるので、次のcoutでは10が出力されます。'},
+        {before:'int main(){\n  return ', after:'; // OSに正常終了を伝える一般的な値\n}',
+         answers:['0'],
+         explain:'main関数は、プログラムを実行したときに一番最初に呼び出される、いわばプログラム全体の入り口です。プログラムが最後まで実行し終わったら、OS(オペレーティングシステム)に「終了コード」という数値を1つ返す決まりになっています。慣習として0を返すと「エラーなく正常に終了した」ことを、0以外の値を返すと「何らかの問題があって終了した」ことを表します。ちなみにmain関数に限っては特別に、このreturn 0;を省略してもコンパイラが自動的に0を返す処理を補ってくれます。'},
+        {before:'// 戻り値の型\n', after:' main(){\n  int a=10,b=30,c;\n  c = a-b;\n}',
+         answers:['int'],
+         explain:'C++の関数は「戻り値の型 関数名(引数){ 処理 }」という形で定義し、戻り値の型は必ず関数名の前に書きます。main関数はプログラムの入り口であり、実行し終わったらOSに終了コード(通常のint型の整数)を返す約束になっているため、int main(){ ... } という形が基本形になります。もしvoid main(){ ... } のように書いてしまうと、多くの環境でエラーや警告の原因になるので注意しましょう。'}
+      ]},
+    {id:'w4', title:'配列の石壁', sub:'Week4 配列', emoji:'🧱', mon:'アレイブロック',
+      lesson:[
+        {title:'配列の基本', code:'int a[5] = {10,20,30,40,50};\ncout << a[0] << endl; // 10\ncout << a[4] << endl; // 50',
+         explain:'配列は、同じ型の変数をメモリ上に隙間なく連続して並べたものです。それぞれの箱には「添字(インデックス、要素番号)」という番号がついていますが、この番号は1からではなく0から始まります。そのため要素数(サイズ)が5の配列では、有効な添字は0,1,2,3,4の5つで、a[4]が最後の要素になります。日本語では「1番目」というと普通1から数えますが、プログラミングではa[0]が「1番目の要素」を指すことに最初は戸惑いやすいので、意識して慣れておきましょう。a[5]のように存在しない添字にアクセスすると、コンパイルエラーにはならず実行時に不具合(範囲外アクセス)が起きるので特に注意が必要です。'},
+        {title:'配列を関数に渡す', code:'void printSum(int* a, int n){\n  int sum=0;\n  for(int i=0;i<n;i++) sum+=a[i];\n  cout << sum << endl;\n}',
+         explain:'配列を関数の引数として渡すと、実はその配列全体がコピーされるのではなく、「配列の先頭要素のアドレス」だけが渡され、関数の中では配列はただのポインタとして扱われます。ポインタになってしまうと「この配列が全部でいくつの要素を持っているか」という情報は失われてしまいます。そのため、配列を受け取る関数を作るときは、要素数(サイズ)も別の引数として一緒に渡してあげるのが基本です。この例のprintSum関数もint* aとint nの2つを受け取り、forループはi<nという条件でnまで繰り返すことで、渡された配列の範囲だけを正しく合計できるようになっています。'},
+        {title:'バブルソート', code:'for(int i=1;i<n;i++)\n  for(int j=n-1;j>=i;j--)\n    if(a[j-1]>a[j]){\n      int w=a[j]; a[j]=a[j-1]; a[j-1]=w;\n    }',
+         explain:'配列の並べ替え(ソート)を行う代表的な方法の1つが「バブルソート」です。隣どうしの要素を1組ずつ比べていき、もし順番が逆(小さい順に並べたいのに左側の方が大きい)なら、その場で2つの値を交換します。これを配列の端から端まで繰り返し行い、さらにその一連の処理全体を配列のサイズ分だけ繰り返すことで、最終的にすべての要素が正しい順番に並びます。値が少しずつ正しい位置へ水面の泡(バブル)のように浮かび上がっていく様子から、この名前がつけられました。'}
+      ],
+      qs:[
+        {before:'int a[5] = {10,20,30,40,50};\n// 添字は0から始まるので、最後の要素a[', after:']には50が入っている(半角数字を書く)',
+         answers:['4'],
+         explain:'配列の添字(要素番号)は0から始まります。サイズが5の配列なら有効な添字は0,1,2,3,4の5つで、最後の要素はa[4]になります。「サイズが5だから、最後の添字も5だろう」と勘違いしてa[5]にアクセスしてしまうのは初心者が非常によく犯すミスです。a[5]は本来存在しない場所なので、コンパイル時にはエラーにならなくても、実行時に予期しない値が出たりプログラムが異常終了したりする原因になります。「サイズがnなら、有効な添字は0からn-1まで」という公式のようにセットで覚えておきましょう。'},
+        {before:'void printSum(int* a, int n){\n  int sum=0;\n  for(int i=0;i<n;i++) sum += a[i];\n  cout << sum << endl;\n}\nint main(){\n  int arr[]={1,2,3};\n  printSum(arr, ', after:'); // 配列と一緒に渡す必要がある値(要素数)を半角数字で書く\n}',
+         answers:['3'],
+         explain:'配列を関数に渡すと、関数の中では配列がただの「先頭アドレスを指すポインタ」に格下げされてしまい、要素数(サイズ)の情報が失われます。printSum関数の中でsizeof(a)を使ってサイズを求めようとしても、配列全体のバイト数ではなく、ポインタ自体のサイズ(8バイト)が返ってきてしまい、正しく動きません。そのため配列を渡す関数にはサイズも一緒に渡す必要があります。ここでは配列arrの要素数3を、for(int i=0;i<n;i++)のnとして渡すことで、関数の中で正しくa[0]からa[2]までを合計できるようになります。'},
+        {before:'', after:' int size = 3; // sizeを値の変更できない定数にしたい\nint a[size];',
+         answers:['const'],
+         explain:'変数の前にconstをつけると「値を変更できない定数」として扱われます。const int size = 3; と宣言した後で size = 4; のように書き換えようとすると、コンパイラがその場でエラーを出して教えてくれます。「うっかりプログラムの途中で値を書き換えてしまい、意図しない不具合が起きる」ことを防げるので、配列のサイズのように、一度決めたら変えるつもりのない値には積極的にconstをつけておくのが良い習慣とされています。'},
+        {before:'int a[5];\n// 宣言の後に中括弧で再代入すること a[5]={1,2,3,4,5}; は', after:'(「できる」か「できない」で答えなさい)',
+         answers:['できない'],
+         explain:'{ }を使ったまとめての初期化(int a[5] = {1,2,3,4,5};のような書き方)は、変数を宣言するその瞬間にしか使えません。すでに宣言済みの配列に対して、後からもう一度 a[5] = {1,2,3,4,5}; のように書いても文法エラーになります。宣言済みの配列の中身をまとめて入れ替えたい場合は、for(int i=0;i<5;i++){ a[i] = 新しい値; } のように、for文を使って要素を1つずつ代入し直す必要があります。'},
+        {before:'int a[]={7,3,9,2};\nint w;\nfor(int i=1;i<4;i++){\n  for(int j=3;j>=i;j--){\n    if(a[j-1]', after:'a[j]){\n      w=a[j]; a[j]=a[j-1]; a[j-1]=w;\n    }\n  }\n}\n// 小さい順に並べ替えたいとき、隣接する要素を比較する不等号を書く',
+         answers:['>'],
+         explain:'バブルソートでは、隣り合う2つの要素を比較して、順番が逆になっていたら交換する、という処理を繰り返します。「小さい順」に並べたい場合、隣り合う2要素のうち左側(a[j-1])の方が右側(a[j])より大きいなら、それは「逆順」なので交換が必要です。この条件を書いたのが if(a[j-1] > a[j]) です。もし逆に「大きい順」に並べ替えたいのであれば、条件を if(a[j-1] < a[j]) のように不等号を逆にするだけで、同じロジックのまま並べ替える方向を変えられます。'},
+        {before:'int a[5];\ncout << a << endl;\n// 配列名だけを書くと何を表すか(「アドレス」という言葉を使って答えなさい)\n', after:'',
+         answers:['アドレス','先頭要素のアドレス'],
+         explain:'C++では、配列名を単独で(添字[ ]をつけずに)使うと、それは配列の中身(値)ではなく、配列の先頭要素a[0]が置かれているメモリ上の場所、つまり「アドレス」を表します。これは「配列名はポインタのように振る舞う」と言われる性質で、実際 cout << a; と cout << &a[0]; はほぼ同じアドレスを表示します。この性質があるからこそ、配列を関数に渡すときに printSum(arr, n); のように配列名だけを書けば、その先頭アドレスが自動的に渡されるようになっているのです。'},
+        {before:'// 配列の隣接する要素を比較・交換することを繰り返して並べ替えるアルゴリズムの名前をカタカナで書きなさい\n', after:'',
+         answers:['バブルソート'],
+         explain:'隣り合う要素を比べて、順番が逆なら交換する、という操作を配列の端まで繰り返すことで並べ替えるアルゴリズムを「バブルソート」と呼びます。1回のひと通りの比較・交換(内側のforループ)を1パスと呼ぶとすると、1パス終えるごとに一番大きい(または小さい)値が少しずつ端の方へ押し出されていき、その様子が水面に向かって浮かび上がる泡(バブル)のように見えることからこの名前がつきました。書き方がシンプルで理解しやすい反面、要素数が多くなると比較・交換の回数が急激に増えるため、実務では他のもっと効率的な並べ替えアルゴリズム(クイックソートなど)が使われることも多いです。'}
+      ]},
+    {id:'w5', title:'文字列の書庫', sub:'Week5 文字列', emoji:'📜', mon:'サイレント・スクロール',
+      lesson:[
+        {title:'文字列とヌル文字', code:'char word[] = "hello";\ncout << word << endl;   // hello\ncout << sizeof(word) << endl; // 6 (ヌル文字込み)',
+         explain:'C++における「文字列」の実体は、char型(1文字を表す型)の変数を並べた配列です。"hello"のように""で文字列を書くと、コンパイラは自動的にh,e,l,l,oの5文字に加えて、末尾に「ヌル文字」と呼ばれる特別な文字(\\0、値としては0)を付け加えてくれます。coutなどが文字列を表示するときは、このヌル文字が現れるところまでを「1つの文字列の終わり」とみなして処理します。そのためsizeof(word)のようにこの配列全体のバイト数を調べると、見た目の文字数(5文字)より1つ多い6が返ってきます。「見えている文字数+1」が配列全体のサイズになる、という点を意識しておきましょう。'},
+        {title:'stringクラス', code:'#include <string>\nstring s = "Hello";\ns += "!";\ncout << s << endl; // Hello!',
+         explain:'char配列で文字列を扱うと、ヌル文字の管理やサイズの計算などを自分で意識しなければならず面倒です。そこでC++には、文字列をもっと手軽に扱うためのstringというクラスが標準で用意されています。<string>ヘッダをインクルードすれば使え、string s = "Hello"; のように、まるで普通の変数のように文字列を代入できます。s += "!"; のように+=演算子で文字列の末尾に別の文字列を連結したり、s.size()で今の文字数を調べたり、s.at(1)で特定の位置の文字を取り出したりと、char配列を自分で操作するより格段に簡単に文字列を扱えるようになります。'},
+        {title:'ファイル入出力', code:'#include <fstream>\nfstream fin;\nfin.open("data.txt", ios::in);\nstring line;\ngetline(fin, line);',
+         explain:'これまで使ってきたcout, cinは画面(コンソール)とのやり取りに使うものでしたが、ファイルを読み書きしたいときは<fstream>ヘッダにあるfstreamクラスを使います。fin.open("data.txt", ios::in); のように、開きたいファイル名と、どのようなモードで開くかをopen()メソッドに渡します。ios::inは「読み込み(input)」、ios::outは「書き込み(output)」を表す指定子です。ファイルを開いたあとは、cinで画面から読み込むのとほぼ同じ感覚で fin >> 変数 や getline(fin, line) のように読み込むことができます。getlineは、区切り文字(スペースなど)ではなく「改行」までをまとめて1行分読み込んでくれる関数で、氏名のようにスペースを含むデータを読み込みたいときに特に便利です。'}
+      ],
+      qs:[
+        {before:'char word[] = "hello";\n// 文字列の終わりを示すために自動的に付け加えられる特別な文字を、\\記法で書きなさい\n', after:'',
+         answers:['\\0'],
+         explain:'文字列(char配列)の末尾には、自動的に「ヌル文字」と呼ばれる特別な文字が付け加えられます。プログラム中では\\0と書き表し、値としては0そのものです(見た目の文字が印刷されるわけではありません)。coutや文字列を扱うさまざまな関数は、この特別な値0=ヌル文字が現れるところまでを「1つの文字列」として扱う決まりになっています。つまりヌル文字は「文字列はここでおしまいです」という目印の役割を果たしているのです。'},
+        {before:'char word[] = "hello";\ncout << ', after:' word << endl; // 配列全体のバイト数(ヌル文字含む)を調べる演算子',
+         answers:['sizeof'],
+         explain:'sizeofは、変数や配列が実際にメモリ上でどれだけのバイト数を占めているかを教えてくれる演算子です。"hello"という文字列は見た目には5文字ですが、char配列にする際、目に見えない末尾のヌル文字(\\0)が自動的に1つ追加されるため、実際に確保されているメモリは6バイト分になります。そのためsizeof(word)は5ではなく6を返します。「文字列の見た目の長さ」と「実際に使っているメモリのサイズ」は1つずれる、という点を覚えておきましょう(ちなみに見た目の文字数だけを知りたいときはstring型のsize()メソッドを使うと、ヌル文字を含まない5が返ってきます)。'},
+        {before:'// UTF-8で書かれた日本語1文字(「あ」など)は通常何バイトか、半角数字で答えなさい\nint bytesOfJapaneseChar = ', after:';',
+         answers:['3'],
+         explain:'コンピュータは文字そのものを直接扱うことができず、内部ではすべての文字を「数値」として表現しています。この「どの数値がどの文字に対応するか」を決めたルールを文字コードと呼び、C++はUTF-8という文字コードに標準で対応しています。UTF-8はアルファベットなどのASCII文字(半角英数字)を1バイトで表現できる一方、日本語のようにたくさんの種類がある文字は、1文字を表すのに複数バイトを組み合わせて使います。日常的に使われるひらがな・カタカナ・常用漢字の多くは3バイトで表現されるため、char配列で日本語の文字列を扱うときは、見た目の文字数とバイト数が大きくずれる点に注意が必要です。'},
+        {before:'#include <', after:'>\n// string型を使うために必要なヘッダ\nstring word = "Hello";',
+         answers:['string'],
+         explain:'C++のstring型を使うには、他の機能と同じように、その機能がまとめられているヘッダファイル<string>を#includeでインクルードする必要があります。stringクラスを使うと、char配列を自分でヌル文字まで管理しながら操作するのに比べて、はるかに簡単に文字列を扱えます。たとえば2つの文字列をつなげたいときは単に+演算子や+=演算子を使えばよく、文字数を知りたいときは.size()メソッドを呼ぶだけで済みます。これから文字列を扱うプログラムを書くときは、特別な理由がない限りchar配列よりstring型を使う方が安全で書きやすいでしょう。'},
+        {before:'fstream fin;\nfin.open("data.txt", ios::', after:'); // ファイルを「読み込み」モードで開きたい',
+         answers:['in'],
+         explain:'fstreamでファイルを開くとき(open()メソッドを呼ぶとき)は、そのファイルをどんな目的で使うかを第2引数で指定する必要があります。読み込み(データを取り出したいだけ)ならios::in、書き込み(新しくデータを書き込みたい)ならios::outを指定します。「ファイルの中身をプログラムに取り込みたい(in)のか、プログラムからファイルへ出力したい(out)のか」という向きをイメージすると覚えやすいでしょう。ちなみに読み書き両方を同時に行いたい場合は、ios::in | ios::outのように|(ビット単位のOR)でつなげて両方指定することもできます。'},
+        {before:'#include <fstream>\n// ファイルの入出力に使うクラス名を書きなさい\n', after:' fin;',
+         answers:['fstream'],
+         explain:'画面(コンソール)への入出力を扱うクラスがiostream(cout, cinなどが用意されている)であるのに対して、ファイルへの読み書きを扱うクラスはfstreamです。役割ごとにクラスが分かれているのは、C++の標準ライブラリが「必要な機能だけを取り込んで使う」という設計になっているためです。fstream fin; のようにfstream型の変数を1つ用意し、その変数のopen()メソッドでファイルを開き、finに対して >> や getline を使って読み込んでいく、という流れになります。'},
+        {before:'char word[] = {\'h\',\'e\',\'l\',\'l\',\'o\'};\n// ヌル文字が無いと、coutは文字列の終わりを判断できず意図しない場所まで表示してしまう。\n// coutが文字列の終わりを見つける手がかりにしている文字を\\記法で書きなさい\n', after:'',
+         answers:['\\0'],
+         explain:'coutは文字列を表示するとき、char配列の先頭から1文字ずつ順番に見ていき、ヌル文字(\\0)が現れたところで「ここで文字列は終わり」と判断して出力を止めます。この問題のように{\'h\',\'e\',\'l\',\'l\',\'o\'}とだけ書いてヌル文字を入れ忘れると、coutはどこで止まればよいか分からず、helloの後ろにたまたまメモリ上に置かれている別のデータまで、ヌル文字が見つかるまでずっと読み進めて表示してしまいます。その結果、意味不明な記号や文字化けしたような文字列が続けて表示されてしまうことがあります。文字列を自分でchar配列として作るときは、ヌル文字を入れ忘れないよう特に注意しましょう(ちなみに"..."で書いた場合は自動でヌル文字が付くので、この問題は起きません)。'}
+      ]},
+    {id:'w6', title:'構造体の書棚', sub:'Week6 構造体', emoji:'🗂️', mon:'ストラクト・アーカイブ',
+      lesson:[
+        {title:'構造体の定義', code:'struct Results{\n  string name;\n  int score;\n};\nResults a;\na.name = "Rika";\na.score = 90;',
+         explain:'これまで扱ってきたint, double, stringなどは、C++にあらかじめ用意されている「型」でした。structを使うと、自分だけの新しい型を作ることができます。struct Results{ string name; int score; }; と書くと、「名前(name)と点数(score)を1セットで持つ、Resultsという新しい型」が定義されます。Results a; と宣言すれば、その型の変数(構造体変数)を作れ、中に入っているnameやscoreといったデータ(メンバと呼びます)には、a.name、a.scoreのようにドット(.)でアクセスします。バラバラに管理していたデータをひとまとめにできるので、「この名前とこの点数は同じ人のもの」という対応関係が分かりやすくなります。'},
+        {title:'構造体の配列', code:'Results students[3];\nfor(int i=0;i<3;i++){\n  cin >> students[i].name >> students[i].score;\n}',
+         explain:'構造体で作った型(Resultsなど)も、intやdoubleと同じように「型」の一種として扱えるので、普通に配列を作ることができます。Results students[3]; と書けば、Results型の変数が3人分並んだ配列になります。個々の要素にアクセスするときは、まず[ ]で何番目の生徒かを指定し(students[i])、そのあとに.で見たいメンバを指定します(students[i].name)。「配列の添字で人を選び、ドットでその人のどのデータを見るか選ぶ」という2段階のアクセスになる点をイメージすると分かりやすいでしょう。'},
+        {title:'ポインタ渡しで並べ替え', code:'void sortBySub(Results* students, int num, int sub){\n  // 構造体配列の中身を書き換える処理\n}',
+         explain:'関数の中で構造体配列の並び順を書き換えて、その変更を呼び出し元にも反映させたい場合は、配列そのものではなく「配列の先頭アドレス」を渡す「ポインタ渡し」にする必要があります。Results* studentsという仮引数は、実際には呼び出し元の配列の先頭アドレスを受け取っており、students[0], students[1]のように書けば、呼び出し元の配列と全く同じ場所にあるデータを直接読み書きしていることになります。もし値渡しにしてしまうと、関数の中で配列をコピーして並べ替えているだけになり、呼び出し元の配列は変わらないままになってしまいます。'}
+      ],
+      qs:[
+        {before:'', after:' Results{\n  string name;\n  int score[3];\n};',
+         answers:['struct'],
+         explain:'構造体はstructというキーワードで定義します。struct 名前{ メンバ1; メンバ2; ...}; という形で、複数の関連するデータ(この例ではnameとscore)をひとまとめにして、新しい「型」として扱えるようにする仕組みです。構造体はこの後に学ぶクラス(class)ととてもよく似ていますが、大きな違いの1つとして、構造体はメンバのアクセス指定を何も書かなければ自動的にpublic(クラス外から自由にアクセス可能)になる、という点があります(クラスの場合はデフォルトでprivateになります)。'},
+        {before:'struct Results{ string name; int score[3]; };\nResults student;\ncout << student', after:'name << endl; // メンバにアクセスする演算子',
+         answers:['.'],
+         explain:'構造体(やクラス)のメンバ(構造体の中に入っている個々のデータ)にアクセスするには、変数名の後ろにドット(.)をつけて、続けてメンバの名前を書きます。student.name は「studentという構造体変数の中に入っているnameというメンバ」を意味し、これで値を読み取ることも(cout << student.name;)、値を書き換えることも(student.name = "太郎";)できます。ドット演算子はメンバへの「入口」だとイメージすると分かりやすいでしょう。'},
+        {before:'fstream fin;\nfin.open("data.txt", ios::in);\nstring str;\nint m=0;\nwhile(', after:'(fin, str)){\n  m++;\n} // finから1行読み込みstrに格納する関数',
+         answers:['getline'],
+         explain:'getline(fin, str); は、ストリームfin(この場合はファイル)から、次の改行記号が現れるまでの1行分の文字列をまるごと読み取り、strという変数に格納してくれる関数です。fin >> str; と違い、途中にスペースが含まれていてもそのスペースごと1行として読み込める点が特徴です。この例では、getline(fin, str)をfinがファイルの最後まで到達して失敗する(whileの条件がfalseになる)まで繰り返すことで、mという変数に「ファイルが全部で何行あるか」を数え上げています。あとで実際のデータを読み込む前に、まずファイルの行数(=学生の人数)を知りたいときによく使われるテクニックです。'},
+        {before:'void sortBySub(Results', after:' students, int num, int sub){\n  // 構造体配列を書き換えたいのでポインタ渡しにする\n}',
+         answers:['*'],
+         explain:'構造体の配列の中身を関数の中で並べ替えて、呼び出し元の配列にもその変更をきちんと反映させたい場合は、配列そのものをコピーして渡す(値渡し)のではなく、配列の先頭アドレスを渡す「ポインタ渡し」にする必要があります。Results* students は「Results型へのポインタ」という意味で、配列の先頭アドレスを受け取ることができます。関数の中でstudents[j]とstudents[j-1]の中身を交換すると、それはそのまま呼び出し元にある本物の配列の中身を交換していることになります。もし値渡しにしてしまうと、せっかく並べ替えても呼び出し元の配列は元のままになってしまいます。'},
+        {before:'while(fin >> name >> score){\n  // 処理\n}\n// このループはどんなときに終了するか、最も適切な語句を書きなさい\n', after:'',
+         answers:['読み込みが失敗したとき','入力が失敗したとき','失敗したとき'],
+         explain:'一見不思議に思えるかもしれませんが、fin >> name >> score のような「ストリームから読み込む」操作は、実は読み込みが成功したかどうかを表す値を返しており、if文やwhile文の条件としてそのまま使うことができます。読み込みが正常にできればtrue(のように扱われる値)、ファイルの終わりに到達するなどして読み込みに失敗するとfalse(のように扱われる値)になります。そのためwhile(fin >> name >> score){ ... } と書くと、「ファイルから正しく読み込めている間はループを続け、ファイルの終わりに来たら自動的にループを抜ける」という処理を、特別な終了条件を自分で書かなくても実現できるのです。'},
+        {before:'struct Results{ string name; int score[3]; };\nResults students[', after:']; // 4人分の構造体配列を宣言したい(半角数字を書く)',
+         answers:['4'],
+         explain:'構造体で作った型は、int型やdouble型と同じように「型」として扱えるので、intの配列を作るのと全く同じ書き方で構造体の配列も作れます。Results students[4]; と書けば、Results型(名前と点数のセット)を持つ変数が4つ並んだ配列ができあがります。それぞれの要素はstudents[0]からstudents[3]までの4つで、各要素にはname, scoreといったメンバがすべて備わっています。'},
+        {before:'// 構造体を使う一番の利点を一言で書きなさい。例:「関連する複数のデータを○○にできる」の○○部分\n', after:'',
+         answers:['ひとまとめ','1つのまとまり','ひとつのまとまり'],
+         explain:'構造体を使わない場合、name[5]という文字列の配列と、score[5]という点数の配列を、それぞれ別々に用意して管理することになります。この方法だと「name[2]とscore[2]は同じ人のデータ」という対応関係を、プログラマが頭の中で意識し続けなければならず、もし片方だけを並べ替えてしまったりすると、簡単に対応がズレてバグの原因になります。構造体を使えば、名前・点数のように「本来セットで扱いたいデータ」を1つの変数(students[i])としてまとめて持ち運べるので、students[i].nameとstudents[i].scoreが常にペアであることが保証され、対応関係が分かりやすくミスも減ります。'}
+      ]},
+    {id:'w7', title:'勇者とモンスターの間', sub:'Week7 クラスとオブジェクト', emoji:'⚔️', mon:'見習いモンスター',
+      lesson:[
+        {title:'クラスの基本形', code:'class Hero{\n  string name;\n  int HP;\npublic:\n  Hero(string n){ name=n; HP=50; }\n  int attack(){ return 10; }\n};',
+         explain:'クラスは、構造体をさらに発展させたもので、データ(name, HPのようなデータメンバ)と、そのデータを操作する処理(attackのようなメンバ関数)を1つにまとめて定義できる仕組みです。Hero(string n){ name=n; HP=50; } のように、クラス名と全く同じ名前で戻り値の型を書かない特別な関数を「コンストラクタ」と呼びます。コンストラクタはHero hero("勇者"); のようにオブジェクトを生成した瞬間に自動的に呼び出され、渡された引数を使ってデータメンバを初期化する役割を持っています。「オブジェクトが生まれると同時に、必要な準備を済ませてくれる関数」だとイメージするとよいでしょう。'},
+        {title:'オブジェクトの生成と呼び出し', code:'Hero hero("勇者");\ncout << hero.attack() << endl;',
+         explain:'クラスは、あくまで「どんなデータを持ち、どんな機能を提供するか」を決めた設計図のようなものであり、それ自体はまだ実体を持ちません。Hero hero("勇者"); のように書いて初めて、その設計図から実際にメモリ上に作られた実体ができあがり、これを「オブジェクト」または「インスタンス」と呼びます。オブジェクトが持っている機能(メンバ関数)を使いたいときは、構造体のときと同じように、オブジェクト名の後ろにドット(.)をつけて呼び出します。hero.attack()は「heroというオブジェクトに対して、attackという機能を実行させる」という意味になります。'},
+        {title:'bool型', code:'bool alive = true;\nif(alive){ cout << "生きている" << endl; }',
+         explain:'bool型は「論理型」と呼ばれ、true(真、そうである)とfalse(偽、そうでない)の2つの値しか取れない、とてもシンプルな型です。「そのオブジェクトが生きているかどうか」「条件を満たしているかどうか」のような、Yes/Noで答えられる情報を表すのにぴったりです。if(alive){ ... } のように、if文の条件としてbool型の変数をそのまま書くことができ、aliveがtrueのときだけ{ }の中の処理が実行されます。'}
+      ],
+      qs:[
+        {before:'class Hero{\n  string name;\n  int HP;\npublic:\n  Hero(string nameInput); // これは何と呼ばれる特別な関数か(カタカナで)\n};', after:'',
+         answers:['コンストラクタ'],
+         explain:'クラス名(Hero)と全く同じ名前を持ち、戻り値の型を一切書かない特別な関数のことを「コンストラクタ」と呼びます。普通のメンバ関数は自分で呼び出す必要がありますが、コンストラクタだけは、Hero hero("勇者"); のようにオブジェクトが生成されるタイミングで、C++が自動的に呼び出してくれます。その役割は、name = nameInput; HP = 50; のように、生まれたばかりのオブジェクトのデータメンバに初期値を設定してあげることです。「オブジェクトの誕生と同時に実行される、初期設定専用の関数」というイメージを持つとよいでしょう。'},
+        {before:'Hero::Hero(string nameInput){\n  name = nameInput;\n  HP = 50;\n}\n// コンストラクタの戻り値の型はどう書くか(何も書かない場合は「なし」と答えなさい)\n', after:'',
+         answers:['なし','何も書かない'],
+         explain:'普通の関数は必ず戻り値の型(int, void, boolなど)を関数名の前に書きますが、コンストラクタだけは唯一の例外で、戻り値の型を何も書きません。「コンストラクタは値を返さない関数だからvoidだろう」と考えて Hero void(string nameInput){ ... } のように書いてしまうのは初心者にありがちな間違いですが、これはコンパイルエラーになります。コンストラクタは「値を返さない」のではなく、そもそも「戻り値という概念自体が無い、特別な種類の関数」だと理解しておきましょう。'},
+        {before:'int main(){\n  Hero hero("勇者");\n  hero', after:'attack(); // メンバ関数を呼び出す記号',
+         answers:['.'],
+         explain:'オブジェクトが持っているメンバ関数(そのオブジェクトができる「動作」)を呼び出すときは、オブジェクト名の後ろにドット(.)をつけて、続けて関数名と括弧を書きます。hero.attack() は「heroというオブジェクトに対して、attackという機能を実行しなさい」という意味の命令です。このドットは、構造体のメンバにアクセスするときに使ったドットと全く同じ記号で、「このオブジェクトの中にある、これを使いたい」という意味を表す共通の演算子だと考えておきましょう。'},
+        {before:'bool isAlive = ', after:'; // 論理型の値で「真」を表すキーワード',
+         answers:['true'],
+         explain:'bool型(論理型)は真偽値、つまり「そうである/そうでない」だけを表すためのとてもシンプルな型で、true(真、そうである)とfalse(偽、そうでない)の2つの値しか取ることができません。intのように0や1、100といった無数の値を扱えるわけではなく、あくまで2択のスイッチのようなものだとイメージしてください。isAlive = true; は「生きている状態にする」、isAlive = false; は「そうでない(死んでいる)状態にする」ということを表しており、if(isAlive){ ... } のように条件分岐で使われることが多いです。'},
+        {before:'class Hero{\n  string name; // これらは何と呼ばれるか(漢字で)\n  int HP;\npublic:\n  Hero(string nameInput);\n};', after:'',
+         answers:['データメンバ'],
+         explain:'クラスの中に書かれた変数(この例ではnameとHP)は「データメンバ」と呼ばれます(「メンバ変数」と呼ばれることもあります)。ここで大事なポイントは、データメンバはクラスの外にある普通の変数とは違い、そのクラスから作られたオブジェクトごとに、それぞれ個別のコピーを持つという点です。たとえばHero hero1("勇者A"); とHero hero2("勇者B"); を作ると、hero1のnameとhero2のnameは全く別々のメモリに保管され、片方を書き換えてももう片方には影響しません。'},
+        {before:'Hero hero1("勇者A");\nHero hero2("勇者B");\n// Heroクラスから作られたhero1,hero2のような実体を何と呼ぶか(カタカナで)\n', after:'',
+         answers:['オブジェクト','インスタンス'],
+         explain:'クラスはあくまで「どんなデータを持ち、どんな機能があるか」を定義した設計図であり、それ自体は実体を持ちません。その設計図をもとに実際にメモリ上へ作られた実体のことを「オブジェクト」、または「インスタンス」と呼びます(「インスタンス化する」は「オブジェクトを作る」とほぼ同じ意味で使われます)。この例では、同じHeroという1つの設計図から、hero1とhero2という2つの独立したオブジェクトが作られています。どちらも同じ種類の存在(Hero)ですが、それぞれが自分専用のnameやHPというデータを持っているため、片方の状態を変えてももう片方には影響しません。'},
+        {before:'// クラスの中にデータと処理をひとまとめにして、外から余計な操作をされないようにする考え方をカタカナで書きなさい\n', after:'',
+         answers:['カプセル化'],
+         explain:'データ(HPなど)と、それを操作するための関数(attack, damagedなど)をクラスという1つの箱にひとまとめにし、外部からは決められた方法(公開されたメンバ関数)を通してしか触れないようにすることを「カプセル化」と呼びます。薬を直接手で触らずカプセルに包んで安全に飲めるようにするイメージから、この名前がついています。カプセル化のご利益は、たとえばHPという数値を外部から直接 hero.HP = -9999; のように書き換えられてしまうと、プログラムのルールを無視した不正な状態になりかねませんが、damaged(int pt)のような専用の関数を通してしか変更できないようにしておけば、常に決められたルール(HPは0未満にならない、など)を守った安全な操作しかできなくなる、という点にあります。次のWeek8ではこれをprivate/publicという指定子で実現する方法を学びます。'}
+      ]},
+    {id:'w8', title:'封印の扉', sub:'Week8 クラスの定義1', emoji:'🔐', mon:'ロック・ウォーデン',
+      lesson:[
+        {title:'private/public', code:'class YearConverter{\n  int western;      // private\npublic:\n  YearConverter(int y){ western=y; }\n  void show(){ cout << western << endl; }\n};',
+         explain:'クラスの中でprivate:やpublic:を何も書かなければ、その部分はデフォルトでprivate(構造体の場合はpublicがデフォルトなので逆になる点に注意)として扱われます。privateなメンバは、そのクラス自身のメンバ関数からしかアクセスできず、クラスの外にある関数やmain関数からは直接触ることができません。この例ではwesternをprivateにしておくことで、外部からyc.western = 9999; のように無茶な値を直接代入されることを防ぎ、コンストラクタやshow()のような、きちんと動作が決められたメンバ関数を経由してしかアクセスできないようにしています。「データメンバはprivateに、外部に使ってほしい入り口だけpublicに」というのが、カプセル化の基本的な考え方です。'},
+        {title:'デフォルト引数とオーバーロード', code:'YearConverter(int year=2022);\nYearConverter yc1;      // year=2022\nYearConverter yc2(2020);',
+         explain:'コンストラクタの引数に = で値を書いておくと「デフォルト引数」というものになり、呼び出すときにその引数を省略すると、自動的にその既定値が使われます。YearConverter(int year=2022); の場合、YearConverter yc1; のように引数を渡さずに書けば、yearには自動的に2022が入ります。もちろんYearConverter yc2(2020); のように値を明示的に渡せば、そちらが優先されます。またコンストラクタも普通の関数と同じくオーバーロード(引数の数や型が違う同名の関数を複数定義すること)ができるので、「引数なし用」と「引数あり用」のコンストラクタを別々に書くという方法でも、同じような柔軟性を実現できます。'},
+        {title:'protected', code:'class Base{\nprotected:\n  int baseData; // 派生クラスからは触れるが外部からは触れない\n};',
+         explain:'protectedは、privateとpublicのちょうど中間のようなアクセス権です。そのクラス自身のメンバ関数はもちろん、それを継承した派生クラスのメンバ関数からもアクセスできますが、それ以外の外部の関数からはprivateと同じようにアクセスできません。「家族(自分自身と子ども)には見せるけれど、他人には見せない」というイメージで捉えると分かりやすいでしょう。この仕組みは、この後のWeekA(継承)で基本クラスと派生クラスがデータをやり取りする際によく登場します。'}
+      ],
+      qs:[
+        {before:'class YearConverter{\n', after:':\n  int western;\npublic:\n  YearConverter(int year);\n}; // クラス外の関数からアクセスできないようにする指定子',
+         answers:['private'],
+         explain:'privateをつけたメンバは、そのクラス自身のメンバ関数からしかアクセスできず、mainを含む外部の関数からは直接触ることができなくなります。もしwesternをpublicのままにしておくと、yc.western = -500; のように、コンストラクタや専用の関数を経由せずに誰でも自由に(そしてルールを無視して)値を書き換えられてしまいます。データメンバをprivateにしておけば、そうした無秩序な書き換えを防ぎ、必ずコンストラクタやきちんと用意されたメンバ関数を通してのみ値が変更される、安全な設計にできます。これが「データメンバは基本的にprivateにする」という習慣が推奨される理由です。'},
+        {before:'class YearConverter{\nprivate:\n  int western;\n', after:':\n  YearConverter(int year);\n  void showReiwa();\n}; // ここから先は誰からでもアクセスできるようにする指定子',
+         answers:['public'],
+         explain:'publicをつけたメンバは、クラスの外にあるどんな関数(main関数など)からでも自由にアクセスできます。コンストラクタ(YearConverter)や、外部のプログラムに実際に使ってもらいたいメンバ関数(showReiwaなど)はpublicにしておく必要があります。もしコンストラクタまでprivateにしてしまうと、そもそも外部からオブジェクトを生成すること自体ができなくなってしまうので注意しましょう。「クラスが外の世界に提供する窓口の部分だけをpublicにする」というイメージを持つとよいでしょう。'},
+        {before:'class YearConverter{\npublic:\n  YearConverter(int year', after:'); // 引数を省略したときに使われる既定値を指定したい\n};',
+         answers:['=2022','= 2022'],
+         explain:'関数(コンストラクタも含む)の引数に = で値を書いておくと「デフォルト引数」というものになり、呼び出すときにその引数を省略すると自動的にその既定値が使われるようになります。YearConverter(int year=2022) と定義しておけば、YearConverter yc; のように引数を渡さずに呼び出した場合、yearには自動的に2022が代入されます。もちろん YearConverter yc(2020); のように明示的に値を渡せば、そちらの値(2020)が優先されます。「よく使う値をあらかじめ既定値として用意しておき、必要なときだけ上書きできる」という便利な仕組みです。'},
+        {before:'class YearConverter{\npublic:\n  YearConverter();\n  YearConverter(int year);\n};\n// 引数の数が違う複数のコンストラクタを定義すること。これを何と呼ぶか(カタカナで)\n', after:'',
+         answers:['オーバーロード','コンストラクタのオーバーロード'],
+         explain:'関数オーバーロードの仕組みは、コンストラクタにもそのまま適用できます。YearConverter(); (引数なし)とYearConverter(int year); (引数1つ)のように、引数の数や型が違えば、同じクラス名で複数のコンストラクタを用意することができます。呼び出す側は、括弧の中に何を渡すか(あるいは何も渡さないか)によって、どちらのコンストラクタが呼ばれるかが自動的に決まります。「引数なしで生成したときは今日の年で初期化、引数を渡したときはその年で初期化」というように、状況に応じた初期化方法を複数用意できるようになります。'},
+        {before:'// 「引数なし」コンストラクタでオブジェクトycを正しく生成する行を書きなさい\n', after:'',
+         answers:['YearConverter yc;'],
+         explain:'引数なしのコンストラクタでオブジェクトを作るときは、YearConverter yc; のように、変数宣言のときと同じ感覚で、括弧を一切つけずに書きます。もしここで空の括弧をつけて YearConverter yc(); と書いてしまうと、C++のコンパイラはこれを「オブジェクトの宣言」ではなく「ycという名前の、引数を1つも取らずYearConverter型の値を返す関数の宣言」だと解釈してしまいます。これは初心者だけでなく経験者もよく引っかかる有名な落とし穴で、「Most Vexing Parse(最も厄介な構文解析)」という名前までついているほどです。「引数なしコンストラクタを呼ぶときは括弧をつけない」と覚えておきましょう。'},
+        {before:'YearConverter yc(2022);\ncout << yc', after:'western << endl; // メンバ変数にアクセスする演算子',
+         answers:['.'],
+         explain:'メンバ変数(データメンバ)へのアクセスにも、メンバ関数の呼び出しと同じくドット(.)を使います。yc.western は「ycというオブジェクトの中にあるwesternというデータメンバ」を意味します。ただし、この構文が実際に使えるかどうかはアクセス指定子次第です。もしwesternがprivateとして宣言されている場合、main関数のようなクラスの外にある関数からこの書き方でアクセスしようとすると、コンパイルエラーになります。ドットの書き方自体は同じでも、privateなメンバには外部からアクセスできない、という点をしっかり区別しておきましょう。'},
+        {before:'class YearConverter{\n  int western;\npublic:\n  YearConverter(int year);\n', after:':\n  void valid_year(int y); // 派生クラスからはアクセスできるが、外部関数からはアクセスできないようにしたい指定子\n};',
+         answers:['protected'],
+         explain:'protectedをつけたメンバは、そのクラス自身のメンバ関数と、そのクラスを継承した派生クラスのメンバ関数からはアクセスできますが、それ以外の外部の関数からは(privateと同様に)アクセスできません。もしprivateにしてしまうと、継承した派生クラスからさえもそのメンバを直接使えなくなってしまいます。「自分のクラスと、その子どもたち(派生クラス)には見せてよいが、それ以外の他人には見せない」という中間的な公開範囲を作りたいときに使う指定子で、次のWeekA(継承)で実際にとても役立つ場面が出てきます。'}
+      ]},
+    {id:'w9', title:'消滅の間', sub:'Week9 クラスの定義2', emoji:'👻', mon:'デストラクト・ゴースト',
+      lesson:[
+        {title:'デストラクタ', code:'class ArrayCal{\n  double* array;\npublic:\n  ArrayCal(int n){ array = new double[n]; }\n  ~ArrayCal(){ delete [] array; }\n};',
+         explain:'コンストラクタが「オブジェクトが生まれるときに自動で呼ばれる関数」だったのに対し、デストラクタは「オブジェクトが消えるときに自動で呼ばれる関数」です。クラス名の前に~(チルダ)をつけた~ArrayCal()のような名前で定義し、戻り値の型は書きません。この例のように、コンストラクタの中でnewを使って動的にメモリを確保したクラスでは、そのオブジェクトが不要になったときに、確保したメモリを必ずdeleteで解放してあげる必要があります。デストラクタにdelete [] array; と書いておけば、オブジェクトが消えるタイミングでC++が自動的にこの後片付けを実行してくれるので、解放し忘れ(メモリリーク)を防げます。'},
+        {title:'new / delete', code:'int* p = new int(5);\n// ...使う...\ndelete p;\nint* arr = new int[10];\ndelete [] arr;',
+         explain:'newで確保したメモリは、必ずdeleteで解放しなければいけません。ここで注意が必要なのは、new int(5)のように単体の変数を確保した場合はdelete p;でよいのですが、new int[10]のように配列を確保した場合はdelete [] arr;のように[]をつけて解放する必要があるという点です。この対応(単体はnewとdelete、配列はnew[]とdelete[])を間違えると、正しくメモリが解放されずに不具合の原因になることがあります。そしてそもそもdelete自体を書き忘れると、確保したメモリはプログラムが終了するまでずっと使われたままになる「メモリリーク」という状態になってしまいます。'},
+        {title:'vector(可変長配列)', code:'#include <vector>\nvector<int> v;\nv.push_back(1);\nv.push_back(2);',
+         explain:'これまで使ってきたint a[5];のような配列は、宣言した時点でサイズが固定されており、後から要素数を増やしたり減らしたりすることはできませんでした。vectorは、この不便さを解消してくれるクラスで、実行中に自由に要素数を増減できる「可変長配列」を扱うことができます。<vector>ヘッダをインクルードし、vector<int> v; のように宣言したあと、v.push_back(1); のようにpush_backメソッドを呼ぶだけで、内部で自動的にメモリの管理をしてくれながら末尾に要素を追加していけます。実は内部ではvectorも動的にメモリを確保・解放していますが、その処理は全部vectorクラスが面倒を見てくれるので、私たちはnewやdeleteを意識する必要がありません。'}
+      ],
+      qs:[
+        {before:'class ArrayCal{\n  double* array;\npublic:\n  ArrayCal(double* a, int n);\n  ', after:'ArrayCal(); // デストラクタの名前の書き方\n};',
+         answers:['~'],
+         explain:'デストラクタは「クラス名の前に~(チルダ、波状の記号)をつけた名前」を持つ特別な関数で、コンストラクタと同じくコンパイラが自動的に呼び出してくれるため、自分で明示的に呼び出す必要はありません。呼ばれるタイミングは「オブジェクトが消滅するとき」で、たとえばローカル変数として作られたオブジェクトが、そのブロック({ })の終わりに達して消えるタイミングなどが該当します。この例のように、コンストラクタでnewを使ってメモリを動的に確保したクラスでは、デストラクタの中でそのメモリをdeleteで解放してあげるのが定番の使い方です。「コンストラクタで用意したものは、デストラクタで片付ける」というペアで覚えておくとよいでしょう。'},
+        {before:'ArrayCal::ArrayCal(double* a, int n){\n  size = n;\n  array = new double[size];\n  for(int i=0;i<size;i++) array[i]=a[i];\n}\nArrayCal::~ArrayCal(){\n  ', after:' array; // newで確保した配列を解放する',
+         answers:['delete []','delete[]'],
+         explain:'コンストラクタの中でarray = new double[size]; のように配列としてメモリを確保した場合、それを解放するときも「配列を解放していますよ」とコンパイラに伝えるため、delete []のように角括弧[]をつける必要があります。もし単体のdelete array;だけを書いてしまうと、正しくすべての要素分のメモリが解放されず、意図しない動作(未定義動作と呼ばれる、実行するたびに結果が変わりうる不安定な状態)の原因になることがあります。「配列で確保したものは、必ず[]をつけて解放する」という対応関係をセットで覚えておきましょう。'},
+        {before:'int* p;\np = ', after:' int[10]; // サイズ10のint配列を動的に確保する演算子',
+         answers:['new'],
+         explain:'これまで使ってきたint a[5];のような配列は、コンパイルする時点でサイズが5と決まっている「静的な」確保のされ方でした。それに対してnewは、プログラムが実際に動いている最中(実行時)に、必要な分だけメモリを確保するための演算子です。new int[10] と書くと、int型10個分の領域が「ヒープ領域」と呼ばれる動的メモリ専用の場所に新しく確保され、その確保された領域の先頭アドレスが戻り値として返されます。このアドレスをint* pのようなポインタ変数で受け取っておくことで、後からp[0]〜p[9]のように配列と同じ感覚で操作できます。プログラムを実行してみるまで必要なサイズが分からない場合(たとえばファイルの行数を読んでから配列を作る場合など)に、newが特に役立ちます。'},
+        {before:'int* p = new int(5);\n// 使い終わったら忘れずにメモリを解放する\n', after:' p;',
+         answers:['delete'],
+         explain:'変数宣言で確保される普通のメモリ(int a;など)は、そのブロック({ })を抜けると自動的に解放されますが、newで確保したメモリはその自動的な仕組みの対象外です。そのため、newで確保したメモリはプログラマが自分の責任で、使い終わったタイミングでdeleteを呼んで明示的に解放してあげなければいけません。もし解放を忘れてしまうと、そのメモリ領域はプログラムが終了するまでずっと「使用中」のまま残り続け、他の目的に使うことができなくなります。このように、確保したのに解放されないメモリがどんどん増えていく現象を「メモリリーク(memory leak、メモリの漏れ)」と呼び、放置するとパソコン全体の動作が重くなったり、最終的にはメモリ不足で異常終了したりする原因になります。'},
+        {before:'#include <', after:'>\n// 可変長配列(サイズを自由に変えられる配列)を扱うクラス\nvector<int> v;',
+         answers:['vector'],
+         explain:'vectorは、要素数を実行中に自由に増やしたり減らしたりできる「可変長配列」を扱うためのクラスです。<vector>ヘッダをインクルードすれば使えるようになります。普通の配列int a[5];はサイズが固定されているのに対し、vector<int> v; と宣言しておけば、v.push_back(値)を呼ぶたびに要素を1つずつ末尾に追加していくことができ、v.size()で現在の要素数を、v[i]で個々の要素にアクセスできます。「サイズがあらかじめ分からない」「後から要素を増やしたい」という場面では、配列よりvectorを使う方がずっと便利です。'},
+        {before:'#include <vector>\nvector<int> v;\nv.', after:'(2); // 値2の要素を末尾に追加するメソッド',
+         answers:['push_back'],
+         explain:'push_back(値)は、vectorの末尾に新しい要素を1つ追加するメソッドです。「push(押し込む)+back(後ろに)」という名前の通り、すでにある要素の一番後ろに新しい値を押し込んでいくイメージです。v.push_back(1); を実行するとvは要素数1(中身は{1})に、続けてv.push_back(2); を実行すると要素数2(中身は{1,2})になります。呼び出すたびに自動的にサイズが1つずつ大きくなっていくため、あらかじめ要素数を決めておかなくても、必要な分だけどんどんデータを追加していける便利さがvectorの一番の魅力です。'},
+        {before:'// deleteを忘れて動的に確保したメモリを解放しないままにしておくと起きる問題をカタカナで書きなさい\n', after:'',
+         answers:['メモリリーク'],
+         explain:'newで確保したメモリを解放し忘れることを「メモリリーク」と呼びます。リーク(leak)は英語で「漏れる」という意味で、まるで水道の蛇口から水が少しずつ漏れ続けているように、使われないままのメモリがプログラムの実行中にどんどん増え続けていく様子を表しています。1回や2回であれば大した影響はありませんが、たとえばループの中で毎回newして一度もdeleteしない、という書き方をしてしまうと、実行している間じゅうメモリが際限なく増え続け、最終的にはメモリ不足でプログラムやパソコン全体の動作が重くなったり、異常終了してしまったりする深刻な原因になります。'}
+      ]},
+    {id:'wa', title:'血統の間', sub:'Week A 継承', emoji:'🧬', mon:'ヘリテージ・ワーム',
+      lesson:[
+        {title:'継承の基本', code:'class Base{\npublic:\n  int baseFunc(){ return 1; }\n};\nclass Derived : public Base{\npublic:\n  int drvFunc(){ return 2; }\n};',
+         explain:'すでにあるクラス(Base)の機能をそのまま引き継いで、新しい機能を追加した別のクラス(Derived)を作ることを「継承」と呼びます。class Derived : public Base{ ... }; という書き方で、DerivedはBaseを継承します。この結果、DerivedのオブジェクトはBaseで定義されているpublicなメンバ関数(baseFuncなど)を、まるで自分自身が最初から持っているメンバであるかのように、そのまま呼び出すことができます。継承元のBaseを「基本クラス(親クラス)」、継承したDerivedを「派生クラス(子クラス)」と呼びます。同じような機能を一から書き直す必要がなくなるので、プログラムの再利用性が大きく高まります。'},
+        {title:'イニシャライザで基本クラスを初期化', code:'class Derived : public Base{\n  int drvData;\npublic:\n  Derived(int a,int b):Base(a){ drvData=b; }\n};',
+         explain:'派生クラスDerivedのオブジェクトは、内部にBaseから引き継いだ部分(baseDataなど)と、Derived自身が新しく追加した部分(drvData)の両方を持っています。そのためDerivedのコンストラクタは、この両方を初期化してあげる責任があります。Derived(int a,int b):Base(a){ drvData=b; } のように、コンストラクタの本体{ }が始まる前に : Base(a) という「イニシャライザ(初期化子)」を書いておくと、まず基本クラスBaseのコンストラクタが呼ばれてbaseData部分の初期化が行われ、そのあとに{ }の中でdrvDataの初期化が実行される、という順序で処理が進みます。「継承した部分の初期化は、基本クラスのコンストラクタに任せる」というイメージです。'},
+        {title:'オーバーライド', code:'class Derived : public Base{\npublic:\n  void show(){ cout << "Derived" << endl; } // Baseのshowを上書き\n};',
+         explain:'基本クラスBaseに何かメンバ関数showがすでに定義されていたとして、それと全く同じ名前・同じ引数の関数を派生クラスDerivedの中でもう一度定義することを「オーバーライド」と呼びます。オーバーライドすると、派生クラスのオブジェクト(Derivedのインスタンス)に対してshow()を呼び出したときは、基本クラス側の定義は無視され、派生クラス側で新しく書いた定義が優先して実行されます。「基本クラスが持っていた機能を、派生クラスで自分好みに上書き(オーバーライド)する」というイメージです。名前が同じでも引数の型や数が違う場合は「オーバーライド」ではなく「オーバーロード」という別の仕組みになる点にも注意しましょう。'}
+      ],
+      qs:[
+        {before:'class Base{\npublic:\n  int baseFunc();\n};\nclass Derived : ', after:' Base{\npublic:\n  int drvFunc();\n}; // Baseクラスを継承したい',
+         answers:['public'],
+         explain:'class Derived : public Base { ... }; と書くことで、DerivedクラスはBaseクラスを継承します。この構文では、クラス名(Derived)の後ろにコロン(:)を書き、続けてアクセス指定子(多くの場合public)を書き、最後に継承したい基本クラス名(Base)を書きます。この1行のおかげで、Derivedは自分では何も書いていなくても、Baseが持っているpublicなメンバ(baseFuncなど)をそのまま自分のもののように呼び出せるようになります。まさに親から子へ財産や才能が受け継がれる「継承(遺産相続)」のようなイメージで捉えると、なぜこの機能がinheritance(継承)と呼ばれるのか納得しやすいでしょう。'},
+        {before:'class Derived : public Base{\n  int drvData;\npublic:\n  Derived(int a, int b)', after:'(a){\n    drvData = b;\n  } // 基本クラスのコンストラクタを呼び出す部分(イニシャライザ)',
+         answers:[':Base',': Base'],
+         explain:'派生クラスDerivedのオブジェクトは、内部に「基本クラスBaseの部分」と「派生クラスDerived自身が追加した部分」の両方を持っています。派生クラスのコンストラクタは、この両方をきちんと初期化する責任がありますが、基本クラスの部分の初期化はBase自身のコンストラクタにやってもらうのが自然です。そのために使うのが「イニシャライザ」と呼ばれる書き方で、コンストラクタの定義(引数リストの後ろ)に : Base(引数) と書いておくと、コンストラクタ本体{ }が実行される前に、まず指定した引数でBaseのコンストラクタが呼び出されます。この仕組みのおかげで、Derivedのコンストラクタでは自分が追加したdrvDataの初期化だけを書けばよくなります。'},
+        {before:'class Base{\n', after:':\n  int baseData; // 派生クラスからはアクセスできるが、外部関数からはアクセスできないようにする指定子\npublic:\n  int baseFunc();\n};',
+         answers:['protected'],
+         explain:'もしbaseDataをprivateにしてしまうと、それを継承したDerivedのメンバ関数からでさえも、baseDataを直接使うことができなくなってしまいます。しかしBaseの外部にある関数(mainなど)からは今まで通りアクセスさせたくない、というときに使うのがprotectedです。protectedにしておくと、Base自身のメンバ関数はもちろん、Baseを継承したDerivedのメンバ関数からも直接アクセスできる一方、それ以外の外部の関数からはprivateと同じようにアクセスできません。「基本クラスと、その子どもである派生クラスの間だけでデータを共有したい」というときに、protectedがちょうど良い公開レベルになります。'},
+        {before:'class Derived : public Base{\npublic:\n  void showData(){ cout << "Derived" << endl; }\n};\n// 基本クラスと同名同引数の関数を再定義し、派生クラス側を有効にすることを何と呼ぶか(カタカナで)\n', after:'',
+         answers:['オーバーライド'],
+         explain:'基本クラスBaseにすでに定義されている関数と、全く同じ名前・同じ引数を持つ関数を、派生クラスDerivedの中でもう一度定義することを「オーバーライド」と呼びます。この例では、両方のクラスにshowData()という同じ名前・同じ引数の関数がありますが、Derivedのオブジェクトに対してdrv.showData();のように呼び出すと、Base側の定義は無視され、Derived側で新しく書いた定義が優先して実行されます。まるで「基本クラスから受け継いだ機能を、派生クラスで自分好みに上書きする」ようなイメージで捉えると分かりやすいでしょう。'},
+        {before:'// オーバーロードとオーバーライド、この2つの仕組みをまとめて何と呼ぶか(カタカナで)\n', after:'',
+         answers:['ポリモーフィズム','多態性'],
+         explain:'poly(多い)+ morphe(形)というギリシャ語が語源になっている「ポリモーフィズム(多態性)」とは、1つの名前(関数名)なのに、状況に応じていくつもの異なる形(振る舞い)を取れる性質のことを指します。オーバーロードは「引数の型や数の違いによって、呼び出される中身が変わる」仕組みで、オーバーライドは「オブジェクトの実際のクラス(基本クラスか派生クラスか)によって、同じ名前の関数でも呼び出される中身が変わる」仕組みです。どちらも「同じ名前で呼び出しているのに、状況によって適切な振る舞いが自動的に選ばれる」という点で共通しており、これがポリモーフィズムと呼ばれる理由です。'},
+        {before:'// 既存のプログラムを再利用し、機能を拡張しやすくする、クラスの重要な仕組みを漢字二文字で書きなさい\n', after:'',
+         answers:['継承'],
+         explain:'「継承」とは、すでにあるクラス(基本クラス)が持っている機能をそのまま引き継ぎつつ、新しい機能を追加したり、一部の機能を上書き(オーバーライド)したりして、別のクラス(派生クラス)を作れる仕組みです。もし継承という機能が無ければ、似たようなクラスを作るたびに、共通する部分(データメンバやメンバ関数)をコピー&ペーストして一から書き直す必要があり、片方を修正したときにもう片方の修正を忘れる、といったミスの温床になります。継承を使えば「共通部分は基本クラスにまとめて書き、違う部分だけを派生クラスに書く」ことができるので、プログラムの見通しが良くなり、再利用性も高まります。'},
+        {before:'class Derived : public Base{\n  // Baseのメンバ関数をそのまま使いたい\n};\nint main(){\n  Derived drv;\n  drv.baseFunc(); // 派生クラスのオブジェクトから基本クラスのメンバ関数を呼び出せるのはなぜか\n  // 「継承」という言葉を使って一言で書きなさい\n}\n', after:'',
+         answers:['継承しているから','基本クラスを継承しているから'],
+         explain:'DerivedはBaseを継承しているため、Derived自身が何も新しく定義していなくても、Base側で定義されたpublicなメンバ関数(baseFuncなど)を、まるで自分自身が最初から持っているメンバであるかのように、そのまま呼び出すことができます。継承とは「基本クラスの機能一式を丸ごと引き継ぐ」ことなので、drv(Derived型のオブジェクト)がbaseFunc()を呼べるのは当然の結果であり、これこそが継承によってコードを再利用できる、という具体的な現れです。'}
+      ]},
+    {id:'wb', title:'抽象の玉座', sub:'Week B 階層的な継承', emoji:'🐲', mon:'アブストラクト・ドラゴン',
+      lesson:[
+        {title:'純粋仮想関数と抽象クラス', code:'class Creature{\npublic:\n  virtual int attack()=0;\n};',
+         explain:'virtual int attack()=0; のように、関数の宣言の末尾に=0をつけたものを「純粋仮想関数」と呼びます。これは「この関数の中身(実装)はここでは書きません。実際にどう動くかは、これを継承する派生クラスの側で必ず用意してください」という約束を表しています。このように純粋仮想関数を1つ以上持つクラスは「抽象クラス」と呼ばれ、具体的な中身が決まっていない部分がある以上、そのクラス自身のオブジェクトを直接作ることはできません。「共通のルール(設計図の骨組み)だけを決めておき、具体的な実装は子どもたちに任せる」という考え方だとイメージしてください。'},
+        {title:'抽象クラスを継承して実装', code:'class Hero : public Creature{\npublic:\n  int attack(){ return 10; } // 必ず実装する\n};',
+         explain:'Creatureは抽象クラスなので直接オブジェクトを作れませんが、Creatureを継承した派生クラス(この例のHero)の中で、attack()という純粋仮想関数の中身をきちんと実装(オーバーライド)してあげれば、その派生クラスは「もう約束を果たした具体的なクラス」になり、Hero h;のように普通にオブジェクトを生成できるようになります。抽象クラスは「まだ完成していない設計図」、それを継承して純粋仮想関数を全部実装したクラスは「完成した設計図」だとイメージするとよいでしょう。'},
+        {title:'実行方式とインターフェース', code:'// GUI: アイコンやボタンで操作\n// CLI: コマンドを打って操作\n// python: インタプリタ方式(その場で解釈しながら実行)\n// C++/Java: コンパイル方式(先に実行ファイルを作る)',
+         explain:'私たちがキーボードで打ったコマンドを受け取り、それをOS(オペレーティングシステム)に伝えて実行させてくれるプログラムを「シェル」と呼びます(bashやzshなど)。一方、書かれたプログラムをコンピュータが実行する方式には主に2種類あります。pythonのように、コードを1行ずつその場で解釈しながら実行する方式を「インタプリタ方式」、C++やJavaのように、実行の前に専用の変換作業(コンパイル)を行って実行ファイルを作っておく方式を「コンパイル方式」と呼びます。インタプリタ方式はすぐに試せる手軽さがあり、コンパイル方式は事前に変換しておく分、実行時の速度が速い傾向があります。'}
+      ],
+      qs:[
+        {before:'class Creature{\npublic:\n  virtual int attack()', after:'; // 純粋仮想関数にする書き方(末尾に何をつける？)\n};',
+         answers:['=0','= 0'],
+         explain:'普通のメンバ関数はint attack(){ return 10; } のように、必ず処理の中身({ }の部分)を書く必要があります。しかし関数の宣言の末尾に=0をつけて virtual int attack()=0; のように書くと、それは中身を持たない「純粋仮想関数」になります。これは「この関数がどう動くべきかは、このクラスの時点では決めません。実際にどう動くかは、必ず派生クラス側で用意してください」という強制力のある約束です。もし派生クラスで実装し忘れると、そのクラスは依然として抽象クラスのままになり、オブジェクトを作ろうとした時点でコンパイルエラーになります。'},
+        {before:'class Creature{\npublic:\n  virtual int attack()=0;\n  virtual int damaged(int pt)=0;\n};\n// 純粋仮想関数を1つ以上含むこのようなクラスを何と呼ぶか(漢字で)\n', after:'',
+         answers:['抽象クラス'],
+         explain:'純粋仮想関数(=0がついた関数)を1つでも含むクラスは「抽象クラス」と呼ばれます。この例のCreatureクラスは「生き物にはattackとdamagedという機能があるはずだ」という共通のルール(設計図の骨組み)だけを決めていて、具体的にどんな攻撃をするか、どうダメージを受けるかという中身は、それぞれの生き物(HeroやMonsterなどの派生クラス)に任せています。「Creatureという抽象的な生き物」は実際には存在せず、実際に存在するのは具体的なHeroやMonsterだけ、という現実の感覚とも一致する、自然な設計の考え方です。'},
+        {before:'class Creature{\npublic:\n  virtual int attack()=0;\n};\nint main(){\n  Creature c; // これは実行できるか「できる」か「できない」で答えなさい\n}\n', after:'',
+         answers:['できない'],
+         explain:'Creatureは純粋仮想関数attack()を持つ抽象クラスです。「attack()を実行したときに具体的に何をするか」が決まっていない以上、C++のコンパイラは「Creature c;のようにオブジェクトを作られても、attack()を呼ばれたときにどう動けばよいか分からない」と判断し、抽象クラスのオブジェクトを直接作ることを禁止しています。実際に使うためには、Creatureを継承した派生クラスの中でattack()の中身をきちんと実装(オーバーライド)し、「約束を果たした具体的なクラス」にしてから、そちらのオブジェクトを作る必要があります。'},
+        {before:'// 人とOS(オペレーティングシステム)とのインターフェースとなるプログラムを何と呼ぶか、英単語で書きなさい\n', after:'',
+         answers:['shell','シェル'],
+         explain:'私たちが普段パソコンを操作するとき、その裏側ではOS(オペレーティングシステム)がハードウェアや様々なプログラムを管理しています。ただしOSの中身に直接命令を送るのは複雑なので、間に立って人間の入力を受け取り、OSに伝えて実行させてくれるプログラムが用意されています。これを「シェル」と呼び、代表例としてMacやLinuxでよく使われるbash、zshや、Windowsのpowershellなどがあります。shellはもともと「殻」という意味の単語で、複雑なOSの中身を人間が直接触らなくても済むように、外側から優しく包んでいるイメージから名付けられています。'},
+        {before:'// pythonのように、コマンドをその都度解釈しながら実行する方式を何と呼ぶか、カタカナで書きなさい\n', after:'',
+         answers:['インタプリタ'],
+         explain:'インタプリタは、書かれたプログラムのコードを1行ずつその場で読み取り、意味を解釈しながら順番に実行していく仕組みです。人が外国語の文章を、辞書を引きながらその場で1文ずつ訳していく様子に近いイメージです。pythonはこのインタプリタ方式で実行される言語で、書いたコードをすぐに%python ファイル名.pyのように実行できる手軽さがある一方、実行するたびに解釈作業が挟まるため、後述するコンパイル方式に比べると実行速度は遅くなりがちです。'},
+        {before:'// C言語系やJavaのように、実行の前に専用の作業を行って実行ファイルを作る方式を何と呼ぶか書きなさい\n', after:'',
+         answers:['コンパイル'],
+         explain:'コンパイルは、人間が読み書きしやすい言葉(ソースコード)で書かれたプログラムを、コンピュータのCPUが直接理解できる「機械語」に変換し、実行ファイルとして作り上げる作業です。この変換専用のプログラムを「コンパイラ」と呼びます(g++はC++用のコンパイラの1つです)。C言語系やJavaはこの方式を採用しており、プログラムを書いたらまずコンパイルという準備の工程を挟んで実行ファイルを作り、その後で./実行ファイル名のように実行します。実行前に変換を済ませておく分、実行時にはすでに機械語になっているため、インタプリタ方式に比べて実行速度が速くなる傾向があります。'},
+        {before:'// アイコンやボタンを使った直感的な操作方式(Graphical User Interface)の略称をアルファベット3文字で書きなさい\n', after:'',
+         answers:['GUI'],
+         explain:'人がコンピュータやプログラムとやり取りする方法(インターフェース)には、大きく分けて2つのタイプがあります。1つはGUI(Graphical User Interface)で、アイコンやボタンなど目で見て分かる視覚的な部品をマウスやタッチで操作する、直感的なインターフェースです(PowerPointやSafariなど)。もう1つはCLI(Command Line Interface)で、文字でコマンドを入力して操作するインターフェースです(ターミナルでのcdやls, gitのコマンドなど)。GUIは初めて触る人にも分かりやすい一方、CLIは操作の手順が決まっている作業を素早く・正確に繰り返すのに向いている、というそれぞれの得意分野があります。'}
+      ]},
+    {id:'py', title:'蛇の書', sub:'Week C pythonのクラス基礎', emoji:'🐍', mon:'パイソン・セージ',
+      lesson:[
+        {title:'関数とクラスの基本', code:'def add(x, y):\n    return x + y\n\nclass Hero:\n    def __init__(self, name):\n        self.name = name',
+         explain:'C++ではint, void, boolのように戻り値の型を書いて関数を定義しましたが、pythonではdefというキーワードだけを使い、型は一切書かずに関数を定義します。クラスを定義するときはclassキーワードを使い、__init__という特別な名前のメソッドがC++のコンストラクタに相当します。__init__は、Hero("勇者")のようにオブジェクトを生成した瞬間に自動的に呼ばれ、その中で self.name = name のように書くことで、そのオブジェクト専用のデータ(データメンバ)を作ることができます。'},
+        {title:'継承とsuper()', code:'class Monster:\n    def __init__(self, hp):\n        self.HP = hp\n\nclass Boss(Monster):\n    def __init__(self, hp, name):\n        super().__init__(hp)\n        self.name = name',
+         explain:'pythonでクラスを継承するときは、class Boss(Monster): のように、クラス名の後ろの括弧に親クラス(継承元のクラス)の名前を書きます。C++のclass Derived : public Base とほぼ同じ役割です。親クラスのコンストラクタに相当する__init__を呼び出したいときは、super()という特殊な書き方を使い、super().__init__(hp) のようにします。superは「親」を表し、super().__init__(hp)は「親クラスの__init__を、引数hpを渡して呼び出す」という意味になります。これによって、親クラスが管理しているデータ(self.HP)の初期化を親クラス自身に任せることができます。'},
+        {title:'複数の戻り値と*args', code:'def cal(x, y):\n    return x+y, x-y\nadd, sub = cal(3, 2)\n\ndef func(*arg):\n    print(arg)  # タプルになる',
+         explain:'C++の関数はreturnで1つの値しか返せませんでしたが、pythonでは return x+y, x-y のようにカンマ区切りで複数の値をまとめて書くことができ、これにより複数の値を同時に呼び出し元へ返せます。呼び出す側でも add, sub = cal(3, 2) のように、複数の変数をカンマ区切りで並べておけば、それぞれに対応する値を一度に受け取れます。また、関数を定義する際に引数名の前に*をつけると(*arg)、呼び出すときに渡された引数の個数がいくつであっても、それらをまとめて1つの「タプル」というデータとして受け取ることができます。'}
+      ],
+      qs:[
+        {before:'', after:' add(x, y):\n    return x + y  # pythonで関数を定義するキーワード',
+         answers:['def'],
+         explain:'pythonでは関数をdefキーワードで定義します。C++のようにint, voidといった戻り値の型を書く必要はありません。defの後に関数名、括弧の中に引数を書き、最後にコロン(:)をつけて改行し、そこから字下げ(インデント)された行が、その関数の中身とみなされます。C++が{ }でブロックの範囲を表していたのに対し、pythonでは字下げの深さそのものが「どこからどこまでが1つの関数か」を表す文法的な意味を持っている点が大きな違いです。字下げがずれるとエラーになるので注意しましょう。'},
+        {before:'class Hero:\n    def __init__(', after:', name):\n        self.name = name  # クラスのメソッドの第一引数として、インスタンス自身を表すために慣習的に使う名前',
+         answers:['self'],
+         explain:'pythonのクラスに定義するメソッド(関数)は、C++と違って自動的にオブジェクト自身を認識してくれるわけではなく、必ず第一引数として「このメソッドを呼び出したインスタンス自身」を明示的に受け取るという決まりがあります。この第一引数の名前は文法上どんな名前でも構わないのですが、世界中のpythonプログラマがselfという名前を使う慣習になっているため、自分もそれに合わせておくのが安全です。self.name = name のように書くと、渡された名前(name)を「このインスタンス固有のデータ」として保存でき、他のメソッドからもself.nameとして参照できるようになります。'},
+        {before:'class Monster:\n    def __init__(self, hp):\n        self.HP = hp\nclass Boss(Monster):\n    def __init__(self, hp, name):\n        ', after:'().__init__(hp)\n        self.name = name  # 親クラス(Monster)のコンストラクタを呼び出す書き方',
+         answers:['super'],
+         explain:'super()という特別な書き方を使うと、今のクラスの親クラス(継承元のクラス)が持っているメソッドを呼び出すことができます。super().__init__(hp) は「親クラス(この場合はMonster)の__init__(コンストラクタに相当するもの)を、引数hpを渡して呼び出しなさい」という意味です。これによって、親クラスがすでに用意している初期化処理(self.HP = hpの部分)をそのまま再利用でき、Bossクラスの__init__では自分が新しく追加した部分(self.name = name)の初期化だけを書けばよくなります。これはC++の継承で、派生クラスのコンストラクタから:Base(引数)と書いて基本クラスのコンストラクタを呼び出していたのと、役割としては全く同じ考え方です。'},
+        {before:'def func(', after:'arg):\n    print(arg)\n    print(type(arg))  # 複数の引数をまとめて受け取りたいときに引数名の前につける記号',
+         answers:['*'],
+         explain:'関数を定義するときに引数名の前に*をつけると(この例では*arg)、その関数を呼び出すときに渡された引数がいくつであっても、それらをすべてまとめて1つの「タプル」というデータ型として受け取ることができます。たとえばfunc("Test", [1,2,3])のように2つの引数を渡すと、関数の中ではargが("Test", [1,2,3])というタプルになります。ここでの*は、C++のポインタで使う「間接参照演算子」の*とは全く別の意味を持つ記号なので、混同しないように注意してください。pythonの*は「複数の値をまとめる/ばらす」という意味で使われます。'},
+        {before:'def cal(x, y):\n    return x+y', after:' x-y  # 2つの値を同時に戻したいとき、returnの後ろに挟む記号',
+         answers:[','],
+         explain:'C++の関数は1つの値しか返せませんでしたが、pythonの関数は return x+y, x-y のように、returnの後ろにカンマ区切りで複数の値を並べて書くだけで、複数の値を一度に返すことができます。実はこの書き方は内部的には自動的にタプルという1つのまとまりを作って返しており、呼び出す側で add, sub = cal(3,2) のようにカンマ区切りの複数の変数で受け取ると、そのタプルの中身がそれぞれの変数にきれいに振り分けられます(このような代入の仕方をアンパックと呼びます)。'},
+        {before:'class Hero:\n    def __init__(self, name):\n        self.name = name\n# selfをつけずにただ「name = name」とだけ書いた場合どうなるか\n# 「ローカル変数として扱われ、__init__を抜けると◯◯」の◯◯部分を書きなさい\n', after:'',
+         answers:['消える','消えてしまう'],
+         explain:'self.をつけずにただ name = name と書いてしまうと、それは__init__メソッドの中だけで一時的に使われる「ローカル変数」を作っているにすぎず、そのインスタンスに保存されるデータメンバにはなりません。ローカル変数は、それが宣言された関数(この場合は__init__)の実行が終わった瞬間に消えてしまうので、次に他のメソッドを呼んだときにはもうアクセスできず、「そんな変数は無い」というエラーになります。インスタンスに紐づいたデータとしてずっと保持しておきたい場合は、必ずself.name = name のようにself.をつけて代入する必要があります。'},
+        {before:'if __name__ == ', after:':\n    print("直接実行された")\n# このファイルが直接実行されたときだけ処理をしたい場合の書き方',
+         answers:["'__main__'",'"__main__"'],
+         explain:'pythonの各ファイル(モジュール)には、__name__という特別な変数が自動的に用意されています。この変数の中身は、そのファイルを % python ファイル名.py のように直接実行したときだけ文字列"__main__"になり、逆に他のファイルからimport ファイル名 のように読み込まれて使われたときは、ファイル名そのもの(例えば"timeApp")になります。この違いを利用して、if __name__ == \'__main__\': という条件分岐の中に書いた処理は、「このファイルが直接実行されたときだけ動く、importされたときには動かない」という便利な使い分けができるようになります。ライブラリとして再利用したいクラスと、実際に動かして試すための処理を1つのファイルに共存させたいときによく使われるテクニックです。'}
+      ]},
+    {id:'tk', title:'窓辺の城', sub:'Week D/E Tkinterウィジェット', emoji:'🪟', mon:'ウィジェット・キング',
+      lesson:[
+        {title:'ウィンドウとウィジェット配置', code:'import tkinter as tk\nfrom tkinter import ttk\nroot = tk.Tk()\nlabel = ttk.Label(root, text="Hello")\nlabel.grid(column=0, row=0)\nroot.mainloop()',
+         explain:'Tkinterでウィンドウを作りたいときは、まずtk.Tk()というクラスのオブジェクトを1つ生成します(慣習的にrootという名前をつけます)。これがアプリのウィンドウ本体です。その中に置きたい部品(ウィジェットと呼びます。ラベル、ボタン、入力欄など)は、ttk.Label(root, text="Hello")のように「どの親の中に置くか」を最初の引数で指定して生成し、続けてgrid()やpack()というメソッドで実際の配置場所を決めます。最後にroot.mainloop()を呼ぶことで、ウィンドウが画面に表示されたまま、ユーザーのクリックなどの操作をずっと待ち受ける状態になります。mainloop()を呼び忘れると、ウィンドウはすぐに閉じてしまいます。'},
+        {title:'変化するテキストとEntry', code:'text = tk.StringVar()\nlabel = ttk.Label(root, textvariable=text)\nentry = ttk.Entry(root)\nvalue = entry.get()\ntext.set(value)',
+         explain:'ラベルに表示するテキストを、実行中に自由に書き換えたい場合は、text="..."という固定のオプションではなく、textvariableというオプションを使います。まずtk.StringVar()というテキスト専用の入れ物を用意し、それをラベルのtextvariableに渡しておくと、あとでtext.set("新しい文字")のようにその入れ物の中身を書き換えるだけで、画面上のラベルの表示も自動的に更新されます。一方、ユーザーがEntry(入力欄)ウィジェットに入力した文字列を取得したいときは、entry.get()というメソッドを呼び出します。「表示を変えたいときはStringVar経由のset、入力値を読み取りたいときはEntryのget」と覚えておきましょう。'},
+        {title:'自作ウィジェットクラス', code:'class TimeApp(ttk.Frame):\n    def __init__(self, root):\n        super().__init__(root)\n        # ここに複数のウィジェットを追加\n\nif __name__ == \'__main__\':\n    root = tk.Tk()\n    app = TimeApp(root)\n    app.pack()\n    root.mainloop()',
+         explain:'ラベルやボタンなど、複数のウィジェットを組み合わせて1つの部品(自作ウィジェット)としてまとめたいときは、ttk.Frameというクラスを継承した新しいクラスを作ります。C++の継承と同じように、class TimeApp(ttk.Frame): のように親クラスを指定し、__init__の中でsuper().__init__(root)を呼んでFrame自身の初期化をしたあと、そのFrame(self)を親として複数のウィジェットを追加していきます。こうして作ったTimeAppクラスは、それ自体が1つのウィジェットであるかのように、app = TimeApp(root); app.pack()のように使うことができます。if __name__ == \'__main__\': のブロックは、このファイルを直接実行してTimeAppの動作を単独で試したいときに使う、動作確認用のコードを書く場所です。'}
+      ],
+      qs:[
+        {before:'import tkinter as tk\nroot = tk.', after:'()\nroot.mainloop()  # ウィンドウ本体を作るクラス',
+         answers:['Tk'],
+         explain:'tk.Tk()は、Tkinterアプリのウィンドウ本体を作るクラスです。root = tk.Tk() と書くことで、rootという名前でウィンドウのオブジェクトを1つ生成します。このrootが、これから作るラベルやボタンなど、あらゆるウィジェットの「一番外側の入れ物」になります。オブジェクトを作っただけではまだウィンドウは表示され続けないので、最後に必ずroot.mainloop()を呼び出します。mainloop()は「ウィンドウを表示したまま、ユーザーがボタンを押したりウィンドウを閉じたりする操作をずっと待ち受け続ける」処理で、これを呼ばないとプログラムはすぐに終了してウィンドウも一瞬で消えてしまいます。'},
+        {before:'label = ttk.Label(frame, text="Hello")\nlabel.', after:'(column=0, row=0)  # column, rowで位置を指定して配置するメソッド',
+         answers:['grid'],
+         explain:'Tkinterでは、ウィジェット(ラベルやボタンなどの画面部品)を生成しただけでは画面上に表示されず、続けて配置用のメソッドを呼ぶ必要があります。gridメソッドは、ウィンドウ全体を格子状(表計算ソフトのマス目のような)に区切って考え、column(何列目か)とrow(何行目か)を指定して、そのウィジェットをどのマスに置くかを決める配置方法です。もう1つの代表的な配置方法としてpackがあり、こちらは細かい位置を指定するのではなく「上から順に詰めて並べる」といった相対的な配置をします。同じ親ウィジェットの中では、gridとpackを混在させることはできない点にも注意しましょう。'},
+        {before:'time = tk.StringVar()\nlabel = ttk.Label(frame, ', after:'=time)  # 実行中に表示するテキストを変更可能にするために指定するオプション',
+         answers:['textvariable'],
+         explain:'ttk.Label(frame, text="Hello")のようにtextオプションだけで文字を指定すると、そのラベルは最初に設定した文字を表示したままで、後からプログラムで自動的に書き換えることはできません。実行中に表示内容を変えたい(たとえば現在時刻を表示し続けたい)場合は、代わりにtextvariableというオプションを使い、tk.StringVar()で作った専用の変数を渡しておきます。こうしておけば、あとでtime.set(新しい文字列)のようにそのStringVarの中身を更新するだけで、画面上のラベルの表示もTkinterが自動的に合わせて更新してくれます。'},
+        {before:'entry = ttk.Entry(frame)\nentry.grid(column=0,row=0)\ntext = entry.', after:'()  # Entryウィジェットに入力された文字列を取得するメソッド',
+         answers:['get'],
+         explain:'ttk.Entryは、ユーザーが自由に文字を入力できる「入力欄」のウィジェットです。ユーザーが今そこに何を入力しているかをプログラム側で知りたいときは、そのEntryオブジェクトのget()メソッドを呼び出します。text = entry.get(); と書けば、入力欄に今入っている文字列がtextという変数に代入されます。この仕組みは、たとえば「Addボタンが押されたときに、入力欄の内容を読み取ってリストに追加する」といった処理でよく使われます。'},
+        {before:'class TimeApp(ttk.', after:'):\n    def __init__(self, root):\n        super().__init__(root)\n    # 複数のウィジェットをまとめる自作ウィジェットクラスを作るとき、一般的に継承するクラス',
+         answers:['Frame'],
+         explain:'ラベルやボタンなど、複数のウィジェットをひとまとめにした「自作のウィジェット」を作りたいときは、ttk.Frameを継承したクラスを作るのが一般的です。Frameはもともと「他のウィジェットを中に入れるための入れ物」の役割を持つウィジェットで、C++のクラス継承と同じように、class TimeApp(ttk.Frame): と書いてFrameの機能を引き継ぎつつ、__init__の中で好きなだけウィジェットを追加していくことができます。こうして作ったTimeAppは、それ自体が1つのFrame(=ウィジェット)として扱えるので、app = TimeApp(root); app.pack(); のように普通のウィジェットと同じ感覚で配置できます。'},
+        {before:'if __name__ == \'__main__\':\n    root = tk.Tk()\n    app = TimeApp(root)\n    app.', after:'(side=\'top\')  # 上から順に詰めて配置するメソッド',
+         answers:['pack'],
+         explain:'packは、gridのように細かく列や行を指定するのではなく、ウィジェットを上下左右のいずれかの方向へ「順番に詰めて」配置するメソッドです。side引数で詰める方向を指定でき、side=\'top\'(何も指定しない場合のデフォルト)なら上から順に積み重なるように、side=\'left\'なら左から順に並ぶように配置されます。同じ親の中で複数のウィジェットをpackすると、後から追加したものが指定した方向に向かって順番に詰められていくため、ウィジェットを次々に増やしていくメモアプリのような画面と相性の良い配置方法です。'},
+        {before:'# このモジュールが直接実行されたときだけ処理を行うためのイディオムを書きなさい\n', after:':\n    root = tk.Tk()\n    root.mainloop()',
+         answers:["if __name__ == '__main__'",'if __name__=="__main__"'],
+         explain:'if __name__ == \'__main__\': という1行は、pythonのファイルを部品(モジュール)として再利用しやすくするための定番のイディオム(お決まりの書き方)です。このファイルが % python ファイル名.py のように直接実行された場合にだけ__name__の値が"__main__"になるため、この条件が成立し、中に書かれたroot = tk.Tk()などの動作確認コードが実行されます。一方、このファイルが他のプログラムからimportされて部品として使われる場合は__name__は"__main__"にならないため、この中の処理は実行されず、クラスの定義部分だけが読み込まれます。GUIアプリの自作ウィジェットクラスを、他のファイルからも安心してimportして再利用できるようにするために、よく使われる書き方です。'},
+        {before:'# ディレクトリ(パッケージ)をimportしたときに自動的に読み込まれる特別なファイル名を書きなさい\n', after:'',
+         answers:['__init__.py'],
+         explain:'1つのファイル(モジュール)だけでなく、複数のモジュールをディレクトリにまとめたものを「パッケージ」と呼びます。あるディレクトリをパッケージとしてimportすると、pythonはそのディレクトリの中にある__init__.pyという特別な名前のファイルを自動的に探し出し、読み込みます。このファイルの中に、パッケージ全体で共通して使いたい初期設定や、外部からアクセスしやすくするための橋渡し役のコードなどを書いておくことができます。実際にtkinterというライブラリ自体も、内部的にはこのような__init__.pyを持つパッケージとして作られています。'}
+      ]}
+  ];
+
+  var TOTAL_STARS = STAGES.length * 3;
+  var STORE_KEY = 'oopExamQuest_v3';
+
+  function loadProgress(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return {unlocked:1, stars:{}};
+  }
+  function saveProgress(p){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){}
+  }
+
+  var progress = loadProgress();
+
+  var state = {screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false};
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t=a[i]; a[i]=a[j]; a[j]=t;
+    }
+    return a;
+  }
+
+  function starString(n){
+    var s='';
+    for(var i=0;i<3;i++) s += (i<n? '★':'☆');
+    return s;
+  }
+
+  function totalStarsEarned(){
+    var sum=0;
+    Object.keys(progress.stars).forEach(function(k){ sum += progress.stars[k]; });
+    return sum;
+  }
+
+  function esc(s){
+    return String(s).replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});
+  }
+
+  function normalize(s){
+    return String(s).trim().toLowerCase().replace(/\s+/g,'');
+  }
+  function stripSemi(s){
+    return s.replace(/;+$/,'');
+  }
+  function checkAnswer(input, answers){
+    var n = normalize(input);
+    var n2 = stripSemi(n);
+    return answers.some(function(a){
+      var an = normalize(a);
+      var an2 = stripSemi(an);
+      return n===an || n2===an2;
+    });
+  }
+
+  function renderTopbar(){
+    return ''+
+    '<div class="topbar">'+
+      '<div class="brand"><span class="glyph">🧙</span><div><h1>コード転生記</h1><small>期末試験サバイバル・クエスト</small></div></div>'+
+      '<div class="tally">総獲得星 <span class="stars num">'+totalStarsEarned()+' / '+TOTAL_STARS+'</span></div>'+
+    '</div>';
+  }
+
+  function renderMap(){
+    var cards = STAGES.map(function(st, i){
+      var locked = (i+1) > progress.unlocked;
+      var stars = progress.stars[st.id] || 0;
+      return ''+
+      '<button class="stagecard'+(locked?' locked':'')+'" data-idx="'+i+'" '+(locked?'disabled':'')+' aria-label="'+esc(st.title)+'">'+
+        '<div class="row1"><span class="emoji">'+st.emoji+'</span><span class="idx">STAGE '+(i+1)+'</span></div>'+
+        '<h3>'+esc(st.title)+'</h3>'+
+        '<div class="sub">'+esc(st.sub)+' ・ '+esc(st.mon)+'</div>'+
+        '<div class="stars">'+starString(stars)+'</div>'+
+      '</button>';
+    }).join('');
+
+    return ''+ renderTopbar() +
+    '<div class="frame intro">'+
+      '<h2>試験前夜、記憶の迷宮へ</h2>'+
+      '<p>全'+STAGES.length+'章。各章にはまず「訓練場」があり、完成した正しいコードと解説を読んで感覚をつかめる。準備ができたら、単元の化身であるモンスターとの戦い(記述式クイズ)に挑もう。空欄に正解すれば斬りつけ、間違えるとダメージを受ける。全問クリアで次の間が解放される。</p>'+
+    '</div>'+
+    '<div class="stagegrid">'+cards+'</div>'+
+    '<p class="footer-note">進行状況はこの端末に自動保存されます。</p>';
+  }
+
+  function openLesson(idx, fromBattle){
+    state.stageIndex = idx;
+    state.screen = 'lesson';
+    state.lessonFromBattle = !!fromBattle;
+    render();
+  }
+
+  function renderLesson(){
+    var st = STAGES[state.stageIndex];
+    var cards = st.lesson.map(function(c, i){
+      return '<div class="frame lessoncard">'+
+        '<div class="lstep">例題 '+(i+1)+' / '+st.lesson.length+'</div>'+
+        '<h3>'+esc(c.title)+'</h3>'+
+        '<pre class="codeblock">'+esc(c.code)+'</pre>'+
+        '<p class="lessonexplain">'+esc(c.explain)+'</p>'+
+      '</div>';
+    }).join('');
+
+    var backLabel = state.lessonFromBattle ? '← 戦闘へ戻る' : '← 地図へ戻る';
+    var primaryLabel = state.lessonFromBattle ? '戦いに戻る →' : '修行完了、戦いに挑む →';
+
+    return ''+ renderTopbar() +
+    '<div class="battlebar"><button class="backbtn" id="btnLessonBack">'+backLabel+'</button></div>'+
+    '<div class="frame lessonintro">'+
+      '<h2>'+st.emoji+' 訓練場 — '+esc(st.title)+'</h2>'+
+      '<p>'+esc(st.sub)+'の要点を、完成した正しいコードと解説で確認しよう。まずは読んで感覚をつかんでから、'+esc(st.mon)+'に挑むと理解しやすい。</p>'+
+    '</div>'+
+    '<div class="lessongrid">'+cards+'</div>'+
+    '<div class="actionrow"><button class="primary" id="btnToBattle">'+primaryLabel+'</button></div>';
+  }
+
+  function startStage(idx){
+    state.screen='battle';
+    state.stageIndex=idx;
+    state.order = shuffle(STAGES[idx].qs.map(function(_,i){return i;}));
+    state.qIndex=0;
+    state.heroHP=100;
+    state.monsterHP=100;
+    state.wrong=0;
+    state.locked=false;
+    state.failReason=null;
+    render();
+  }
+
+  var CUR_Q = null;
+
+  function currentQuestion(){
+    var st = STAGES[state.stageIndex];
+    var qi = state.order[state.qIndex];
+    return st.qs[qi];
+  }
+
+  function renderBattle(){
+    var st = STAGES[state.stageIndex];
+    if(!CUR_Q) CUR_Q = currentQuestion();
+    var total = st.qs.length;
+
+    var codeHtml = '<pre class="codeblock">'+esc(CUR_Q.before)+'<mark class="blank">______</mark>'+esc(CUR_Q.after)+'</pre>';
+
+    return ''+ renderTopbar() +
+    '<div class="battlebar">'+
+      '<button class="backbtn" id="btnHome">← 地図へ戻る</button>'+
+      '<button class="backbtn" id="btnReview">📖 訓練場で例題を見直す</button>'+
+    '</div>'+
+    '<div class="combatants">'+
+      '<div class="frame fighter"><div class="who"><span class="emoji">🧙</span><div class="name">受験の勇者<small>あなた</small></div></div>'+
+        '<div class="hpbar hero"><i style="transform:scaleX('+(state.heroHP/100)+')"></i></div>'+
+        '<div class="hpnum"><span>HP</span><span class="num">'+state.heroHP+' / 100</span></div></div>'+
+      '<div class="vs">VS</div>'+
+      '<div class="frame fighter"><div class="who"><span class="emoji">'+st.emoji+'</span><div class="name">'+esc(st.mon)+'<small>'+esc(st.sub)+'</small></div></div>'+
+        '<div class="hpbar monster"><i style="transform:scaleX('+(state.monsterHP/100)+')"></i></div>'+
+        '<div class="hpnum"><span>HP</span><span class="num">'+state.monsterHP+' / 100</span></div></div>'+
+    '</div>'+
+    '<div class="frame qcard" id="qcard">'+
+      '<div class="qmeta"><span>設問 '+(state.qIndex+1)+' / '+total+'</span><span>'+esc(st.title)+'</span></div>'+
+      '<div class="qlead">空欄(<span style="color:var(--accent);font-weight:700;">______</span>)に入るコードや単語を実際に入力して、呪文のように唱えよう。</div>'+
+      codeHtml+
+      '<div class="answerrow">'+
+        '<input class="codeinput" id="ansInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="ここにコードを入力…">'+
+        '<button class="primary" id="btnSubmit">詠唱する →</button>'+
+      '</div>'+
+    '</div>'+
+    '<div id="feedbackSlot"></div>';
+  }
+
+  function renderResult(win){
+    var st = STAGES[state.stageIndex];
+    var stars = 1;
+    if(win){
+      var ratio = state.heroHP/100;
+      if(state.wrong===0) stars=3;
+      else if(ratio>=0.5) stars=2;
+      else stars=1;
+      var prev = progress.stars[st.id]||0;
+      if(stars>prev) progress.stars[st.id]=stars;
+      if(state.stageIndex+2 > progress.unlocked) progress.unlocked = state.stageIndex+2;
+      if(progress.unlocked > STAGES.length) progress.unlocked = STAGES.length;
+      saveProgress(progress);
+    }
+    var failMsg = state.failReason==='outofq'
+      ? ('<span class="bigemoji">🌀</span><h2>とどめを刺しきれなかった…</h2><p>設問はすべて解き終えたが、'+esc(st.mon)+'にはまだ息がある。誤答が多いと決定打が足りない。訓練場で復習してもう一度挑もう。</p>')
+      : ('<span class="bigemoji">💤</span><h2>力尽きた…</h2><p>'+esc(st.mon)+'にHPを削り切られてしまった。訓練場で復習してもう一度挑もう。</p>');
+    var body = win ?
+      ('<span class="bigemoji">🏆</span><h2>'+esc(st.mon)+'を撃破した！</h2><div class="starsline">'+starString(stars)+'</div><p>誤答'+state.wrong+'回で切り抜けた。単元「'+esc(st.sub)+'」はもう怖くない。</p>')
+      : failMsg;
+
+    var nextIdx = state.stageIndex+1;
+    var hasNext = win && nextIdx < STAGES.length;
+
+    return ''+ renderTopbar() +
+    '<div class="frame result">'+
+      body+
+      '<div class="resultbtns">'+
+        '<button class="ghost" id="btnReview">📖 訓練場で見直す</button>'+
+        '<button class="ghost" id="btnRetry">'+(win?'もう一度挑む':'再挑戦する')+'</button>'+
+        (hasNext? '<button class="primary" id="btnNext">次の間へ進む →</button>' : '')+
+        '<button class="ghost" id="btnMap">地図へ戻る</button>'+
+      '</div>'+
+    '</div>'+
+    (!hasNext && win && nextIdx>=STAGES.length ? '<div class="frame allclear"><h2>🎉 全'+STAGES.length+'章 制覇！</h2><p>期末試験の範囲をひと通り旅した。総獲得星 <span class="num">'+totalStarsEarned()+' / '+TOTAL_STARS+'</span>。仕上げにもう一周して星を集めよう。</p></div>' : '');
+  }
+
+  function render(){
+    var app = document.getElementById('app');
+    if(state.screen==='map'){
+      app.innerHTML = renderMap();
+      Array.prototype.forEach.call(app.querySelectorAll('.stagecard:not(.locked)'), function(btn){
+        btn.addEventListener('click', function(){
+          CUR_Q = null;
+          openLesson(parseInt(btn.getAttribute('data-idx'),10), false);
+        });
+      });
+    } else if(state.screen==='lesson'){
+      app.innerHTML = renderLesson();
+      document.getElementById('btnLessonBack').addEventListener('click', function(){
+        state.screen = state.lessonFromBattle ? 'battle' : 'map';
+        render();
+      });
+      document.getElementById('btnToBattle').addEventListener('click', function(){
+        if(state.lessonFromBattle){ state.screen='battle'; render(); }
+        else { startStage(state.stageIndex); }
+      });
+    } else if(state.screen==='battle'){
+      app.innerHTML = renderBattle();
+      document.getElementById('btnHome').addEventListener('click', function(){
+        CUR_Q=null; state.screen='map'; render();
+      });
+      document.getElementById('btnReview').addEventListener('click', function(){
+        openLesson(state.stageIndex, true);
+      });
+      var input = document.getElementById('ansInput');
+      var submitBtn = document.getElementById('btnSubmit');
+      submitBtn.addEventListener('click', onSubmit);
+      input.addEventListener('keydown', function(e){
+        if(e.key==='Enter'){ e.preventDefault(); onSubmit(); }
+      });
+      input.focus();
+    } else if(state.screen==='result-win' || state.screen==='result-lose'){
+      var win = state.screen==='result-win';
+      app.innerHTML = renderResult(win);
+      var review = document.getElementById('btnReview');
+      if(review) review.addEventListener('click', function(){ CUR_Q=null; openLesson(state.stageIndex, false); });
+      var retry = document.getElementById('btnRetry');
+      if(retry) retry.addEventListener('click', function(){ CUR_Q=null; startStage(state.stageIndex); });
+      var next = document.getElementById('btnNext');
+      if(next) next.addEventListener('click', function(){ CUR_Q=null; startStage(state.stageIndex+1); });
+      var map = document.getElementById('btnMap');
+      if(map) map.addEventListener('click', function(){ CUR_Q=null; state.screen='map'; render(); });
+    }
+  }
+
+  function onSubmit(){
+    if(state.locked) return;
+    var input = document.getElementById('ansInput');
+    var val = input.value;
+    if(!val.trim()){
+      input.classList.add('shake');
+      setTimeout(function(){ input.classList.remove('shake'); }, 350);
+      input.focus();
+      return;
+    }
+    state.locked = true;
+    input.disabled = true;
+    document.getElementById('btnSubmit').disabled = true;
+
+    var st = STAGES[state.stageIndex];
+    var dmgToMonster = Math.ceil(100/st.qs.length);
+    var correct = checkAnswer(val, CUR_Q.answers);
+    var slot = document.getElementById('feedbackSlot');
+    var qcard = document.getElementById('qcard');
+
+    if(correct){
+      state.monsterHP = Math.max(0, state.monsterHP - dmgToMonster);
+      qcard.classList.add('pulse');
+    } else {
+      state.wrong++;
+      state.heroHP = Math.max(0, state.heroHP - 20);
+      qcard.classList.add('shake');
+    }
+
+    var yourAnsChip = '<div class="yourans"><span class="label">あなたの回答</span><span class="chip">'+esc(val)+'</span></div>';
+    var correctAnsChip = correct ? '' : '<div class="correctans"><span class="label">正解例</span><span class="chip">'+esc(CUR_Q.answers.join(' / '))+'</span></div>';
+
+    slot.innerHTML = ''+
+      '<div class="frame feedback '+(correct?'good':'bad')+'">'+
+        '<div class="head">'+(correct? '⚔️ 会心の一撃！' : '💥 手痛い反撃を受けた…')+'</div>'+
+        yourAnsChip+
+        correctAnsChip+
+        '<div class="explain"><span class="tag">解説</span>'+esc(CUR_Q.explain)+'</div>'+
+      '</div>'+
+      '<div class="actionrow"><button class="primary" id="btnContinue">つづける →</button></div>';
+
+    setTimeout(refreshBars, 30);
+
+    document.getElementById('btnContinue').addEventListener('click', function(){
+      CUR_Q = null;
+      if(state.heroHP<=0){ state.failReason='hero'; state.screen='result-lose'; render(); return; }
+      if(state.monsterHP<=0){ state.screen='result-win'; render(); return; }
+      state.qIndex++;
+      if(state.qIndex >= state.order.length){
+        if(state.monsterHP<=0){ state.screen='result-win'; }
+        else { state.failReason='outofq'; state.screen='result-lose'; }
+        render();
+        return;
+      }
+      state.locked = false;
+      render();
+    });
+  }
+
+  function refreshBars(){
+    var heroBar = document.querySelector('.hpbar.hero i');
+    var monBar = document.querySelector('.hpbar.monster i');
+    if(heroBar) heroBar.style.transform = 'scaleX('+(state.heroHP/100)+')';
+    if(monBar) monBar.style.transform = 'scaleX('+(state.monsterHP/100)+')';
+    var nums = document.querySelectorAll('.hpnum .num');
+    if(nums[0]) nums[0].textContent = state.heroHP+' / 100';
+    if(nums[1]) nums[1].textContent = state.monsterHP+' / 100';
+  }
+
+  render();
+})();
+</script>
+
+</body>
+</html>
