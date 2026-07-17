@@ -110,6 +110,18 @@
   .intro p{margin:.5em 0 0; max-width:64ch; color:var(--ink-dim);}
   .intro h2{font-size:1.3rem; margin-bottom:4px;}
 
+  .alttoggle{
+    display:flex; align-items:center; gap:14px; width:100%; text-align:left; cursor:pointer;
+    background:var(--panel); border:1px solid var(--line); color:var(--ink); padding:14px 18px; margin-bottom:16px;
+    clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .alttoggle:hover{border-color:var(--accent);}
+  .alttoggle .alticon{font-size:1.4rem; flex:none;}
+  .alttoggle .altbody{display:flex; flex-direction:column; gap:2px;}
+  .alttoggle .alttitle{font-weight:700; font-size:.9rem;}
+  .alttoggle .altdesc{font-size:.78rem; color:var(--ink-dim); max-width:64ch;}
+
   .endlesscard{
     display:block; width:100%; text-align:left; cursor:pointer;
     background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--panel)), var(--panel));
@@ -236,6 +248,10 @@
   }
   .codeinput:disabled{opacity:.7;}
   .codeinput::placeholder{color:var(--ink-dim);}
+  .answerrow.long{display:block;}
+  .codeinput.long{
+    display:block; width:100%; resize:vertical; line-height:1.6; white-space:pre;
+  }
 
   .choicegrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:10px;}
   .choicebtn{
@@ -392,7 +408,8 @@
       qsHard:[
         {type:'debug', before:'int a = 10;\nint* p = &a;\ncout << ', after:' << endl; // pの指す先の値(10)を表示したいのに、住所が表示されてしまうバグを直しなさい',
          answers:['*p'],
-         explain:'pそのものを出力すると、pに入っている「aの住所(アドレス)」が表示されてしまいます。pが指す先の実際の値を見るには、間接参照演算子*をつけて*pと書く必要があります。&(住所を取る)と*(住所先の値を取る)は逆の働きをするペアだと覚えておきましょう。'},
+         altAnswers:['p[0]'],
+         explain:'pそのものを出力すると、pに入っている「aの住所(アドレス)」が表示されてしまいます。pが指す先の実際の値を見るには、間接参照演算子*をつけて*pと書く必要があります。&(住所を取る)と*(住所先の値を取る)は逆の働きをするペアだと覚えておきましょう。(別解: p[0]も*pと同じ値を指しますが、授業では扱っていません)'},
         {type:'choice', lead:'int* p; と宣言しただけで、どこも指すように初期化していないとき、*pを読むとどうなるか選びなさい。',
          options:['不定な値を読み、実行時に問題を起こす可能性がある','必ず0が表示される','コンパイルエラーになる','pは自動的にnullptrになる'],
          answers:['不定な値を読み、実行時に問題を起こす可能性がある'],
@@ -499,7 +516,8 @@
       qsHard:[
         {type:'debug', before:'int a[5]={1,2,3,4,5};\nfor(int i=0; ', after:'; i++){\n  cout << a[i] << endl;\n} // 範囲外アクセスになってしまう継続条件のバグを直しなさい(i<の形で)',
          answers:['i<5'],
-         explain:'サイズ5の配列の有効な添字は0〜4です。i<=5だとi=5のときa[5]という存在しない要素にアクセスしてしまい、実行時に不具合を起こす原因になります。継続条件はi<5にする必要があります。'},
+         altAnswers:['i<=4'],
+         explain:'サイズ5の配列の有効な添字は0〜4です。i<=5だとi=5のときa[5]という存在しない要素にアクセスしてしまい、実行時に不具合を起こす原因になります。継続条件はi<5にする必要があります。(別解: i<=4でも同じ範囲になりますが、授業ではi<の形で教えています)'},
         {type:'choice', lead:'配列を関数に渡し、関数の中でsizeof(引数名)を書いた場合、何が返るか選びなさい。',
          options:['ポインタ自体のサイズ(例:8)','配列全体のバイト数','配列の要素数','コンパイルエラーになる'],
          answers:['ポインタ自体のサイズ(例:8)'],
@@ -739,7 +757,8 @@
          explain:'vectorは、要素数を実行中に自由に増やしたり減らしたりできる「可変長配列」を扱うためのクラスです。<vector>ヘッダをインクルードすれば使えるようになります。普通の配列int a[5];はサイズが固定されているのに対し、vector<int> v; と宣言しておけば、v.push_back(値)を呼ぶたびに要素を1つずつ末尾に追加していくことができ、v.size()で現在の要素数を、v[i]で個々の要素にアクセスできます。「サイズがあらかじめ分からない」「後から要素を増やしたい」という場面では、配列よりvectorを使う方がずっと便利です。'},
         {before:'#include <vector>\nvector<int> v;\nv.', after:'(2); // 値2の要素を末尾に追加するメソッド',
          answers:['push_back'],
-         explain:'push_back(値)は、vectorの末尾に新しい要素を1つ追加するメソッドです。「push(押し込む)+back(後ろに)」という名前の通り、すでにある要素の一番後ろに新しい値を押し込んでいくイメージです。v.push_back(1); を実行するとvは要素数1(中身は{1})に、続けてv.push_back(2); を実行すると要素数2(中身は{1,2})になります。呼び出すたびに自動的にサイズが1つずつ大きくなっていくため、あらかじめ要素数を決めておかなくても、必要な分だけどんどんデータを追加していける便利さがvectorの一番の魅力です。'},
+         altAnswers:['emplace_back'],
+         explain:'push_back(値)は、vectorの末尾に新しい要素を1つ追加するメソッドです。「push(押し込む)+back(後ろに)」という名前の通り、すでにある要素の一番後ろに新しい値を押し込んでいくイメージです。v.push_back(1); を実行するとvは要素数1(中身は{1})に、続けてv.push_back(2); を実行すると要素数2(中身は{1,2})になります。呼び出すたびに自動的にサイズが1つずつ大きくなっていくため、あらかじめ要素数を決めておかなくても、必要な分だけどんどんデータを追加していける便利さがvectorの一番の魅力です。(別解: emplace_backも同じ役割を果たせますが、授業では扱っていません)'},
         {before:'// deleteを忘れて動的に確保したメモリを解放しないままにしておくと起きる問題をカタカナで書きなさい\n', after:'',
          answers:['メモリリーク'],
          explain:'newで確保したメモリを解放し忘れることを「メモリリーク」と呼びます。リーク(leak)は英語で「漏れる」という意味で、まるで水道の蛇口から水が少しずつ漏れ続けているように、使われないままのメモリがプログラムの実行中にどんどん増え続けていく様子を表しています。1回や2回であれば大した影響はありませんが、たとえばループの中で毎回newして一度もdeleteしない、という書き方をしてしまうと、実行している間じゅうメモリが際限なく増え続け、最終的にはメモリ不足でプログラムやパソコン全体の動作が重くなったり、異常終了してしまったりする深刻な原因になります。'}
@@ -980,6 +999,76 @@
     {ids:[11,12],   id:'b5', title:'期末試験・最終決戦', sub:'WeekC〜E 総復習', emoji:'👑', mon:'期末試験の魔王'}
   ];
 
+  /*
+   総復習ボス専用の「長めのコードを書いて埋める」設問(long:true)。
+   通常の設問より大きな単位(関数の中身やクラス定義一式)をまとめて書かせることで、
+   その章のまとまりを本当に理解しているかを試す。答えは改行・空白を気にせず採点する。
+  */
+  var BOSS_LONG_QS = {
+    b1: [
+      {type:'debug', long:true,
+       before:'void swap(int* px, int* py){\n  ', after:'\n}',
+       lead:'空欄に、pxとpyが指す値を正しく入れ替える処理(複数行でよい)を書きなさい。',
+       answers:['int t=*px;\n*px=*py;\n*py=t;'],
+       altAnswers:['std::swap(*px,*py);'],
+       explain:'一時変数tにpxの指す値を退避し、pxの指す先にpyの指す値を代入し、最後にpyの指す先にtを書き戻すことで中身を入れ替えられます。(別解: <utility>のstd::swapを使えば1行で書けますが、授業では扱っていません)'},
+      {type:'debug', long:true,
+       before:'void showBoth(int n){\n  ', after:'\n}',
+       lead:'showBoth関数の中身に、nを「16進数→10進数」の順で2行出力する処理を書きなさい。',
+       answers:['cout<<hex<<n<<endl;\ncout<<dec<<n<<endl;'],
+       explain:'マニピュレータhexで16進数表示に切り替えて1行出力したあと、decで10進数表示に戻してもう1行出力します。マニピュレータは指定し直すまで効果が続く点に注意しましょう。'}
+    ],
+    b2: [
+      {type:'debug', long:true,
+       before:'for(int i=1;i<n;i++){\n  for(int j=n-1;j>=i;j--){\n    ', after:'\n  }\n}',
+       lead:'空欄に、隣接する要素a[j-1]とa[j]を比較し、逆順なら交換する処理一式を書きなさい。',
+       answers:['if(a[j-1]>a[j]){\nint w=a[j];a[j]=a[j-1];a[j-1]=w;\n}'],
+       altAnswers:['if(a[j-1]>a[j]) swap(a[j-1],a[j]);'],
+       explain:'隣り合う要素を比較し、左が右より大きければ(逆順なら)入れ替えます。(別解: <algorithm>のswap関数を使えば1行にまとめられますが、授業では扱っていません)'},
+      {type:'debug', long:true,
+       before:'Results students[3];\n', after:'',
+       lead:'students配列の3人分に、名前と得点を読み込むfor文一式を書きなさい。',
+       answers:['for(int i=0;i<3;i++){\ncin>>students[i].name>>students[i].score;\n}'],
+       explain:'0から2までの添字でループし、各要素のnameとscoreにcinで読み込みます。'}
+    ],
+    b3: [
+      {type:'debug', long:true,
+       before:'', after:'',
+       lead:'name(string)とHP(int)をprivateに持ち、コンストラクタでHPを50に初期化するHeroクラスの定義一式を書きなさい。',
+       answers:['class Hero{\nstring name;\nint HP;\npublic:\nHero(string n){ name=n; HP=50; }\n};'],
+       explain:'クラスの中でアクセス指定子を書かなければデフォルトはprivateになるため、name/HPはそのままでprivateです。public:以降にコンストラクタを定義し、渡された名前をnameに、HPを50に設定します。'},
+      {type:'debug', long:true,
+       before:'class ArrayCal{\n  double* array;\npublic:\n  ArrayCal(int n){ array=new double[n]; }\n  ', after:'\n};',
+       lead:'デストラクタを定義し、配列として確保したメモリを正しく解放しなさい。',
+       answers:['~ArrayCal(){ delete [] array; }'],
+       explain:'デストラクタはクラス名の前に~をつけた名前で定義し、戻り値は書きません。newで配列として確保したメモリは、delete []のように角括弧をつけて解放します。'}
+    ],
+    b4: [
+      {type:'debug', long:true,
+       before:'class Base{\nprotected:\n  int baseData;\npublic:\n  Base(int b){ baseData=b; }\n};\n', after:'',
+       lead:'Baseを継承し、コンストラクタで: Base(a)を呼び出しつつdrvDataを初期化するDerivedクラスの定義一式を書きなさい。',
+       answers:['class Derived : public Base{\nint drvData;\npublic:\nDerived(int a,int b):Base(a){ drvData=b; }\n};'],
+       explain:'class Derived : public Base{ ... }; で継承し、コンストラクタのイニシャライザ : Base(a) で基本クラス部分を初期化してから、本体でdrvDataを初期化します。'},
+      {type:'debug', long:true,
+       before:'', after:'',
+       lead:'attack()を純粋仮想関数として持つ抽象クラスCreatureと、それを継承してattack()が10を返すクラスHeroを、あわせて定義しなさい。',
+       answers:['class Creature{\npublic:\nvirtual int attack()=0;\n};\nclass Hero : public Creature{\npublic:\nint attack(){ return 10; }\n};'],
+       explain:'virtual int attack()=0; で純粋仮想関数を持つ抽象クラスCreatureを定義し、それを継承したHeroでattack()の中身を実装(オーバーライド)します。'}
+    ],
+    b5: [
+      {type:'debug', long:true,
+       before:'', after:'',
+       lead:'hpを受け取るMonsterクラスと、それを継承してnameも受け取るBossクラス(super()で親を初期化)を、あわせて定義しなさい。',
+       answers:['class Monster:\ndef __init__(self, hp):\nself.HP = hp\nclass Boss(Monster):\ndef __init__(self, hp, name):\nsuper().__init__(hp)\nself.name = name'],
+       explain:'親クラスMonsterでself.HPを初期化し、それを継承したBossではsuper().__init__(hp)で親の初期化を再利用しつつ、self.nameを追加で初期化します。'},
+      {type:'debug', long:true,
+       before:'', after:'',
+       lead:'ttk.Frameを継承し、__init__でsuper().__init__(root)を呼ぶTimeAppクラスの定義と、root=tk.Tk()から始めてそれを生成・配置・待受する一連の流れを、あわせて書きなさい。',
+       answers:['class TimeApp(ttk.Frame):\ndef __init__(self, root):\nsuper().__init__(root)\nroot = tk.Tk()\napp = TimeApp(root)\napp.pack()\nroot.mainloop()'],
+       explain:'ttk.Frameを継承した自作ウィジェットクラスを定義したら、root=tk.Tk()でウィンドウ本体を用意し、そのクラスのオブジェクトを生成してpack()で配置し、最後にmainloop()で操作を待ち受けます。'}
+    ]
+  };
+
   function buildBossStage(group){
     var srcStages = group.ids.map(function(i){ return BASE_STAGES[i]; });
     var lesson = [];
@@ -990,6 +1079,7 @@
     });
     var qs = [];
     srcStages.forEach(function(st){ qs = qs.concat(st.qs); });
+    qs = qs.concat(BOSS_LONG_QS[group.id] || []);
     return {id:group.id, title:group.title, sub:group.sub, emoji:group.emoji, mon:group.mon, isBoss:true, lesson:lesson, qs:qs};
   }
 
@@ -1011,11 +1101,17 @@
 
   /* 総学習モード用の全問プール。BASE_STAGESの通常+難問を1つのプールにまとめ、
      出典(章タイトル)を添えて扱えるようにしておく。ボス戦は元ステージの問題を
-     再利用しているだけなので、重複を避けるためBASE_STAGESから直接集める。 */
+     再利用しているだけなので、重複を避けるためBASE_STAGESから直接集める。
+     ボス専用の長文コード問題(BOSS_LONG_QS)だけはボス以外に存在しないので別途追加する。 */
   var ENDLESS_POOL = [];
   BASE_STAGES.forEach(function(st){
     st.qs.forEach(function(q){ ENDLESS_POOL.push({q:q, srcTitle:st.title, srcSub:st.sub}); });
     (st.qsHard||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, srcTitle:st.title, srcSub:st.sub+' ・ 難問'}); });
+  });
+  BOSS_GROUPS.forEach(function(group){
+    (BOSS_LONG_QS[group.id] || []).forEach(function(q){
+      ENDLESS_POOL.push({q:q, srcTitle:group.title, srcSub:group.sub+' ・ 総復習'});
+    });
   });
 
   function loadProgress(){
@@ -1032,6 +1128,9 @@
   var progress = loadProgress();
   if(!progress.endless || !Array.isArray(progress.endless.queue)){
     progress.endless = {queue:[], pos:0, correct:0, wrong:0, streak:0, bestStreak:0};
+  }
+  if(!progress.settings){
+    progress.settings = {allowAlt:false};
   }
 
   function ensureEndlessQueue(){
@@ -1161,6 +1260,16 @@
       '<h2>試験前夜、記憶の迷宮へ</h2>'+
       '<p>全'+STAGES.length+'章(通常'+BASE_STAGES.length+'章+ボス'+BOSS_GROUPS.length+'体)。各章にはまず「訓練場」があり、完成した正しいコードと解説を読んで感覚をつかめる。準備ができたら難易度(初級/中級/上級)を選んで、記述式・選択式・並べ替えなど様々な形式の設問に挑もう。まとまりを1つ終えるごとに総復習のボスが待ち構えている。</p>'+
     '</div>'+
+    '<button class="frame alttoggle" id="btnAltToggle" aria-pressed="'+(progress.settings.allowAlt?'true':'false')+'">'+
+      '<span class="alticon">'+(progress.settings.allowAlt?'🔓':'🔒')+'</span>'+
+      '<span class="altbody">'+
+        '<span class="alttitle">別解モード: '+(progress.settings.allowAlt?'ON':'OFF')+'</span>'+
+        '<span class="altdesc">'+(progress.settings.allowAlt
+          ? '授業で扱っていない書き方(別解)も正解として受け付け中。クリックでOFFに戻せます。'
+          : '一部の設問には、授業で扱っていない別解にも対応した採点があります。ONにすると、それらの別解も正解として受け付けます。')+
+        '</span>'+
+      '</span>'+
+    '</button>'+
     '<button class="frame endlesscard" id="btnEndless" aria-label="総学習モードを開始する">'+
       '<div class="endlesscard-head">'+
         '<span class="emoji">📚</span>'+
@@ -1285,6 +1394,11 @@
           return '<button class="choicebtn" data-opt="'+i+'">'+esc(opt)+'</button>';
         }).join('')+
       '</div>';
+    } else if(q.long){
+      answerHtml = '<div class="answerrow long">'+
+        '<textarea class="codeinput long" id="ansInput" rows="6" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="ここに複数行のコードを入力…(Enterで改行できます)"></textarea>'+
+      '</div>'+
+      '<div class="actionrow"><button class="primary" id="btnSubmit">詠唱する →</button></div>';
     } else {
       answerHtml = '<div class="answerrow">'+
         '<input class="codeinput" id="ansInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="ここにコードを入力…">'+
@@ -1397,9 +1511,11 @@
       var input = document.getElementById('ansInput');
       var submitBtn = document.getElementById('btnSubmit');
       submitBtn.addEventListener('click', onSubmit);
-      input.addEventListener('keydown', function(e){
-        if(e.key==='Enter'){ e.preventDefault(); onSubmit(); }
-      });
+      if(input.tagName !== 'TEXTAREA'){
+        input.addEventListener('keydown', function(e){
+          if(e.key==='Enter'){ e.preventDefault(); onSubmit(); }
+        });
+      }
       input.focus();
     }
   }
@@ -1416,6 +1532,11 @@
       });
       document.getElementById('btnEndless').addEventListener('click', function(){
         openEndless();
+      });
+      document.getElementById('btnAltToggle').addEventListener('click', function(){
+        progress.settings.allowAlt = !progress.settings.allowAlt;
+        saveProgress(progress);
+        render();
       });
     } else if(state.screen==='lesson'){
       app.innerHTML = renderLesson();
@@ -1486,7 +1607,9 @@
     state.locked = true;
 
     var isEndless = state.screen==='endless';
-    var correct = checkAnswer(val, CUR_Q.answers);
+    var answerPool = (progress.settings.allowAlt && CUR_Q.altAnswers && CUR_Q.altAnswers.length)
+      ? CUR_Q.answers.concat(CUR_Q.altAnswers) : CUR_Q.answers;
+    var correct = checkAnswer(val, answerPool);
     var slot = document.getElementById('feedbackSlot');
     var qcard = document.getElementById('qcard');
 
