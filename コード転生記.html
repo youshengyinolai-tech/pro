@@ -110,8 +110,29 @@
   .intro p{margin:.5em 0 0; max-width:64ch; color:var(--ink-dim);}
   .intro h2{font-size:1.3rem; margin-bottom:4px;}
 
+  .endlesscard{
+    display:block; width:100%; text-align:left; cursor:pointer;
+    background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--panel)), var(--panel));
+    border:1px solid var(--accent); color:var(--ink); padding:20px 24px; margin-bottom:28px;
+    clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .endlesscard:hover{transform:translateY(-2px); box-shadow:0 14px 26px -14px var(--shadow);}
+  .endlesscard-head{display:flex; gap:14px; align-items:flex-start;}
+  .endlesscard-head .emoji{font-size:2rem;}
+  .endlesscard-head h3{font-size:1.1rem; margin-bottom:6px;}
+  .endlesscard-head .sub{font-size:.85rem; color:var(--ink-dim); max-width:64ch;}
+  .endlesscard-stats{display:flex; gap:20px; flex-wrap:wrap; margin-top:14px; font-size:.85rem; color:var(--ink-dim);}
+  .endlesscard-stats b{color:var(--accent); font-family:var(--font-mono);}
+
+  .groupheading{
+    font-size:.95rem; color:var(--ink-dim); letter-spacing:.06em; margin:28px 0 12px;
+    padding-bottom:6px; border-bottom:1px dashed var(--line);
+  }
+  .groupheading:first-of-type{margin-top:0;}
+
   .stagegrid{
-    display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:14px;
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:14px; margin-bottom:8px;
   }
   .stagecard{
     position:relative; padding:18px 16px 16px; cursor:pointer; text-align:left;
@@ -144,6 +165,14 @@
   }
   .backbtn:hover{color:var(--ink); border-color:var(--accent);}
 
+  .endlessbar{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px;
+    padding:14px 18px; margin-bottom:18px;
+  }
+  .estat{display:flex; flex-direction:column; gap:2px;}
+  .estat .elabel{font-size:.7rem; color:var(--ink-dim); letter-spacing:.08em; text-transform:uppercase;}
+  .estat .evalue{font-family:var(--font-mono); font-size:1rem; color:var(--accent); font-weight:700;}
+
   /* ---- lesson (training ground) screen ---- */
   .lessonintro{padding:22px 26px; margin-bottom:20px;}
   .lessonintro h2{font-size:1.3rem; margin-bottom:6px;}
@@ -153,6 +182,20 @@
   .lessoncard .lstep{font-family:var(--font-mono); font-size:.7rem; color:var(--accent); letter-spacing:.12em; text-transform:uppercase; margin-bottom:4px;}
   .lessoncard h3{font-size:1.05rem; margin-bottom:10px;}
   .lessonexplain{margin:12px 0 0; color:var(--ink-dim); font-size:.92rem;}
+
+  .diffpick{padding:20px 22px;}
+  .difftitle{font-weight:600; margin-bottom:12px;}
+  .diffrow{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px;}
+  .diffbtn{
+    text-align:left; background:var(--bg-2); color:var(--ink); border:1px solid var(--line); cursor:pointer;
+    padding:14px 16px; display:flex; flex-direction:column; gap:6px;
+    clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .diffbtn:hover{transform:translateY(-2px); background:var(--panel-2); box-shadow:0 10px 20px -12px var(--shadow);}
+  .diffbtn .dname{font-weight:700; font-size:1rem;}
+  .diffbtn .ddesc{font-size:.78rem; color:var(--ink-dim);}
+  .diffbtn-off .ddesc{color:var(--ink-dim); font-style:italic;}
 
   .combatants{display:grid; grid-template-columns:1fr auto 1fr; gap:14px; align-items:stretch; margin-bottom:18px;}
   .fighter{padding:16px; display:flex; flex-direction:column; gap:8px;}
@@ -193,6 +236,16 @@
   }
   .codeinput:disabled{opacity:.7;}
   .codeinput::placeholder{color:var(--ink-dim);}
+
+  .choicegrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:10px;}
+  .choicebtn{
+    font-family:var(--font-mono); font-size:.9rem; text-align:left;
+    background:var(--bg-2); color:var(--ink); border:1px solid var(--line); padding:12px 14px; cursor:pointer;
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .choicebtn:hover:not(:disabled){background:var(--panel-2); border-color:var(--accent);}
+  .choicebtn:disabled{opacity:.6; cursor:default;}
 
   .feedback{padding:18px 20px; margin-bottom:16px; font-size:.92rem;}
   .feedback .head{font-weight:700; margin-bottom:10px; font-size:1rem;}
@@ -283,6 +336,26 @@
         {before:'cin >> ', after:' >> n; // nに16進数として入力された値を読み込みたい',
          answers:['hex'],
          explain:'マニピュレータは出力用のcoutだけでなく、入力用のcinにもそのまま使うことができます。cin >> hex >> n; と書くと、キーボードから入力された文字列を「16進数の数値」として解釈し、変換した結果をnに代入します。たとえばユーザーが"ff"と入力した場合、nには10進数で255が格納されます。マニピュレータは一度cinに対して指定すると、次にまた別のマニピュレータ(decなど)を指定するまで、その解釈方式がずっと有効なままになる点にも注意しましょう。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'#include <iostream>\nint main(){\n  ', after:' << "Hi" << std::endl;\n} // using namespace stdを書かない前提で、正しくstd::を補いなさい',
+         answers:['std::cout'],
+         explain:'using namespace std; を書いていない場合、coutやendlはstdという名前空間に属しているため、std::coutのようにstd::を明示的につけて書かないとコンパイルエラーになります。省略を許可する宣言をしていない以上、毎回正式な所属先を書く必要があります。'},
+        {type:'choice', code:'cout << hex << 255 << endl;',
+         lead:'このコードの出力結果として正しいものを選びなさい。',
+         options:['ff','100','11111111','377'],
+         answers:['ff'],
+         explain:'hexマニピュレータは、それ以降の数値を16進数で表示します。10進数の255は16進数だとffになります。100は16進数で256を表し(誤り)、11111111は2進数表現、377は8進数表現であり、いずれもhex指定時の出力とは異なります。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'  cout << "Hi" << endl;'},
+           {label:'B', code:'using namespace std;'},
+           {label:'C', code:'#include <iostream>'},
+           {label:'D', code:'int main(){'},
+           {label:'E', code:'}'}
+         ],
+         answers:['C,B,D,A,E'],
+         explain:'C++のプログラムは、必要な機能を#includeで取り込み(C)、using namespace std;で省略記法を有効にし(B)、int main(){ から処理を書き始め(D)、実際の処理を実行して(A)、最後に}で閉じます(E)。この基本構造はどのC++プログラムでも共通しています。'}
       ]},
     {id:'w2', title:'ポインタの回廊', sub:'Week2 ポインタと参照', emoji:'💀', mon:'ポインタスケルトン',
       lesson:[
@@ -315,6 +388,25 @@
         {before:'// 1バイトは何ビットか、半角数字で答えなさい\nint bitsPerByte = ', after:';',
          answers:['8'],
          explain:'コンピュータの世界では、1バイト(byte)は8ビット(bit)と決められています。ビット(bit)は「0」か「1」だけを表せる、情報の最小単位です。電球のスイッチが「オン」か「オフ」の2状態しか持たないのと同じイメージです。このビットを8個集めてひとまとめにしたものが1バイトで、8個の0/1の組み合わせなので2の8乗=256通りの値を表現できます(これがchar型が256通りの値を表せる理由でもあります)。バイトは、データの大きさを表すときの基本的な単位として、int型は4バイト、ポインタは8バイトというように、いろいろな型のサイズを説明する際によく登場します。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'int a = 10;\nint* p = &a;\ncout << ', after:' << endl; // pの指す先の値(10)を表示したいのに、住所が表示されてしまうバグを直しなさい',
+         answers:['*p'],
+         explain:'pそのものを出力すると、pに入っている「aの住所(アドレス)」が表示されてしまいます。pが指す先の実際の値を見るには、間接参照演算子*をつけて*pと書く必要があります。&(住所を取る)と*(住所先の値を取る)は逆の働きをするペアだと覚えておきましょう。'},
+        {type:'choice', lead:'int* p; と宣言しただけで、どこも指すように初期化していないとき、*pを読むとどうなるか選びなさい。',
+         options:['不定な値を読み、実行時に問題を起こす可能性がある','必ず0が表示される','コンパイルエラーになる','pは自動的にnullptrになる'],
+         answers:['不定な値を読み、実行時に問題を起こす可能性がある'],
+         explain:'初期化されていないポインタの中身はゴミデータ(どこを指しているか分からない値)です。そのまま*pで読み書きしようとすると、プログラムが予期しない場所のメモリに触れてしまい、クラッシュなど不安定な動作の原因になります。だからこそポインタは宣言と同時に正しいアドレス(またはnullptr)で初期化するのが望ましいとされています。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'int t = *px;'},
+           {label:'B', code:'void swap(int* px, int* py){'},
+           {label:'C', code:'*px = *py;'},
+           {label:'D', code:'*py = t;'},
+           {label:'E', code:'}'}
+         ],
+         answers:['B,A,C,D,E'],
+         explain:'関数の中身を書く前にまず関数の宣言行(B)が必要です。その後、pxが指す先の値を一時変数tに退避し(A)、pxの指す先にpyの指す先の値を上書きし(C)、最後にpyの指す先にtを書き戻す(D)ことで、2つの変数の中身が入れ替わります。'}
       ]},
     {id:'w3', title:'関数の迷宮', sub:'Week3 関数', emoji:'🐙', mon:'オーバーロードオクトパス',
       lesson:[
@@ -347,6 +439,30 @@
         {before:'// 戻り値の型\n', after:' main(){\n  int a=10,b=30,c;\n  c = a-b;\n}',
          answers:['int'],
          explain:'C++の関数は「戻り値の型 関数名(引数){ 処理 }」という形で定義し、戻り値の型は必ず関数名の前に書きます。main関数はプログラムの入り口であり、実行し終わったらOSに終了コード(通常のint型の整数)を返す約束になっているため、int main(){ ... } という形が基本形になります。もしvoid main(){ ... } のように書いてしまうと、多くの環境でエラーや警告の原因になるので注意しましょう。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'void swap(int', after:' x, int* y){\n  int t=*x; *x=*y; *y=t;\n} // 1つ目の仮引数もポインタ型にして、呼び出し元の値を入れ替えられるようにしなさい',
+         answers:['*'],
+         explain:'値渡しのままでは仮引数xは呼び出し元のコピーにすぎず、関数内でいくら入れ替えても呼び出し元の変数は変わりません。両方の仮引数をポインタ型(int*)にして、*xや*yで指す先の値を直接書き換える必要があります。'},
+        {type:'choice', lead:'次のうち、正しく関数オーバーロードが成立する組み合わせはどれか選びなさい。',
+         options:[
+           'int add(int x,int y); / double add(int x,int y);',
+           'int add(int x,int y); / int add(int x,int y,int z);',
+           'int add(int x,int y); / int add(int a,int b);',
+           'void add(){} / void add(){}'
+         ],
+         answers:['int add(int x,int y); / int add(int x,int y,int z);'],
+         explain:'オーバーロードが成立するには、引数の型や個数が異なっている必要があります。1つ目の選択肢は引数が全く同じで戻り値の型だけが違うため、コンパイラがどちらを呼ぶべきか区別できずエラーになります。3つ目は引数名が違うだけで型・個数は同じなので同じ関数の再宣言とみなされ、4つ目は完全に同一な重複定義です。2つ目だけが引数の個数が異なる正しいオーバーロードです。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'swap(&x,&y);'},
+           {label:'B', code:'void swap(int* px,int* py){ int t=*px;*px=*py;*py=t; }'},
+           {label:'C', code:'int main(){'},
+           {label:'D', code:'  int x=1,y=2;'},
+           {label:'E', code:'}'}
+         ],
+         answers:['B,C,D,A,E'],
+         explain:'swap関数はmainより前(もしくはプロトタイプ宣言)が必要なのでまず定義し(B)、main関数を開始して(C)変数を用意し(D)、ポインタ渡しでswapを呼び出し(A)、最後にmainを閉じます(E)。'}
       ]},
     {id:'w4', title:'配列の石壁', sub:'Week4 配列', emoji:'🧱', mon:'アレイブロック',
       lesson:[
@@ -379,6 +495,24 @@
         {before:'// 配列の隣接する要素を比較・交換することを繰り返して並べ替えるアルゴリズムの名前をカタカナで書きなさい\n', after:'',
          answers:['バブルソート'],
          explain:'隣り合う要素を比べて、順番が逆なら交換する、という操作を配列の端まで繰り返すことで並べ替えるアルゴリズムを「バブルソート」と呼びます。1回のひと通りの比較・交換(内側のforループ)を1パスと呼ぶとすると、1パス終えるごとに一番大きい(または小さい)値が少しずつ端の方へ押し出されていき、その様子が水面に向かって浮かび上がる泡(バブル)のように見えることからこの名前がつきました。書き方がシンプルで理解しやすい反面、要素数が多くなると比較・交換の回数が急激に増えるため、実務では他のもっと効率的な並べ替えアルゴリズム(クイックソートなど)が使われることも多いです。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'int a[5]={1,2,3,4,5};\nfor(int i=0; ', after:'; i++){\n  cout << a[i] << endl;\n} // 範囲外アクセスになってしまう継続条件のバグを直しなさい(i<の形で)',
+         answers:['i<5'],
+         explain:'サイズ5の配列の有効な添字は0〜4です。i<=5だとi=5のときa[5]という存在しない要素にアクセスしてしまい、実行時に不具合を起こす原因になります。継続条件はi<5にする必要があります。'},
+        {type:'choice', lead:'配列を関数に渡し、関数の中でsizeof(引数名)を書いた場合、何が返るか選びなさい。',
+         options:['ポインタ自体のサイズ(例:8)','配列全体のバイト数','配列の要素数','コンパイルエラーになる'],
+         answers:['ポインタ自体のサイズ(例:8)'],
+         explain:'配列を関数に渡すと、関数の中では配列は先頭要素へのポインタとして扱われ、サイズの情報は失われます。そのためsizeof(引数名)は配列全体のバイト数ではなく、ポインタ自体のサイズ(64bit環境なら8)を返してしまいます。配列を渡す関数には、要素数を別の引数として一緒に渡す必要があります。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'for(int i=1;i<n;i++)'},
+           {label:'B', code:'  for(int j=n-1;j>=i;j--)'},
+           {label:'C', code:'    if(a[j-1]>a[j]){'},
+           {label:'D', code:'      int w=a[j]; a[j]=a[j-1]; a[j-1]=w;\n    }'}
+         ],
+         answers:['A,B,C,D'],
+         explain:'バブルソートは外側のループ(A)で全体の周回数を、内側のループ(B)で隣接ペアの比較範囲を決め、隣が逆順なら(C)交換します(D)。この入れ子構造の順番を崩すと正しく並べ替えられません。'}
       ]},
     {id:'w5', title:'文字列の書庫', sub:'Week5 文字列', emoji:'📜', mon:'サイレント・スクロール',
       lesson:[
@@ -411,6 +545,24 @@
         {before:'char word[] = {\'h\',\'e\',\'l\',\'l\',\'o\'};\n// ヌル文字が無いと、coutは文字列の終わりを判断できず意図しない場所まで表示してしまう。\n// coutが文字列の終わりを見つける手がかりにしている文字を\\記法で書きなさい\n', after:'',
          answers:['\\0'],
          explain:'coutは文字列を表示するとき、char配列の先頭から1文字ずつ順番に見ていき、ヌル文字(\\0)が現れたところで「ここで文字列は終わり」と判断して出力を止めます。この問題のように{\'h\',\'e\',\'l\',\'l\',\'o\'}とだけ書いてヌル文字を入れ忘れると、coutはどこで止まればよいか分からず、helloの後ろにたまたまメモリ上に置かれている別のデータまで、ヌル文字が見つかるまでずっと読み進めて表示してしまいます。その結果、意味不明な記号や文字化けしたような文字列が続けて表示されてしまうことがあります。文字列を自分でchar配列として作るときは、ヌル文字を入れ忘れないよう特に注意しましょう(ちなみに"..."で書いた場合は自動でヌル文字が付くので、この問題は起きません)。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'// 次の説明の誤りを直しなさい\n// 「char word[] = "hi"; のとき sizeof(word) は文字数と同じ2になる」\n// 正しくは全部で何バイトになるか、半角数字で書きなさい\n', after:'',
+         answers:['3'],
+         explain:'"hi"は見た目には2文字ですが、char配列にする際、末尾に見えないヌル文字(\\0)が自動的に1つ追加されます。そのため実際に確保されるメモリはh,i,\\0の3バイト分になり、sizeof(word)は2ではなく3を返します。'},
+        {type:'choice', lead:'UTF-8で書かれた半角英数字(ASCII文字)1文字は通常何バイトか選びなさい。',
+         options:['1','2','3','4'],
+         answers:['1'],
+         explain:'UTF-8は半角英数字などのASCII文字を1バイトで表現できます。一方でひらがな・カタカナ・常用漢字などの多くは3バイトで表現されるため、日本語混じりの文字列は見た目の文字数とバイト数が大きくずれる点に注意が必要です。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'#include <fstream>'},
+           {label:'B', code:'fstream fin;'},
+           {label:'C', code:'fin.open("data.txt", ios::in);'},
+           {label:'D', code:'string line;\ngetline(fin, line);'}
+         ],
+         answers:['A,B,C,D'],
+         explain:'ファイルを読み込むには、まずfstreamヘッダを取り込み(A)、fstream型の変数を用意し(B)、open()でファイルを開いてから(C)、getlineで1行ずつ読み込みます(D)。この順番が入れ替わると、開いていないファイルから読み込もうとするなどのエラーになります。'}
       ]},
     {id:'w6', title:'構造体の書棚', sub:'Week6 構造体', emoji:'🗂️', mon:'ストラクト・アーカイブ',
       lesson:[
@@ -443,6 +595,24 @@
         {before:'// 構造体を使う一番の利点を一言で書きなさい。例:「関連する複数のデータを○○にできる」の○○部分\n', after:'',
          answers:['ひとまとめ','1つのまとまり','ひとつのまとまり'],
          explain:'構造体を使わない場合、name[5]という文字列の配列と、score[5]という点数の配列を、それぞれ別々に用意して管理することになります。この方法だと「name[2]とscore[2]は同じ人のデータ」という対応関係を、プログラマが頭の中で意識し続けなければならず、もし片方だけを並べ替えてしまったりすると、簡単に対応がズレてバグの原因になります。構造体を使えば、名前・点数のように「本来セットで扱いたいデータ」を1つの変数(students[i])としてまとめて持ち運べるので、students[i].nameとstudents[i].scoreが常にペアであることが保証され、対応関係が分かりやすくミスも減ります。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'struct Results{ string name; int score; };\nResults a;\na.name = "Rika";\na', after:' = 90; // 抜けているメンバアクセス演算子とメンバ名を補いなさい',
+         answers:['.score'],
+         explain:'構造体のメンバにアクセスするにはドット(.)の後にメンバ名を続けます。a.scoreと書かなければ、scoreという単独の変数(存在しない)への代入とみなされコンパイルエラーになります。'},
+        {type:'choice', lead:'Results students[3]; と宣言したとき、2番目の生徒(students[1])の得点にアクセスする正しい書き方を選びなさい。',
+         options:['students[1].score','students.score[1]','students->score[1]','score[students[1]]'],
+         answers:['students[1].score'],
+         explain:'構造体の配列は「まず[ ]で何番目かを選び、その後に.でメンバを選ぶ」という2段階のアクセスになります。students[1]でstudents配列の2番目の要素(Results型)を取り出し、続けて.scoreでそのメンバにアクセスします。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'Results students[3];'},
+           {label:'B', code:'for(int i=0;i<3;i++){'},
+           {label:'C', code:'  cin >> students[i].name >> students[i].score;'},
+           {label:'D', code:'}'}
+         ],
+         answers:['A,B,C,D'],
+         explain:'まず構造体配列を宣言し(A)、その要素数分だけループを回し(B)、各要素のメンバに順番に読み込み(C)、ループを閉じます(D)。宣言より前にループを書くことはできません。'}
       ]},
     {id:'w7', title:'勇者とモンスターの間', sub:'Week7 クラスとオブジェクト', emoji:'⚔️', mon:'見習いモンスター',
       lesson:[
@@ -475,6 +645,23 @@
         {before:'// クラスの中にデータと処理をひとまとめにして、外から余計な操作をされないようにする考え方をカタカナで書きなさい\n', after:'',
          answers:['カプセル化'],
          explain:'データ(HPなど)と、それを操作するための関数(attack, damagedなど)をクラスという1つの箱にひとまとめにし、外部からは決められた方法(公開されたメンバ関数)を通してしか触れないようにすることを「カプセル化」と呼びます。薬を直接手で触らずカプセルに包んで安全に飲めるようにするイメージから、この名前がついています。カプセル化のご利益は、たとえばHPという数値を外部から直接 hero.HP = -9999; のように書き換えられてしまうと、プログラムのルールを無視した不正な状態になりかねませんが、damaged(int pt)のような専用の関数を通してしか変更できないようにしておけば、常に決められたルール(HPは0未満にならない、など)を守った安全な操作しかできなくなる、という点にあります。次のWeek8ではこれをprivate/publicという指定子で実現する方法を学びます。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'class Hero{\n  string name;\n  int HP;\npublic:\n  Hero(string n){ name=n; HP=50; }\n};\nint main(){\n  ', after:' // Heroには引数ありのコンストラクタしか無いため、これはコンパイルエラーになる。文字列"勇者"を渡して正しく生成する行に直しなさい',
+         answers:['Hero hero("勇者");'],
+         explain:'HeroクラスにはHero(string n)という引数ありのコンストラクタしか定義されていないため、引数なしでオブジェクトを作ろうとするとコンパイルエラーになります。Hero hero("勇者"); のように、必要な引数を渡して生成する必要があります。'},
+        {type:'choice', lead:'カプセル化の目的として最も適切なものを選びなさい。',
+         options:['データと処理をひとまとめにし、外部からの不正な操作を防ぐこと','プログラムの実行速度を上げること','メモリ使用量を減らすこと','継承をしやすくすること'],
+         answers:['データと処理をひとまとめにし、外部からの不正な操作を防ぐこと'],
+         explain:'カプセル化は、データを直接いじられることで起きる不正な状態を防ぐため、決められた入り口(公開されたメンバ関数)を通してのみデータを操作できるようにする考え方です。速度やメモリ効率とは直接関係ありません。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'Hero hero("勇者");'},
+           {label:'B', code:'int atk = hero.attack();'},
+           {label:'C', code:'cout << atk << endl;'}
+         ],
+         answers:['A,B,C'],
+         explain:'オブジェクトを生成してから(A)、そのメンバ関数を呼び出して結果を受け取り(B)、最後に結果を表示します(C)。生成前にメンバ関数を呼ぶことはできません。'}
       ]},
     {id:'w8', title:'封印の扉', sub:'Week8 クラスの定義1', emoji:'🔐', mon:'ロック・ウォーデン',
       lesson:[
@@ -507,6 +694,23 @@
         {before:'class YearConverter{\n  int western;\npublic:\n  YearConverter(int year);\n', after:':\n  void valid_year(int y); // 派生クラスからはアクセスできるが、外部関数からはアクセスできないようにしたい指定子\n};',
          answers:['protected'],
          explain:'protectedをつけたメンバは、そのクラス自身のメンバ関数と、そのクラスを継承した派生クラスのメンバ関数からはアクセスできますが、それ以外の外部の関数からは(privateと同様に)アクセスできません。もしprivateにしてしまうと、継承した派生クラスからさえもそのメンバを直接使えなくなってしまいます。「自分のクラスと、その子どもたち(派生クラス)には見せてよいが、それ以外の他人には見せない」という中間的な公開範囲を作りたいときに使う指定子で、次のWeekA(継承)で実際にとても役立つ場面が出てきます。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'// 次のように書くと、ycは「引数なしの関数の宣言」と解釈されてしまう(Most Vexing Parse)\n// YearConverter yc();\n// 引数なしコンストラクタでオブジェクトを正しく生成する行に直しなさい\n', after:'',
+         answers:['YearConverter yc;'],
+         explain:'YearConverter yc(); のように空の括弧をつけると、C++は「ycという引数なしでYearConverter型の値を返す関数の宣言」だと解釈してしまいます(Most Vexing Parse)。引数なしコンストラクタでオブジェクトを生成するときは、括弧を一切つけずにYearConverter yc; と書きます。'},
+        {type:'choice', lead:'構造体(struct)とクラス(class)のデフォルトのアクセス指定の違いとして正しいものを選びなさい。',
+         options:['構造体はpublic、クラスはprivateがデフォルト','構造体はprivate、クラスはpublicがデフォルト','どちらもpublicがデフォルト','どちらもprivateがデフォルト'],
+         answers:['構造体はpublic、クラスはprivateがデフォルト'],
+         explain:'structはアクセス指定子を省略するとpublicになりますが、classは省略するとprivateになります。この違いがあるため、クラスでは外部に公開したいメンバの前に明示的にpublic:を書く必要があります。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'YearConverter yc1;'},
+           {label:'B', code:'YearConverter yc2(2020);'},
+           {label:'C', code:'class YearConverter{\npublic:\n  YearConverter(int year=2022);\n};'}
+         ],
+         answers:['C,A,B'],
+         explain:'デフォルト引数付きのコンストラクタをまず定義し(C)、その後で引数を省略した生成(A、yearは2022になる)と、明示的に値を渡した生成(B、yearは2020になる)ができるようになります。'}
       ]},
     {id:'w9', title:'消滅の間', sub:'Week9 クラスの定義2', emoji:'👻', mon:'デストラクト・ゴースト',
       lesson:[
@@ -539,6 +743,23 @@
         {before:'// deleteを忘れて動的に確保したメモリを解放しないままにしておくと起きる問題をカタカナで書きなさい\n', after:'',
          answers:['メモリリーク'],
          explain:'newで確保したメモリを解放し忘れることを「メモリリーク」と呼びます。リーク(leak)は英語で「漏れる」という意味で、まるで水道の蛇口から水が少しずつ漏れ続けているように、使われないままのメモリがプログラムの実行中にどんどん増え続けていく様子を表しています。1回や2回であれば大した影響はありませんが、たとえばループの中で毎回newして一度もdeleteしない、という書き方をしてしまうと、実行している間じゅうメモリが際限なく増え続け、最終的にはメモリ不足でプログラムやパソコン全体の動作が重くなったり、異常終了してしまったりする深刻な原因になります。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'class ArrayCal{\n  double* array;\npublic:\n  ArrayCal(int n){ array = new double[n]; }\n  ~ArrayCal(){ ', after:' array; } // 配列として確保したメモリを正しく解放する書き方に直しなさい',
+         answers:['delete []','delete[]'],
+         explain:'new double[n]のように配列としてメモリを確保した場合、解放するときもdelete []のように角括弧をつける必要があります。単体のdelete array;だけでは全要素分のメモリが正しく解放されず、未定義動作の原因になります。'},
+        {type:'choice', lead:'vectorの特徴として正しいものを選びなさい。',
+         options:['実行中に要素数を自由に増減できる','配列よりサイズが常に小さい','宣言時に必ずサイズを指定しなければならない','ポインタを一切使わずに実装されている'],
+         answers:['実行中に要素数を自由に増減できる'],
+         explain:'vectorは可変長配列で、push_back()を呼ぶたびに実行中に要素を増やしていけます。通常の配列は宣言時にサイズが固定されるのに対し、vectorはその不便さを解消するために内部で動的にメモリを管理してくれるクラスです。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'int* p = new int[10];'},
+           {label:'B', code:'// pを使った処理'},
+           {label:'C', code:'delete [] p;'}
+         ],
+         answers:['A,B,C'],
+         explain:'動的にメモリを確保し(A)、それを使って処理を行い(B)、使い終わったら必ず解放します(C)。解放より前に使う、あるいは解放を忘れるとメモリリークになります。'}
       ]},
     {id:'wa', title:'血統の間', sub:'Week A 継承', emoji:'🧬', mon:'ヘリテージ・ワーム',
       lesson:[
@@ -571,6 +792,28 @@
         {before:'class Derived : public Base{\n  // Baseのメンバ関数をそのまま使いたい\n};\nint main(){\n  Derived drv;\n  drv.baseFunc(); // 派生クラスのオブジェクトから基本クラスのメンバ関数を呼び出せるのはなぜか\n  // 「継承」という言葉を使って一言で書きなさい\n}\n', after:'',
          answers:['継承しているから','基本クラスを継承しているから'],
          explain:'DerivedはBaseを継承しているため、Derived自身が何も新しく定義していなくても、Base側で定義されたpublicなメンバ関数(baseFuncなど)を、まるで自分自身が最初から持っているメンバであるかのように、そのまま呼び出すことができます。継承とは「基本クラスの機能一式を丸ごと引き継ぐ」ことなので、drv(Derived型のオブジェクト)がbaseFunc()を呼べるのは当然の結果であり、これこそが継承によってコードを再利用できる、という具体的な現れです。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'class Derived : public Base{\n  int drvData;\npublic:\n  Derived(int a,int b)', after:'{\n    drvData = b;\n  } // 基本クラスのコンストラクタ呼び出し(イニシャライザ)が抜けている。追加しなさい',
+         answers:[':Base(a)',': Base(a)'],
+         explain:'派生クラスのコンストラクタは、基本クラス部分の初期化も担う責任があります。: Base(a) というイニシャライザを書いておくと、本体{ }が実行される前にBaseのコンストラクタが引数aで呼び出され、baseData部分が正しく初期化されます。'},
+        {type:'choice', lead:'オーバーロードとオーバーライドの違いとして正しい説明を選びなさい。',
+         options:[
+           'オーバーロードは引数の違いで区別、オーバーライドは基本/派生クラスでの再定義',
+           'オーバーロードは基本/派生クラスでの再定義、オーバーライドは引数の違いで区別',
+           'どちらも全く同じ意味である',
+           'オーバーライドは戻り値の型だけを変える仕組みである'
+         ],
+         answers:['オーバーロードは引数の違いで区別、オーバーライドは基本/派生クラスでの再定義'],
+         explain:'オーバーロードは同じ名前でも引数の型や数が違う関数を複数定義する仕組み、オーバーライドは基本クラスの関数と全く同じ名前・引数を持つ関数を派生クラス側で再定義し、派生クラス側を優先させる仕組みです。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'class Base{\nprotected:\n  int baseData;\n};'},
+           {label:'B', code:'class Derived : public Base{\npublic:\n  void show(){ cout << baseData << endl; }\n};'},
+           {label:'C', code:'Derived d;\nd.show();'}
+         ],
+         answers:['A,B,C'],
+         explain:'protectedなbaseDataを持つ基本クラスを定義し(A)、それを継承した派生クラスでbaseDataを利用する関数を定義し(B)、最後にオブジェクトを作って呼び出します(C)。protectedだからこそ派生クラスのメンバ関数からbaseDataに直接アクセスできます。'}
       ]},
     {id:'wb', title:'抽象の玉座', sub:'Week B 階層的な継承', emoji:'🐲', mon:'アブストラクト・ドラゴン',
       lesson:[
@@ -603,6 +846,23 @@
         {before:'// アイコンやボタンを使った直感的な操作方式(Graphical User Interface)の略称をアルファベット3文字で書きなさい\n', after:'',
          answers:['GUI'],
          explain:'人がコンピュータやプログラムとやり取りする方法(インターフェース)には、大きく分けて2つのタイプがあります。1つはGUI(Graphical User Interface)で、アイコンやボタンなど目で見て分かる視覚的な部品をマウスやタッチで操作する、直感的なインターフェースです(PowerPointやSafariなど)。もう1つはCLI(Command Line Interface)で、文字でコマンドを入力して操作するインターフェースです(ターミナルでのcdやls, gitのコマンドなど)。GUIは初めて触る人にも分かりやすい一方、CLIは操作の手順が決まっている作業を素早く・正確に繰り返すのに向いている、というそれぞれの得意分野があります。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'class Creature{\npublic:\n  virtual int attack()=0;\n};\nint main(){\n  Creature c;\n} // このコードはコンパイルエラーになる。理由を「抽象クラス」という語を使って一言で書きなさい\n', after:'',
+         answers:['抽象クラスだから','Creatureが抽象クラスだから'],
+         explain:'Creatureは純粋仮想関数attack()を持つ抽象クラスです。中身が決まっていない関数がある以上、オブジェクトを直接作ることはできません。実際に使うには、派生クラスでattack()を実装してから、そちらのオブジェクトを作る必要があります。'},
+        {type:'choice', lead:'抽象クラスから直接オブジェクトを作れない理由として正しいものを選びなさい。',
+         options:['純粋仮想関数の中身が決まっておらず、呼び出し方法が定まらないから','メモリが足りないから','継承回数が多すぎるから','コンストラクタが存在しないから'],
+         answers:['純粋仮想関数の中身が決まっておらず、呼び出し方法が定まらないから'],
+         explain:'純粋仮想関数(=0がついた関数)は中身(実装)が無いため、そのままではその関数が呼ばれたときにどう動けばよいか決まりません。そのためコンパイラは抽象クラスのオブジェクト生成を禁止しています。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'class Creature{\npublic:\n  virtual int attack()=0;\n};'},
+           {label:'B', code:'class Hero : public Creature{\npublic:\n  int attack(){ return 10; }\n};'},
+           {label:'C', code:'Hero h;\ncout << h.attack() << endl;'}
+         ],
+         answers:['A,B,C'],
+         explain:'まず純粋仮想関数を持つ抽象クラスを定義し(A)、それを継承した派生クラスで実装を完成させ(B)、その派生クラスのオブジェクトを作って呼び出します(C)。抽象クラスCreature自身のオブジェクトは作れません。'}
       ]},
     {id:'py', title:'蛇の書', sub:'Week C pythonのクラス基礎', emoji:'🐍', mon:'パイソン・セージ',
       lesson:[
@@ -635,6 +895,23 @@
         {before:'if __name__ == ', after:':\n    print("直接実行された")\n# このファイルが直接実行されたときだけ処理をしたい場合の書き方',
          answers:["'__main__'",'"__main__"'],
          explain:'pythonの各ファイル(モジュール)には、__name__という特別な変数が自動的に用意されています。この変数の中身は、そのファイルを % python ファイル名.py のように直接実行したときだけ文字列"__main__"になり、逆に他のファイルからimport ファイル名 のように読み込まれて使われたときは、ファイル名そのもの(例えば"timeApp")になります。この違いを利用して、if __name__ == \'__main__\': という条件分岐の中に書いた処理は、「このファイルが直接実行されたときだけ動く、importされたときには動かない」という便利な使い分けができるようになります。ライブラリとして再利用したいクラスと、実際に動かして試すための処理を1つのファイルに共存させたいときによく使われるテクニックです。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'class Hero:\n    def __init__(self, name):\n        name = name  # selfが抜けているバグを直しなさい(代入先を直す)\n', after:'',
+         answers:['self.name = name'],
+         explain:'selfをつけずにname = nameと書くと、__init__の中だけで使われるローカル変数を作っているにすぎず、インスタンスのデータメンバにはなりません。インスタンスに保存したいデータはself.name = nameのように必ずself.をつけて代入する必要があります。'},
+        {type:'choice', lead:'super().__init__(hp) の役割として正しいものを選びなさい。',
+         options:['親クラスの__init__を、引数hpを渡して呼び出す','自分自身のクラスを継承する','hpという名前の新しいクラスを作る','親クラスを削除する'],
+         answers:['親クラスの__init__を、引数hpを渡して呼び出す'],
+         explain:'super()は親クラス(継承元)を参照するための特別な書き方です。super().__init__(hp)は「親クラスの__init__を、引数hpを渡して呼び出しなさい」という意味で、親クラスがすでに用意している初期化処理を再利用できます。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'class Monster:\n    def __init__(self, hp):\n        self.HP = hp'},
+           {label:'B', code:'class Boss(Monster):\n    def __init__(self, hp, name):\n        super().__init__(hp)\n        self.name = name'},
+           {label:'C', code:'b = Boss(100, "ドラゴン")'}
+         ],
+         answers:['A,B,C'],
+         explain:'親クラスMonsterを定義し(A)、それを継承したBossクラスでsuper()を使って親の初期化を再利用しつつ独自のデータを追加し(B)、最後にBossのオブジェクトを生成します(C)。親クラスの定義が無いと継承できません。'}
       ]},
     {id:'tk', title:'窓辺の城', sub:'Week D/E Tkinterウィジェット', emoji:'🪟', mon:'ウィジェット・キング',
       lesson:[
@@ -670,6 +947,24 @@
         {before:'# ディレクトリ(パッケージ)をimportしたときに自動的に読み込まれる特別なファイル名を書きなさい\n', after:'',
          answers:['__init__.py'],
          explain:'1つのファイル(モジュール)だけでなく、複数のモジュールをディレクトリにまとめたものを「パッケージ」と呼びます。あるディレクトリをパッケージとしてimportすると、pythonはそのディレクトリの中にある__init__.pyという特別な名前のファイルを自動的に探し出し、読み込みます。このファイルの中に、パッケージ全体で共通して使いたい初期設定や、外部からアクセスしやすくするための橋渡し役のコードなどを書いておくことができます。実際にtkinterというライブラリ自体も、内部的にはこのような__init__.pyを持つパッケージとして作られています。'}
+      ],
+      qsHard:[
+        {type:'debug', before:'root = tk.Tk()\nlabel = ttk.Label(root, text="Hi")\nlabel.grid(column=0,row=0)\n# ウィンドウを表示し続けるための呼び出しが抜けている。追記しなさい\n', after:'',
+         answers:['root.mainloop()'],
+         explain:'root.mainloop()を呼び出さないと、ウィンドウはユーザーの操作を待ち受けずにプログラムが終了し、一瞬で閉じてしまいます。mainloop()は「ウィンドウを表示したまま、ずっと操作を待ち受け続ける」処理です。'},
+        {type:'choice', lead:'ラベルの表示内容を実行中に書き換えたいときに使うべき仕組みを選びなさい。',
+         options:['StringVarとtextvariableオプション','text固定オプションを繰り返し設定し直す','grid()を毎回呼び直す','pack()を毎回呼び直す'],
+         answers:['StringVarとtextvariableオプション'],
+         explain:'tk.StringVar()で専用の入れ物を作り、それをラベルのtextvariableに渡しておくと、あとでその入れ物の中身をset()で書き換えるだけで画面上の表示も自動的に更新されます。'},
+        {type:'order',
+         lines:[
+           {label:'A', code:'class TimeApp(ttk.Frame):\n    def __init__(self, root):\n        super().__init__(root)'},
+           {label:'B', code:'root = tk.Tk()'},
+           {label:'C', code:'app = TimeApp(root)\napp.pack()'},
+           {label:'D', code:'root.mainloop()'}
+         ],
+         answers:['A,B,C,D'],
+         explain:'自作ウィジェットクラスを定義し(A)、ウィンドウ本体を用意し(B)、そのクラスのオブジェクトを作って配置し(C)、最後にmainloop()で操作を待ち受けます(D)。'}
       ]}
   ];
 
@@ -714,6 +1009,15 @@
   var TOTAL_STARS = STAGES.length * 3;
   var STORE_KEY = 'oopExamQuest_v3';
 
+  /* 総学習モード用の全問プール。BASE_STAGESの通常+難問を1つのプールにまとめ、
+     出典(章タイトル)を添えて扱えるようにしておく。ボス戦は元ステージの問題を
+     再利用しているだけなので、重複を避けるためBASE_STAGESから直接集める。 */
+  var ENDLESS_POOL = [];
+  BASE_STAGES.forEach(function(st){
+    st.qs.forEach(function(q){ ENDLESS_POOL.push({q:q, srcTitle:st.title, srcSub:st.sub}); });
+    (st.qsHard||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, srcTitle:st.title, srcSub:st.sub+' ・ 難問'}); });
+  });
+
   function loadProgress(){
     try{
       var raw = localStorage.getItem(STORE_KEY);
@@ -726,8 +1030,29 @@
   }
 
   var progress = loadProgress();
+  if(!progress.endless || !Array.isArray(progress.endless.queue)){
+    progress.endless = {queue:[], pos:0, correct:0, wrong:0, streak:0, bestStreak:0};
+  }
 
-  var state = {screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false};
+  function ensureEndlessQueue(){
+    if(progress.endless.queue.length !== ENDLESS_POOL.length){
+      progress.endless.queue = shuffle(ENDLESS_POOL.map(function(_,i){return i;}));
+      progress.endless.pos = 0;
+    }
+  }
+  function reshuffleEndlessQueue(){
+    var q = progress.endless.queue;
+    var lastIdx = q.length ? q[q.length-1] : -1;
+    var next = shuffle(ENDLESS_POOL.map(function(_,i){return i;}));
+    if(next.length>1 && next[0]===lastIdx){
+      var tmp=next[0]; next[0]=next[1]; next[1]=tmp;
+    }
+    progress.endless.queue = next;
+    progress.endless.pos = 0;
+  }
+
+  var state = {screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, difficulty:'normal', activeQs:[]};
+  var DIFF_LABEL = {easy:'初級', normal:'中級', hard:'上級'};
 
   function shuffle(arr){
     var a = arr.slice();
@@ -754,19 +1079,36 @@
     return String(s).replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});
   }
 
+  var FULLWIDTH_MAP = {
+    '＊':'*','＋':'+','－':'-','＜':'<','＞':'>','／':'/','＆':'&','（':'(','）':')',
+    '：':':','；':';','＿':'_','．':'.','，':',','　':' ','％':'%','＝':'=','！':'!',
+    '”':'"','“':'"','’':"'",'‘':"'",'〜':'~','～':'~'
+  };
+  function toHalfWidth(s){
+    return String(s).replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(c){
+      return String.fromCharCode(c.charCodeAt(0)-0xFEE0);
+    }).replace(/[＊＋－＜＞／＆（）：；＿．，　％＝！”“’‘〜～]/g, function(c){
+      return FULLWIDTH_MAP[c];
+    });
+  }
   function normalize(s){
-    return String(s).trim().toLowerCase().replace(/\s+/g,'');
+    return toHalfWidth(String(s)).trim().toLowerCase().replace(/\s+/g,'');
   }
   function stripSemi(s){
-    return s.replace(/;+$/,'');
+    return s.replace(/[;。、]+$/,'');
+  }
+  function stripStd(s){
+    return s.replace(/^std::/,'');
   }
   function checkAnswer(input, answers){
     var n = normalize(input);
     var n2 = stripSemi(n);
+    var n3 = stripStd(n2);
     return answers.some(function(a){
       var an = normalize(a);
       var an2 = stripSemi(an);
-      return n===an || n2===an2;
+      var an3 = stripStd(an2);
+      return n===an || n2===an2 || n3===an3;
     });
   }
 
@@ -778,25 +1120,59 @@
     '</div>';
   }
 
+  var SECTION_TITLES = [
+    '第1部 C++入門 ― 入出力・ポインタ・関数',
+    '第2部 データ構造 ― 配列・文字列・構造体',
+    '第3部 クラス設計 ― 基本から後片付けまで',
+    '第4部 継承と多態性',
+    '第5部 Pythonへの転生 ― クラスとTkinter'
+  ];
+
   function renderMap(){
-    var cards = STAGES.map(function(st, i){
-      var locked = false;
+    var sectionsHtml = '';
+    var sectionIdx = 0;
+    var cardsBuf = [];
+    function flushSection(){
+      if(cardsBuf.length){
+        sectionsHtml += '<h3 class="groupheading">'+esc(SECTION_TITLES[sectionIdx] || ('第'+(sectionIdx+1)+'部'))+'</h3>'+
+          '<div class="stagegrid">'+cardsBuf.join('')+'</div>';
+        cardsBuf = [];
+      }
+    }
+    STAGES.forEach(function(st, i){
       var stars = progress.stars[st.id] || 0;
-      return ''+
-      '<button class="stagecard'+(locked?' locked':'')+(st.isBoss?' boss':'')+'" data-idx="'+i+'" '+(locked?'disabled':'')+' aria-label="'+esc(st.title)+'">'+
-        '<div class="row1"><span class="emoji">'+st.emoji+'</span><span class="idx">'+(st.isBoss?'★ BOSS ★':'STAGE '+(i+1))+'</span></div>'+
-        '<h3>'+esc(st.title)+'</h3>'+
-        '<div class="sub">'+esc(st.sub)+' ・ '+esc(st.mon)+'</div>'+
-        '<div class="stars">'+starString(stars)+'</div>'+
-      '</button>';
-    }).join('');
+      cardsBuf.push(''+
+        '<button class="stagecard'+(st.isBoss?' boss':'')+'" data-idx="'+i+'" aria-label="'+esc(st.title)+'">'+
+          '<div class="row1"><span class="emoji">'+st.emoji+'</span><span class="idx">'+(st.isBoss?'★ BOSS ★':'STAGE '+(i+1))+'</span></div>'+
+          '<h3>'+esc(st.title)+'</h3>'+
+          '<div class="sub">'+esc(st.sub)+' ・ '+esc(st.mon)+'</div>'+
+          '<div class="stars">'+starString(stars)+'</div>'+
+        '</button>');
+      if(st.isBoss){ flushSection(); sectionIdx++; }
+    });
+    flushSection();
+
+    var e = progress.endless;
+    var totalAns = e.correct + e.wrong;
+    var acc = totalAns>0 ? Math.round(e.correct/totalAns*100) : 0;
 
     return ''+ renderTopbar() +
     '<div class="frame intro">'+
       '<h2>試験前夜、記憶の迷宮へ</h2>'+
-      '<p>全'+STAGES.length+'章。各章にはまず「訓練場」があり、完成した正しいコードと解説を読んで感覚をつかめる。準備ができたら、単元の化身であるモンスターとの戦い(記述式クイズ)に挑もう。空欄に正解すれば斬りつけ、間違えるとダメージを受ける。全問クリアで次の間が解放される。</p>'+
+      '<p>全'+STAGES.length+'章(通常'+BASE_STAGES.length+'章+ボス'+BOSS_GROUPS.length+'体)。各章にはまず「訓練場」があり、完成した正しいコードと解説を読んで感覚をつかめる。準備ができたら難易度(初級/中級/上級)を選んで、記述式・選択式・並べ替えなど様々な形式の設問に挑もう。まとまりを1つ終えるごとに総復習のボスが待ち構えている。</p>'+
     '</div>'+
-    '<div class="stagegrid">'+cards+'</div>'+
+    '<button class="frame endlesscard" id="btnEndless" aria-label="総学習モードを開始する">'+
+      '<div class="endlesscard-head">'+
+        '<span class="emoji">📚</span>'+
+        '<div><h3>総学習モード(エンドレス)</h3>'+
+        '<div class="sub">全'+ENDLESS_POOL.length+'問のプールから尽きるまで出題され続ける総復習モード。1週間の勉強量でも解き切れないボリュームで、繰り返すほど手薄な単元をあぶり出せる。</div></div>'+
+      '</div>'+
+      '<div class="endlesscard-stats">'+
+        '<span>連続正解 <b>'+e.streak+'</b>(最高'+e.bestStreak+')</span>'+
+        '<span>通算正答率 <b>'+e.correct+' / '+totalAns+'</b>('+acc+'%)</span>'+
+      '</div>'+
+    '</button>'+
+    sectionsHtml+
     '<p class="footer-note">進行状況はこの端末に自動保存されます。</p>';
   }
 
@@ -819,7 +1195,21 @@
     }).join('');
 
     var backLabel = state.lessonFromBattle ? '← 戦闘へ戻る' : '← 地図へ戻る';
-    var primaryLabel = state.lessonFromBattle ? '戦いに戻る →' : '修行完了、戦いに挑む →';
+
+    var actionHtml;
+    if(state.lessonFromBattle){
+      actionHtml = '<div class="actionrow"><button class="primary" id="btnToBattle">戦いに戻る →</button></div>';
+    } else {
+      var hasHard = !!(st.qsHard && st.qsHard.length);
+      actionHtml = '<div class="frame diffpick">'+
+        '<div class="difftitle">難易度を選んで'+esc(st.mon)+'に挑もう</div>'+
+        '<div class="diffrow">'+
+          '<button class="diffbtn" data-diff="easy"><span class="dname">🌱 初級</span><span class="ddesc">被ダメージ控えめ。まずは操作と考え方に慣れたい人向け。</span></button>'+
+          '<button class="diffbtn" data-diff="normal"><span class="dname">⚔️ 中級</span><span class="ddesc">通常の設問セットで正面から挑む。</span></button>'+
+          '<button class="diffbtn'+(hasHard?'':' diffbtn-off')+'" data-diff="hard"><span class="dname">🔥 上級</span><span class="ddesc">'+(hasHard?'章専用の難問セット。被ダメージも大きい玄人向け。':'この章の難問は準備中(通常セットに挑戦できます)')+'</span></button>'+
+        '</div>'+
+      '</div>';
+    }
 
     return ''+ renderTopbar() +
     '<div class="battlebar"><button class="backbtn" id="btnLessonBack">'+backLabel+'</button></div>'+
@@ -828,13 +1218,16 @@
       '<p>'+esc(st.sub)+'の要点を、完成した正しいコードと解説で確認しよう。まずは読んで感覚をつかんでから、'+esc(st.mon)+'に挑むと理解しやすい。</p>'+
     '</div>'+
     '<div class="lessongrid">'+cards+'</div>'+
-    '<div class="actionrow"><button class="primary" id="btnToBattle">'+primaryLabel+'</button></div>';
+    actionHtml;
   }
 
-  function startStage(idx){
+  function startStage(idx, difficulty){
+    var st = STAGES[idx];
+    state.difficulty = difficulty || state.difficulty || 'normal';
+    state.activeQs = (state.difficulty==='hard' && st.qsHard && st.qsHard.length) ? st.qsHard : st.qs;
     state.screen='battle';
     state.stageIndex=idx;
-    state.order = shuffle(STAGES[idx].qs.map(function(_,i){return i;}));
+    state.order = shuffle(state.activeQs.map(function(_,i){return i;}));
     state.qIndex=0;
     state.heroHP=100;
     state.monsterHP=100;
@@ -844,20 +1237,68 @@
     render();
   }
 
+  function openEndless(){
+    ensureEndlessQueue();
+    CUR_Q = null;
+    state.locked = false;
+    state.screen = 'endless';
+    render();
+  }
+
+  function currentEndlessQuestion(){
+    var idx = progress.endless.queue[progress.endless.pos];
+    return ENDLESS_POOL[idx];
+  }
+
   var CUR_Q = null;
 
   function currentQuestion(){
-    var st = STAGES[state.stageIndex];
     var qi = state.order[state.qIndex];
-    return st.qs[qi];
+    return state.activeQs[qi];
+  }
+
+  var QLEAD_DEFAULT = {
+    fill:'空欄(<span style="color:var(--accent);font-weight:700;">______</span>)に入るコードや単語を実際に入力して、呪文のように唱えよう。',
+    debug:'🐛 このコードには誤りが1箇所ある。正しく直した内容を入力して唱えよう。',
+    choice:'次のうち正しいものを選んで唱えよう。',
+    order:'正しい順番になるように、記号をカンマ区切りで入力して唱えよう(例: B,A,C)。'
+  };
+
+  function renderQuestionBody(q){
+    var type = q.type || 'fill';
+    var qlead = q.lead || QLEAD_DEFAULT[type];
+
+    var bodyHtml;
+    if(type==='order'){
+      var linesText = q.lines.map(function(ln){ return ln.label+' : '+ln.code; }).join('\n');
+      bodyHtml = '<pre class="codeblock">'+esc(linesText)+'</pre>';
+    } else if(type==='choice'){
+      bodyHtml = q.code ? '<pre class="codeblock">'+esc(q.code)+'</pre>' : '';
+    } else {
+      bodyHtml = '<pre class="codeblock">'+esc(q.before)+'<mark class="blank">______</mark>'+esc(q.after)+'</pre>';
+    }
+
+    var answerHtml;
+    if(type==='choice'){
+      answerHtml = '<div class="choicegrid" id="choiceGrid">'+
+        q.options.map(function(opt,i){
+          return '<button class="choicebtn" data-opt="'+i+'">'+esc(opt)+'</button>';
+        }).join('')+
+      '</div>';
+    } else {
+      answerHtml = '<div class="answerrow">'+
+        '<input class="codeinput" id="ansInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="ここにコードを入力…">'+
+        '<button class="primary" id="btnSubmit">詠唱する →</button>'+
+      '</div>';
+    }
+    return {qlead:qlead, bodyHtml:bodyHtml, answerHtml:answerHtml};
   }
 
   function renderBattle(){
     var st = STAGES[state.stageIndex];
     if(!CUR_Q) CUR_Q = currentQuestion();
-    var total = st.qs.length;
-
-    var codeHtml = '<pre class="codeblock">'+esc(CUR_Q.before)+'<mark class="blank">______</mark>'+esc(CUR_Q.after)+'</pre>';
+    var total = state.activeQs.length;
+    var qb = renderQuestionBody(CUR_Q);
 
     return ''+ renderTopbar() +
     '<div class="battlebar">'+
@@ -874,13 +1315,38 @@
         '<div class="hpnum"><span>HP</span><span class="num">'+state.monsterHP+' / 100</span></div></div>'+
     '</div>'+
     '<div class="frame qcard" id="qcard">'+
-      '<div class="qmeta"><span>設問 '+(state.qIndex+1)+' / '+total+'</span><span>'+esc(st.title)+'</span></div>'+
-      '<div class="qlead">空欄(<span style="color:var(--accent);font-weight:700;">______</span>)に入るコードや単語を実際に入力して、呪文のように唱えよう。</div>'+
-      codeHtml+
-      '<div class="answerrow">'+
-        '<input class="codeinput" id="ansInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="ここにコードを入力…">'+
-        '<button class="primary" id="btnSubmit">詠唱する →</button>'+
-      '</div>'+
+      '<div class="qmeta"><span>設問 '+(state.qIndex+1)+' / '+total+'</span><span>'+esc(st.title)+(state.difficulty? ' ・ '+DIFF_LABEL[state.difficulty] : '')+'</span></div>'+
+      '<div class="qlead">'+qb.qlead+'</div>'+
+      qb.bodyHtml+
+      qb.answerHtml+
+    '</div>'+
+    '<div id="feedbackSlot"></div>';
+  }
+
+  function renderEndless(){
+    if(!CUR_Q){
+      var cur = currentEndlessQuestion();
+      CUR_Q = cur.q;
+      state.endlessSrc = cur;
+    }
+    var qb = renderQuestionBody(CUR_Q);
+    var e = progress.endless;
+    var total = e.correct + e.wrong;
+    var acc = total>0 ? Math.round(e.correct/total*100) : 0;
+
+    return ''+ renderTopbar() +
+    '<div class="battlebar"><button class="backbtn" id="btnHome">← 地図へ戻る</button></div>'+
+    '<div class="frame endlessbar">'+
+      '<div class="estat"><span class="elabel">出題元</span><span class="evalue">'+esc(state.endlessSrc.srcTitle)+'</span></div>'+
+      '<div class="estat"><span class="elabel">連続正解</span><span class="evalue">'+e.streak+'(最高'+e.bestStreak+')</span></div>'+
+      '<div class="estat"><span class="elabel">通算正答率</span><span class="evalue">'+e.correct+' / '+total+'('+acc+'%)</span></div>'+
+      '<div class="estat"><span class="elabel">プール残数</span><span class="evalue">'+(progress.endless.queue.length - progress.endless.pos)+' / '+ENDLESS_POOL.length+'</span></div>'+
+    '</div>'+
+    '<div class="frame qcard" id="qcard">'+
+      '<div class="qmeta"><span>総学習モード(エンドレス)</span><span>'+esc(state.endlessSrc.srcSub)+'</span></div>'+
+      '<div class="qlead">'+qb.qlead+'</div>'+
+      qb.bodyHtml+
+      qb.answerHtml+
     '</div>'+
     '<div id="feedbackSlot"></div>';
   }
@@ -922,6 +1388,22 @@
     (!hasNext && win && nextIdx>=STAGES.length ? '<div class="frame allclear"><h2>🎉 全'+STAGES.length+'章 制覇！</h2><p>期末試験の範囲をひと通り旅した。総獲得星 <span class="num">'+totalStarsEarned()+' / '+TOTAL_STARS+'</span>。仕上げにもう一周して星を集めよう。</p></div>' : '');
   }
 
+  function wireQuestionControls(app){
+    if((CUR_Q.type||'fill')==='choice'){
+      Array.prototype.forEach.call(app.querySelectorAll('.choicebtn'), function(btn){
+        btn.addEventListener('click', function(){ onChoice(parseInt(btn.getAttribute('data-opt'),10)); });
+      });
+    } else {
+      var input = document.getElementById('ansInput');
+      var submitBtn = document.getElementById('btnSubmit');
+      submitBtn.addEventListener('click', onSubmit);
+      input.addEventListener('keydown', function(e){
+        if(e.key==='Enter'){ e.preventDefault(); onSubmit(); }
+      });
+      input.focus();
+    }
+  }
+
   function render(){
     var app = document.getElementById('app');
     if(state.screen==='map'){
@@ -932,15 +1414,23 @@
           openLesson(parseInt(btn.getAttribute('data-idx'),10), false);
         });
       });
+      document.getElementById('btnEndless').addEventListener('click', function(){
+        openEndless();
+      });
     } else if(state.screen==='lesson'){
       app.innerHTML = renderLesson();
       document.getElementById('btnLessonBack').addEventListener('click', function(){
         state.screen = state.lessonFromBattle ? 'battle' : 'map';
         render();
       });
-      document.getElementById('btnToBattle').addEventListener('click', function(){
-        if(state.lessonFromBattle){ state.screen='battle'; render(); }
-        else { startStage(state.stageIndex); }
+      var toBattleBtn = document.getElementById('btnToBattle');
+      if(toBattleBtn){
+        toBattleBtn.addEventListener('click', function(){ state.screen='battle'; render(); });
+      }
+      Array.prototype.forEach.call(app.querySelectorAll('.diffbtn'), function(btn){
+        btn.addEventListener('click', function(){
+          startStage(state.stageIndex, btn.getAttribute('data-diff'));
+        });
       });
     } else if(state.screen==='battle'){
       app.innerHTML = renderBattle();
@@ -950,13 +1440,13 @@
       document.getElementById('btnReview').addEventListener('click', function(){
         openLesson(state.stageIndex, true);
       });
-      var input = document.getElementById('ansInput');
-      var submitBtn = document.getElementById('btnSubmit');
-      submitBtn.addEventListener('click', onSubmit);
-      input.addEventListener('keydown', function(e){
-        if(e.key==='Enter'){ e.preventDefault(); onSubmit(); }
+      wireQuestionControls(app);
+    } else if(state.screen==='endless'){
+      app.innerHTML = renderEndless();
+      document.getElementById('btnHome').addEventListener('click', function(){
+        CUR_Q=null; state.screen='map'; render();
       });
-      input.focus();
+      wireQuestionControls(app);
     } else if(state.screen==='result-win' || state.screen==='result-lose'){
       var win = state.screen==='result-win';
       app.innerHTML = renderResult(win);
@@ -981,23 +1471,48 @@
       input.focus();
       return;
     }
-    state.locked = true;
     input.disabled = true;
     document.getElementById('btnSubmit').disabled = true;
+    resolveAnswer(val);
+  }
 
-    var st = STAGES[state.stageIndex];
-    var dmgToMonster = Math.ceil(100/st.qs.length);
+  function onChoice(idx){
+    if(state.locked) return;
+    Array.prototype.forEach.call(document.querySelectorAll('.choicebtn'), function(b){ b.disabled = true; });
+    resolveAnswer(CUR_Q.options[idx]);
+  }
+
+  function resolveAnswer(val){
+    state.locked = true;
+
+    var isEndless = state.screen==='endless';
     var correct = checkAnswer(val, CUR_Q.answers);
     var slot = document.getElementById('feedbackSlot');
     var qcard = document.getElementById('qcard');
 
-    if(correct){
-      state.monsterHP = Math.max(0, state.monsterHP - dmgToMonster);
-      qcard.classList.add('pulse');
+    if(isEndless){
+      if(correct){
+        progress.endless.correct++;
+        progress.endless.streak++;
+        if(progress.endless.streak > progress.endless.bestStreak) progress.endless.bestStreak = progress.endless.streak;
+        qcard.classList.add('pulse');
+      } else {
+        progress.endless.wrong++;
+        progress.endless.streak = 0;
+        qcard.classList.add('shake');
+      }
+      saveProgress(progress);
     } else {
-      state.wrong++;
-      state.heroHP = Math.max(0, state.heroHP - 20);
-      qcard.classList.add('shake');
+      var dmgToMonster = Math.ceil(100/state.activeQs.length);
+      var wrongDmg = state.difficulty==='hard' ? 25 : (state.difficulty==='easy' ? 14 : 20);
+      if(correct){
+        state.monsterHP = Math.max(0, state.monsterHP - dmgToMonster);
+        qcard.classList.add('pulse');
+      } else {
+        state.wrong++;
+        state.heroHP = Math.max(0, state.heroHP - wrongDmg);
+        qcard.classList.add('shake');
+      }
     }
 
     var yourAnsChip = '<div class="yourans"><span class="label">あなたの回答</span><span class="chip">'+esc(val)+'</span></div>';
@@ -1012,10 +1527,20 @@
       '</div>'+
       '<div class="actionrow"><button class="primary" id="btnContinue">つづける →</button></div>';
 
-    setTimeout(refreshBars, 30);
+    if(!isEndless) setTimeout(refreshBars, 30);
 
     document.getElementById('btnContinue').addEventListener('click', function(){
       CUR_Q = null;
+      if(isEndless){
+        progress.endless.pos++;
+        if(progress.endless.pos >= progress.endless.queue.length){
+          reshuffleEndlessQueue();
+        }
+        saveProgress(progress);
+        state.locked = false;
+        render();
+        return;
+      }
       if(state.heroHP<=0){ state.failReason='hero'; state.screen='result-lose'; render(); return; }
       if(state.monsterHP<=0){ state.screen='result-win'; render(); return; }
       state.qIndex++;
