@@ -128,6 +128,8 @@
   .stagecard h3{font-size:1.05rem; margin-top:2px;}
   .stagecard .sub{font-size:.78rem; color:var(--ink-dim);}
   .stagecard .stars{font-size:.9rem; color:var(--accent); letter-spacing:.08em; margin-top:auto;}
+  .stagecard.boss{border-color:var(--danger); box-shadow:0 0 0 1px var(--danger) inset;}
+  .stagecard.boss .idx{color:var(--danger); font-weight:700;}
   .stagecard.locked{cursor:not-allowed; opacity:.5; filter:grayscale(.5);}
   .stagecard.locked::after{
     content:"🔒 未解放"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
@@ -249,7 +251,7 @@
    answers        : 正解として受け付ける入力(複数可)。空白の有無・大小文字は自動で吸収する。
    explain        : 完全初学者向けの解説。
   */
-  var STAGES = [
+  var BASE_STAGES = [
     {id:'w1', title:'入出力の間', sub:'Week1 C++の入出力', emoji:'👺', mon:'出力ゴブリン',
       lesson:[
         {title:'画面に文字を出す', code:'#include <iostream>\nusing namespace std;\nint main(){\n  cout << "Hello World!" << endl;\n}',
@@ -671,6 +673,44 @@
       ]}
   ];
 
+  /*
+   まとまり(3ステージ前後)を1つ終えるごとに、その範囲の総復習となるボス戦ステージを挟み込む。
+   ボスのlessonは元ステージの例題を出典つきで並べ直したもの、qsは元ステージの設問をそのまま合体させたもの。
+  */
+  var BOSS_GROUPS = [
+    {ids:[0,1,2],   id:'b1', title:'中間の関門 I',   sub:'Week1〜3 総復習',   emoji:'👹', mon:'試験官オーガ'},
+    {ids:[3,4,5],   id:'b2', title:'中間の関門 II',  sub:'Week4〜6 総復習',   emoji:'🦂', mon:'試験官スコーピオン'},
+    {ids:[6,7,8],   id:'b3', title:'中間の関門 III', sub:'Week7〜9 総復習',   emoji:'🐺', mon:'試験官ワーウルフ'},
+    {ids:[9,10],    id:'b4', title:'中間の関門 IV',  sub:'WeekA〜B 総復習',   emoji:'🐉', mon:'継承の古竜'},
+    {ids:[11,12],   id:'b5', title:'期末試験・最終決戦', sub:'WeekC〜E 総復習', emoji:'👑', mon:'期末試験の魔王'}
+  ];
+
+  function buildBossStage(group){
+    var srcStages = group.ids.map(function(i){ return BASE_STAGES[i]; });
+    var lesson = [];
+    srcStages.forEach(function(st){
+      st.lesson.forEach(function(item){
+        lesson.push({title:'『'+st.title+'』'+item.title, code:item.code, explain:item.explain});
+      });
+    });
+    var qs = [];
+    srcStages.forEach(function(st){ qs = qs.concat(st.qs); });
+    return {id:group.id, title:group.title, sub:group.sub, emoji:group.emoji, mon:group.mon, isBoss:true, lesson:lesson, qs:qs};
+  }
+
+  var STAGES = [];
+  (function(){
+    var groupPtr = 0;
+    BASE_STAGES.forEach(function(st, i){
+      STAGES.push(st);
+      var grp = BOSS_GROUPS[groupPtr];
+      if(grp && i === grp.ids[grp.ids.length-1]){
+        STAGES.push(buildBossStage(grp));
+        groupPtr++;
+      }
+    });
+  })();
+
   var TOTAL_STARS = STAGES.length * 3;
   var STORE_KEY = 'oopExamQuest_v3';
 
@@ -740,11 +780,11 @@
 
   function renderMap(){
     var cards = STAGES.map(function(st, i){
-      var locked = (i+1) > progress.unlocked;
+      var locked = false;
       var stars = progress.stars[st.id] || 0;
       return ''+
-      '<button class="stagecard'+(locked?' locked':'')+'" data-idx="'+i+'" '+(locked?'disabled':'')+' aria-label="'+esc(st.title)+'">'+
-        '<div class="row1"><span class="emoji">'+st.emoji+'</span><span class="idx">STAGE '+(i+1)+'</span></div>'+
+      '<button class="stagecard'+(locked?' locked':'')+(st.isBoss?' boss':'')+'" data-idx="'+i+'" '+(locked?'disabled':'')+' aria-label="'+esc(st.title)+'">'+
+        '<div class="row1"><span class="emoji">'+st.emoji+'</span><span class="idx">'+(st.isBoss?'★ BOSS ★':'STAGE '+(i+1))+'</span></div>'+
         '<h3>'+esc(st.title)+'</h3>'+
         '<div class="sub">'+esc(st.sub)+' ・ '+esc(st.mon)+'</div>'+
         '<div class="stars">'+starString(stars)+'</div>'+
