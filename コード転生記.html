@@ -195,6 +195,35 @@
   }
   .diffchip.on{opacity:1; border-color:var(--accent); color:var(--ink); font-weight:600;}
 
+  .tierchiprow{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:4px;}
+  .tierchip{
+    display:flex; flex-direction:column; gap:2px; text-align:left; cursor:pointer;
+    font-family:var(--font-body); background:var(--bg-2); color:var(--ink-dim);
+    border:1px solid var(--line); padding:10px 14px; max-width:220px;
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+    opacity:.55; transition:opacity .15s ease, border-color .15s ease;
+  }
+  .tierchip .tc-label{font-size:.88rem; font-weight:700;}
+  .tierchip .tc-count{font-size:.7rem; font-family:var(--font-mono); color:var(--ink-dim);}
+  .tierchip .tc-desc{font-size:.72rem; color:var(--ink-dim); line-height:1.4;}
+  .tierchip.on{opacity:1;}
+  .tierchip.t1.on{border-color:var(--danger); box-shadow:0 0 0 1px var(--danger) inset;}
+  .tierchip.t1.on .tc-label{color:var(--danger);}
+  .tierchip.t2.on{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset;}
+  .tierchip.t2.on .tc-label{color:var(--accent);}
+  .tierchip.t3.on{border-color:var(--hero); box-shadow:0 0 0 1px var(--hero) inset;}
+  .tierchip.t3.on .tc-label{color:var(--hero);}
+
+  .cramcard{border-color:var(--danger); background:linear-gradient(135deg, color-mix(in srgb, var(--danger) 14%, var(--panel)), var(--panel));}
+
+  .tierbadge{
+    display:inline-block; font-family:var(--font-body); font-size:.68rem; font-weight:700;
+    letter-spacing:.02em; text-transform:none; padding:2px 8px; margin-left:6px; border-radius:3px; vertical-align:middle;
+  }
+  .tierbadge.t1{background:color-mix(in srgb, var(--danger) 20%, var(--bg-2)); color:var(--danger); border:1px solid var(--danger);}
+  .tierbadge.t2{background:color-mix(in srgb, var(--accent) 18%, var(--bg-2)); color:var(--accent); border:1px solid var(--accent);}
+  .tierbadge.t3{background:color-mix(in srgb, var(--hero) 16%, var(--bg-2)); color:var(--hero); border:1px solid var(--hero);}
+
   .stagegrid{
     display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:14px; margin-bottom:8px;
   }
@@ -228,6 +257,14 @@
     padding:6px 12px; cursor:pointer; clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
   }
   .backbtn:hover{color:var(--ink); border-color:var(--accent);}
+  .togglebtn{
+    font-family:var(--font-body); font-weight:600; font-size:.85rem; color:var(--accent);
+    background:color-mix(in srgb, var(--accent) 10%, var(--panel)); border:1px solid var(--accent);
+    padding:6px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+    clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
+    transition:background .15s ease, color .15s ease;
+  }
+  .togglebtn:hover{background:var(--accent); color:var(--accent-ink);}
 
   .endlessbar{
     display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px;
@@ -6896,6 +6933,21 @@
   var DIFF_BATCH_KEYS = ['qs','qsHard','qsExtra','qsExpert'];
   var DIFF_BATCH_LABEL = {1:'初級(基礎)', 2:'中級(標準)', 3:'上級(応用)', 4:'超級(発展)'};
   var DIFF_WRONG_DMG = {1:14, 2:20, 3:23, 4:28};
+
+  /* 1000本ノックを「重要度」で絞り込むための階層タグ。既存のdiff(難易度)とは別軸で、
+     「試験に出る確率が高いか」を表す。個々の設問にq.tierを直接指定すれば手動で上書きでき、
+     未指定の設問は難易度バッチから妥当な初期値を自動で割り当てる(基礎・標準→最重要、
+     応用→標準、発展→深掘り)。出題実績が増えてきたら、q.tierを個別に調整して精度を上げていける。 */
+  var TIER_LABEL = {1:'🔥 最重要', 2:'⭐ 標準', 3:'📚 深掘り'};
+  var TIER_DESC = {
+    1:'出題確率が高い核心だけ。時間がない直前はここだけ回せば合格ラインに届く。',
+    2:'合格を安定させる標準的な設問。最重要が仕上がったらここまで広げよう。',
+    3:'完全制覇を狙う人向けのレア・応用設問。時間に余裕があるときに。'
+  };
+  var DEFAULT_TIER_BY_DIFF = {1:1, 2:1, 3:2, 4:3};
+  function questionTier(q){
+    return q.tier || DEFAULT_TIER_BY_DIFF[q.diff] || 2;
+  }
   BASE_STAGES.forEach(function(st){
     DIFF_BATCH_KEYS.forEach(function(key, i){
       (st[key]||[]).forEach(function(q, qi){ q.unit = st.id; q.diff = i+1; q.qid = st.id+':'+key+':'+qi; });
@@ -7410,15 +7462,15 @@
      ボス専用の長文コード問題(BOSS_LONG_QS)だけはボス以外に存在しないので別途追加する。 */
   var ENDLESS_POOL = [];
   BASE_STAGES.forEach(function(st){
-    st.qs.forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, srcTitle:st.title, srcSub:st.sub}); });
-    (st.qsHard||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, srcTitle:st.title, srcSub:st.sub+' ・ 難問'}); });
-    (st.qsExtra||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, srcTitle:st.title, srcSub:st.sub+' ・ 総復習演習'}); });
-    (st.qsExpert||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, srcTitle:st.title, srcSub:st.sub+' ・ 発展演習'}); });
-    (st.qsDrag||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, srcTitle:st.title, srcSub:st.sub+' ・ ドラッグ問題'}); });
+    st.qs.forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q), srcTitle:st.title, srcSub:st.sub}); });
+    (st.qsHard||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q), srcTitle:st.title, srcSub:st.sub+' ・ 難問'}); });
+    (st.qsExtra||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q), srcTitle:st.title, srcSub:st.sub+' ・ 総復習演習'}); });
+    (st.qsExpert||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q), srcTitle:st.title, srcSub:st.sub+' ・ 発展演習'}); });
+    (st.qsDrag||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q), srcTitle:st.title, srcSub:st.sub+' ・ ドラッグ問題'}); });
   });
   BOSS_GROUPS.forEach(function(group){
     (BOSS_LONG_QS[group.id] || []).forEach(function(q){
-      ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, srcTitle:group.title, srcSub:group.sub+' ・ 総復習'});
+      ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q), srcTitle:group.title, srcSub:group.sub+' ・ 総復習'});
     });
   });
 
@@ -7450,13 +7502,16 @@
     progress.endless = {queue:[], pos:0, correct:0, wrong:0, streak:0, bestStreak:0};
   }
   if(!progress.settings){
-    progress.settings = {allowAlt:false, endlessUnits:null, endlessDiffs:null};
+    progress.settings = {allowAlt:false, endlessUnits:null, endlessDiffs:null, endlessTiers:null};
   }
   if(!('endlessUnits' in progress.settings)){
     progress.settings.endlessUnits = null;
   }
   if(!('endlessDiffs' in progress.settings)){
     progress.settings.endlessDiffs = null;
+  }
+  if(!('endlessTiers' in progress.settings)){
+    progress.settings.endlessTiers = null;
   }
   if(!progress.unitStats){
     progress.unitStats = {};
@@ -7540,6 +7595,7 @@
   function currentEndlessPoolIndices(){
     var units = progress.settings.endlessUnits;
     var diffs = progress.settings.endlessDiffs;
+    var tiers = progress.settings.endlessTiers;
     var base;
     if(!units || units.length===0){
       base = ENDLESS_POOL.map(function(_,i){return i;});
@@ -7547,8 +7603,13 @@
       base = [];
       units.forEach(function(u){ base = base.concat(POOL_INDICES_BY_UNIT[u] || []); });
     }
-    if(!diffs || diffs.length===0) return base;
-    return base.filter(function(i){ return diffs.indexOf(ENDLESS_POOL[i].diff)!==-1; });
+    if(diffs && diffs.length){
+      base = base.filter(function(i){ return diffs.indexOf(ENDLESS_POOL[i].diff)!==-1; });
+    }
+    if(tiers && tiers.length){
+      base = base.filter(function(i){ return tiers.indexOf(ENDLESS_POOL[i].tier)!==-1; });
+    }
+    return base;
   }
 
   function rebuildEndlessQueue(){
@@ -7571,7 +7632,7 @@
     progress.endless.pos = 0;
   }
 
-  var state = {screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, activeQs:[], pickerSelection:[], pickerDiffSelection:[1,2,3,4], reviewQueue:[], reviewPos:0, reviewStats:{correct:0, wrong:0}, dragPlacement:{}, dragSelected:null, dragQid:null, startTier:1, studyStep:0, studyPicked:null};
+  var state = {screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, activeQs:[], pickerSelection:[], pickerDiffSelection:[1,2,3,4], pickerTierSelection:[1,2,3], reviewQueue:[], reviewPos:0, reviewStats:{correct:0, wrong:0}, dragPlacement:{}, dragSelected:null, dragQid:null, startTier:1, studyStep:0, studyPicked:null};
 
   function shuffle(arr){
     var a = arr.slice();
@@ -7676,12 +7737,16 @@
     var acc = totalAns>0 ? Math.round(e.correct/totalAns*100) : 0;
     var selUnits = progress.settings.endlessUnits;
     var selDiffs = progress.settings.endlessDiffs;
+    var selTiers = progress.settings.endlessTiers;
     var endlessFilterLabel = (!selUnits || selUnits.length===0)
       ? '対象: 全'+UNIT_LIST.length+'単元'
       : '対象: '+selUnits.length+'/'+UNIT_LIST.length+'単元に絞り込み中';
     endlessFilterLabel += (!selDiffs || selDiffs.length===0)
       ? ' ・ 難易度: 全て'
       : ' ・ 難易度: '+selDiffs.map(function(lv){ return DIFF_BATCH_LABEL[lv]; }).join('/');
+    endlessFilterLabel += (!selTiers || selTiers.length===0)
+      ? ' ・ 重要度: 全て'
+      : ' ・ 重要度: '+selTiers.map(function(lv){ return TIER_LABEL[lv]; }).join('/');
     var overallReco = recommendDifficulty(selUnits);
     var missedN = missedCount();
 
@@ -7747,6 +7812,8 @@
 
     var hasPortal = !!(st.studyBeats && st.studyBeats.length);
     var backLabel = state.lessonFromBattle ? '← 戦闘へ戻る' : (hasPortal ? '← 門へ戻る' : '← 地図へ戻る');
+    var toggleHtml = (hasPortal && !state.lessonFromBattle)
+      ? '<button class="togglebtn" id="btnLessonToggleStudy">⇄ 学習パートに切替</button>' : '';
 
     var actionHtml;
     if(state.lessonFromBattle){
@@ -7767,7 +7834,7 @@
     }
 
     return ''+ renderTopbar() +
-    '<div class="battlebar"><button class="backbtn" id="btnLessonBack">'+backLabel+'</button></div>'+
+    '<div class="battlebar"><button class="backbtn" id="btnLessonBack">'+backLabel+'</button>'+toggleHtml+'</div>'+
     '<div class="frame lessonintro">'+
       '<h2>'+st.emoji+' 訓練場 — '+esc(st.title)+'</h2>'+
       '<p>'+esc(st.sub)+'の要点を、完成した正しいコードと解説で確認しよう。まずは読んで感覚をつかんでから、'+esc(st.mon)+'に挑むと理解しやすい。</p>'+
@@ -7825,7 +7892,10 @@
       progress.studyCompleted[st.id] = true;
       saveProgress(progress);
       return ''+ renderTopbar() +
-      '<div class="battlebar"><button class="backbtn" id="btnStudyBack">← ポータルへ戻る</button></div>'+
+      '<div class="battlebar">'+
+        '<button class="backbtn" id="btnStudyBack">← ポータルへ戻る</button>'+
+        '<button class="togglebtn" id="btnStudyToggle">⇄ 問題パートに切替</button>'+
+      '</div>'+
       '<div class="frame result">'+
         '<span class="bigemoji">🎉</span><h2>準備が整った！</h2>'+
         '<p>'+esc(st.sub)+'の急所は仕込み終えた。この勢いのまま、'+esc(st.mon)+'に挑んでみよう。</p>'+
@@ -7863,7 +7933,7 @@
     return ''+ renderTopbar() +
     '<div class="battlebar">'+
       '<button class="backbtn" id="btnStudyBack">← ポータルへ戻る</button>'+
-      '<button class="backbtn" id="btnStudySkip">問題へスキップ →</button>'+
+      '<button class="togglebtn" id="btnStudyToggle">⇄ 問題パートに切替</button>'+
     '</div>'+
     '<div class="studydots">'+dots+'<span class="studystep">'+(state.studyStep+1)+' / '+total+'</span></div>'+
     '<div class="frame storycard">'+
@@ -7966,7 +8036,7 @@
       '<div class="estat"><span class="elabel">間違いノート残り</span><span class="evalue">'+missedCount()+'問</span></div>'+
     '</div>'+
     '<div class="frame qcard" id="qcard">'+
-      '<div class="qmeta"><span>📕 復習モード</span><span>'+esc(state.endlessSrc.srcSub)+'</span></div>'+
+      '<div class="qmeta"><span>📕 復習モード <span class="tierbadge t'+state.endlessSrc.tier+'">'+esc(TIER_LABEL[state.endlessSrc.tier])+'</span></span><span>'+esc(state.endlessSrc.srcSub)+'</span></div>'+
       '<div class="qlead">'+qb.qlead+'</div>'+
       qb.bodyHtml+
       qb.answerHtml+
@@ -7977,8 +8047,10 @@
   function openUnitPicker(){
     var cur = progress.settings.endlessUnits;
     var curDiff = progress.settings.endlessDiffs;
+    var curTier = progress.settings.endlessTiers;
     state.pickerSelection = (cur && cur.length) ? cur.slice() : UNIT_LIST.map(function(u){ return u.id; });
     state.pickerDiffSelection = (curDiff && curDiff.length) ? curDiff.slice() : [1,2,3,4];
+    state.pickerTierSelection = (curTier && curTier.length) ? curTier.slice() : [1,2,3];
     state.screen = 'unitPicker';
     render();
   }
@@ -7986,6 +8058,7 @@
   function renderUnitPicker(){
     var sel = state.pickerSelection;
     var diffSel = state.pickerDiffSelection;
+    var tierSel = state.pickerTierSelection;
     var chips = UNIT_LIST.map(function(u){
       var on = sel.indexOf(u.id) !== -1;
       var info = unitAttemptInfo(u.id);
@@ -8002,13 +8075,27 @@
       return '<button class="diffchip'+(on?' on':'')+'" data-diff="'+lv+'">'+esc(DIFF_BATCH_LABEL[lv])+'</button>';
     }).join('');
 
+    var tierChips = [1,2,3].map(function(lv){
+      var on = tierSel.indexOf(lv) !== -1;
+      var count = ENDLESS_POOL.filter(function(e){ return e.tier===lv; }).length;
+      return '<button class="tierchip t'+lv+(on?' on':'')+'" data-tier="'+lv+'">'+
+        '<span class="tc-label">'+esc(TIER_LABEL[lv])+'</span>'+
+        '<span class="tc-count">'+count+'問</span>'+
+        '<span class="tc-desc">'+esc(TIER_DESC[lv])+'</span>'+
+      '</button>';
+    }).join('');
+
     var recoLevel = recommendDifficulty(sel);
 
     return ''+ renderTopbar() +
     '<div class="battlebar"><button class="backbtn" id="btnPickerBack">← 地図へ戻る</button></div>'+
     '<div class="frame intro">'+
-      '<h2>🎯 出題する単元・難易度を選ぶ</h2>'+
-      '<p>チェックした単元・難易度だけを対象に1000本ノックを出題します。誤答率が高い単元には目印がついているので、絞り込みの参考にしよう。何も選ばなければ開始できません。</p>'+
+      '<h2>🎯 出題する単元・難易度・重要度を選ぶ</h2>'+
+      '<p>チェックした単元・難易度・重要度だけを対象に1000本ノックを出題します。誤答率が高い単元には目印がついているので、絞り込みの参考にしよう。何も選ばなければ開始できません。</p>'+
+    '</div>'+
+    '<div class="frame recobar cramcard">'+
+      '<div class="reco-text">⚡ 時間がないなら「最重要」だけに絞って、全単元をひと通り最短で回そう。</div>'+
+      '<button class="primary" id="btnPickerCram">⚡ 一夜漬けモード(最重要のみ即開始) →</button>'+
     '</div>'+
     '<div class="frame recobar">'+
       '<div class="reco-text">🤖 選択中の単元でのおすすめ難易度: <b>'+esc(DIFF_BATCH_LABEL[recoLevel])+'</b>'+
@@ -8020,10 +8107,12 @@
       '<button class="ghost" id="btnPickerNone">単元を全解除</button>'+
     '</div>'+
     '<div class="unitgrid">'+chips+'</div>'+
+    '<div class="difftitle" style="margin-top:24px;">重要度で絞る(複数選択可) — 試験に出そうな核心から優先したいときに</div>'+
+    '<div class="tierchiprow">'+tierChips+'</div>'+
     '<div class="difftitle" style="margin-top:24px;">難易度で絞る(複数選択可)</div>'+
     '<div class="diffchiprow">'+diffChips+'</div>'+
     '<div class="actionrow" style="margin-top:20px;">'+
-      '<button class="primary" id="btnPickerStart"'+((sel.length===0||diffSel.length===0)?' disabled':'')+'>この設定で1000本ノックを開始 →</button>'+
+      '<button class="primary" id="btnPickerStart"'+((sel.length===0||diffSel.length===0||tierSel.length===0)?' disabled':'')+'>この設定で1000本ノックを開始 →</button>'+
     '</div>';
   }
 
@@ -8132,7 +8221,7 @@
         '<div class="hpnum"><span>HP</span><span class="num">'+state.monsterHP+' / 100</span></div></div>'+
     '</div>'+
     '<div class="frame qcard" id="qcard">'+
-      '<div class="qmeta"><span>設問 '+(state.qIndex+1)+' / '+total+'</span><span>'+esc(st.title)+' ・ 今: '+esc(DIFF_BATCH_LABEL[CUR_Q.diff]||'')+'</span></div>'+
+      '<div class="qmeta"><span>設問 '+(state.qIndex+1)+' / '+total+' <span class="tierbadge t'+questionTier(CUR_Q)+'">'+esc(TIER_LABEL[questionTier(CUR_Q)])+'</span></span><span>'+esc(st.title)+' ・ 今: '+esc(DIFF_BATCH_LABEL[CUR_Q.diff]||'')+'</span></div>'+
       '<div class="qlead">'+qb.qlead+'</div>'+
       qb.bodyHtml+
       qb.answerHtml+
@@ -8166,7 +8255,7 @@
       '<div class="estat"><span class="elabel">今周の残数</span><span class="evalue">'+(progress.endless.queue.length - progress.endless.pos)+' / '+progress.endless.queue.length+'</span></div>'+
     '</div>'+
     '<div class="frame qcard" id="qcard">'+
-      '<div class="qmeta"><span>1000本ノック</span><span>'+esc(state.endlessSrc.srcSub)+'</span></div>'+
+      '<div class="qmeta"><span>1000本ノック <span class="tierbadge t'+state.endlessSrc.tier+'">'+esc(TIER_LABEL[state.endlessSrc.tier])+'</span></span><span>'+esc(state.endlessSrc.srcSub)+'</span></div>'+
       '<div class="qlead">'+qb.qlead+'</div>'+
       qb.bodyHtml+
       qb.answerHtml+
@@ -8349,18 +8438,42 @@
           render();
         });
       });
+      Array.prototype.forEach.call(app.querySelectorAll('.tierchip'), function(btn){
+        btn.addEventListener('click', function(){
+          var lv = parseInt(btn.getAttribute('data-tier'),10);
+          var idx = state.pickerTierSelection.indexOf(lv);
+          if(idx===-1) state.pickerTierSelection.push(lv);
+          else state.pickerTierSelection.splice(idx,1);
+          render();
+        });
+      });
       document.getElementById('btnPickerAuto').addEventListener('click', function(){
         var weak = weakUnitIds();
         state.pickerSelection = weak.slice();
         state.pickerDiffSelection = [recommendDifficulty(weak)];
         render();
       });
+      document.getElementById('btnPickerCram').addEventListener('click', function(){
+        state.pickerSelection = UNIT_LIST.map(function(u){ return u.id; });
+        state.pickerDiffSelection = [1,2,3,4];
+        state.pickerTierSelection = [1];
+        progress.settings.endlessUnits = null;
+        progress.settings.endlessDiffs = null;
+        progress.settings.endlessTiers = [1];
+        saveProgress(progress);
+        rebuildEndlessQueue();
+        CUR_Q = null;
+        state.screen = 'endless';
+        render();
+      });
       document.getElementById('btnPickerStart').addEventListener('click', function(){
-        if(state.pickerSelection.length===0 || state.pickerDiffSelection.length===0) return;
+        if(state.pickerSelection.length===0 || state.pickerDiffSelection.length===0 || state.pickerTierSelection.length===0) return;
         progress.settings.endlessUnits = (state.pickerSelection.length===UNIT_LIST.length)
           ? null : state.pickerSelection.slice();
         progress.settings.endlessDiffs = (state.pickerDiffSelection.length===4)
           ? null : state.pickerDiffSelection.slice();
+        progress.settings.endlessTiers = (state.pickerTierSelection.length===3)
+          ? null : state.pickerTierSelection.slice();
         saveProgress(progress);
         rebuildEndlessQueue();
         CUR_Q = null;
@@ -8383,8 +8496,8 @@
       app.innerHTML = renderStudy();
       var studyBack = document.getElementById('btnStudyBack');
       if(studyBack) studyBack.addEventListener('click', function(){ openPortal(state.stageIndex); });
-      var studySkip = document.getElementById('btnStudySkip');
-      if(studySkip) studySkip.addEventListener('click', function(){ openLesson(state.stageIndex, false); });
+      var studyToggle = document.getElementById('btnStudyToggle');
+      if(studyToggle) studyToggle.addEventListener('click', function(){ openLesson(state.stageIndex, false); });
       var studyNext = document.getElementById('btnStudyNext');
       if(studyNext) studyNext.addEventListener('click', function(){
         state.studyStep++; state.studyPicked = null; render();
@@ -8405,6 +8518,13 @@
         var st = STAGES[state.stageIndex];
         var hasPortal = !!(st.studyBeats && st.studyBeats.length);
         state.screen = state.lessonFromBattle ? 'battle' : (hasPortal ? 'portal' : 'map');
+        render();
+      });
+      var lessonToggle = document.getElementById('btnLessonToggleStudy');
+      if(lessonToggle) lessonToggle.addEventListener('click', function(){
+        /* studyStep/studyPickedはリセットしない。前回学習パートを離れた地点から
+           そのまま再開できるよう、画面だけを切り替える即時トグル。 */
+        state.screen = 'study';
         render();
       });
       var toBattleBtn = document.getElementById('btnToBattle');
