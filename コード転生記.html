@@ -247,6 +247,34 @@
   .lessoncard h3{font-size:1.05rem; margin-bottom:10px;}
   .lessonexplain{margin:12px 0 0; color:var(--ink-dim); font-size:.92rem;}
 
+  /* ---- portal (branching gate) screen ---- */
+  .portalgrid{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:16px; margin-bottom:8px;}
+  .portalcard{
+    text-align:left; background:var(--panel); color:var(--ink); border:1px solid var(--line); cursor:pointer;
+    padding:22px 22px 24px; display:flex; flex-direction:column; gap:10px;
+    clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .portalcard:hover{transform:translateY(-3px); box-shadow:0 14px 26px -14px var(--shadow); background:var(--panel-2);}
+  .portalcard .picon{font-size:2rem;}
+  .portalcard .ptitle{font-family:var(--font-display); font-size:1.1rem; font-weight:700; display:block;}
+  .portalcard .ptitle small{display:block; font-family:var(--font-body); font-weight:400; font-size:.75rem; color:var(--ink-dim); margin-top:2px;}
+  .portalcard .pdesc{font-size:.85rem; color:var(--ink-dim); line-height:1.6;}
+  .portalcard .pdone{display:block; margin-top:8px; color:var(--hero); font-weight:600; font-size:.8rem;}
+
+  /* ---- study (story-driven lesson) screen ---- */
+  .studydots{display:flex; align-items:center; gap:6px; margin-bottom:16px;}
+  .studydots .dot{width:8px; height:8px; border-radius:50%; background:var(--bg-2); border:1px solid var(--line);}
+  .studydots .dot.done{background:var(--accent); border-color:var(--accent);}
+  .studydots .dot.cur{background:var(--accent-ink); border-color:var(--accent); box-shadow:0 0 0 2px var(--accent);}
+  .studydots .studystep{margin-left:8px; font-family:var(--font-mono); font-size:.75rem; color:var(--ink-dim);}
+  .storycard{padding:24px 26px; margin-bottom:16px;}
+  .storycard .sicon{font-size:2.2rem; display:block; margin-bottom:10px;}
+  .storycard .sstory{margin:0 0 16px; color:var(--ink); line-height:1.8; max-width:64ch;}
+  .storycard .codeblock{margin:0;}
+  .quizbox{padding:0;}
+  .quizbox .quizq{font-weight:600; margin:0 0 12px;}
+
   .diffpick{padding:20px 22px;}
   .difftitle{font-weight:600; margin-bottom:12px;}
   .diffpick > .ddesc{font-size:.85rem; color:var(--ink-dim); line-height:1.7;}
@@ -6336,6 +6364,43 @@
          explain:'pythonで継承するときは、クラス名の後ろの括弧に親クラス名だけを書きます(p1)。p3のようにselfを書いてしまうのは文法として誤りです(selfはメソッドの引数として使うもので、クラス宣言には登場しません)。コンストラクタはsuper().__init__(hp)で親の初期化を再利用しつつ、self.nameを追加します(p2)。'}
       ]},
     {id:'tk', title:'硝子の楼閣', sub:'Week D/E Tkinterウィジェット', emoji:'🪟', mon:'硝子細工の女王',
+      studyBeats:[
+        {icon:'🏯',
+         story:'硝子の楼閣の入り口に立つと、無数の窓が宙に浮かんでいる。すべての魔法は、まず「窓の器(ウィンドウ)」を呼び出すことから始まる。',
+         code:'import tkinter as tk\nfrom tkinter import ttk\n\nroot = tk.Tk()\nroot.mainloop()',
+         quiz:{q:'ウィンドウ本体(器)を作るクラスはどれか？', options:['tk.Tk()','tk.Window()','ttk.Root()','tk.App()'], correct:0,
+               explain:'tk.Tk()が、あらゆるウィジェットを乗せる「一番外側の器」を作るクラスです。慣習的にrootという名前で受け取ります。'}},
+        {icon:'🪑',
+         story:'器の中に置く小さな魔法具(ウィジェット)は、ただ生成するだけでは宙に浮いたまま見えない。grid()で座標を指定して初めて姿を現す。',
+         code:'label = ttk.Label(root, text="Hello")\nlabel.grid(column=0, row=0)',
+         quiz:{q:'生成したウィジェットを画面上の位置に配置するメソッドはどれか？', options:['grid()','place2()','locate()','setPosition()'], correct:0,
+               explain:'grid(column=?, row=?)で、列(column)と行(row)を指定して配置します。生成しただけではまだ画面に表示されません。'}},
+        {icon:'✨',
+         story:'一度書いた文字は石版のように動かない。だがtext=の代わりにtextvariable=で特別な入れ物(StringVar)を紐づければ、あとから何度でも表示を書き換えられる。',
+         code:'msg = tk.StringVar()\nlabel = ttk.Label(root, textvariable=msg)\nmsg.set("更新後の文字")',
+         quiz:{q:'実行中にラベルの表示を書き換えたいとき、textの代わりに指定するオプションはどれか？', options:['textvariable','value','content','dynamicText'], correct:0,
+               explain:'textvariableにtk.StringVar()を渡しておくと、msg.set(...)で中身を書き換えるだけで表示が自動更新されます。'}},
+        {icon:'📜',
+         story:'入力欄(Entry)は、旅人が書き込んだ言葉を静かに保管している。その言葉を読み出すには、専用の呪文が必要だ。',
+         code:'entry = ttk.Entry(root)\nentry.grid(column=0, row=1)\nvalue = entry.get()',
+         quiz:{q:'Entry(入力欄)に今入力されている文字列を取得するメソッドはどれか？', options:['get()','read()','fetch()','value()'], correct:0,
+               explain:'entry.get()を呼ぶと、その入力欄に今入力されている文字列を取得できます。'}},
+        {icon:'🔔',
+         story:'ボタンに命令(command)を刻むときは、名前だけを渡すこと。うっかり括弧をつけて唱えると、ボタンが押される前にその場で発動してしまう。',
+         code:'def on_click():\n    print("clicked")\n\nbtn = ttk.Button(root, text="OK", command=on_click)',
+         quiz:{q:'commandオプションにon_click関数を正しく指定する書き方はどれか？', options:['command=on_click','command=on_click()','command="on_click"','on_click(command)'], correct:0,
+               explain:'command=on_click のように、括弧をつけずに関数名だけを渡します。on_click()と書くと生成した瞬間に実行されてしまいます。'}},
+        {icon:'🛡️',
+         story:'複数の魔法具を1つの紋章(自作クラス)にまとめたいなら、ttk.Frameという盾を継承し、その上に部品を積み重ねていく。',
+         code:'class Panel(ttk.Frame):\n    def __init__(self, root):\n        super().__init__(root)\n        # ここにウィジェットを追加',
+         quiz:{q:'複数のウィジェットをまとめる自作クラスが継承するクラスはどれか？', options:['ttk.Frame','tk.Tk','ttk.Widget','tk.Panel'], correct:0,
+               explain:'ttk.Frameを継承した自作クラスを作ることで、複数のウィジェットを1つの部品としてまとめて扱えます。'}},
+        {icon:'🚪',
+         story:'最後の扉——このファイルを直接開いたときだけ動き出す、実行の合言葉を刻もう。',
+         code:'if __name__ == \'__main__\':\n    root = tk.Tk()\n    app = Panel(root)\n    app.pack()\n    root.mainloop()',
+         quiz:{q:'このファイルが直接実行されたときだけ動く処理を書く場所はどれか？', options:["if __name__ == '__main__':",'if __direct__:','def main():の中だけ','on_startup()の中'], correct:0,
+               explain:'if __name__ == \'__main__\': は、このファイルが直接実行されたときだけTrueになる定番の書き方です。importされたときはこのブロックは実行されません。'}}
+      ],
       lesson:[
         {title:'ウィンドウとウィジェット配置', code:'import tkinter as tk\nfrom tkinter import ttk\nroot = tk.Tk()\nlabel = ttk.Label(root, text="Hello")\nlabel.grid(column=0, row=0)\nroot.mainloop()',
          explain:'Tkinterでウィンドウを作りたいときは、まずtk.Tk()というクラスのオブジェクトを1つ生成します(慣習的にrootという名前をつけます)。これがアプリのウィンドウ本体です。その中に置きたい部品(ウィジェットと呼びます。ラベル、ボタン、入力欄など)は、ttk.Label(root, text="Hello")のように「どの親の中に置くか」を最初の引数で指定して生成し、続けてgrid()やpack()というメソッドで実際の配置場所を決めます。最後にroot.mainloop()を呼ぶことで、ウィンドウが画面に表示されたまま、ユーザーのクリックなどの操作をずっと待ち受ける状態になります。mainloop()を呼び忘れると、ウィンドウはすぐに閉じてしまいます。'},
@@ -6871,7 +6936,82 @@
        before:'void showBoth(int n){\n  ', after:'\n}',
        lead:'showBoth関数の中身に、nを「16進数→10進数」の順で2行出力する処理を書きなさい。',
        answers:['cout<<hex<<n<<endl;\ncout<<dec<<n<<endl;'],
-       explain:'マニピュレータhexで16進数表示に切り替えて1行出力したあと、decで10進数表示に戻してもう1行出力します。マニピュレータは指定し直すまで効果が続く点に注意しましょう。'}
+       explain:'マニピュレータhexで16進数表示に切り替えて1行出力したあと、decで10進数表示に戻してもう1行出力します。マニピュレータは指定し直すまで効果が続く点に注意しましょう。'},
+      {type:'debug', long:true,
+       before:'int main(){\n  int n;\n  cin >> n;\n  ', after:'\n  return 0;\n}',
+       lead:'nが偶数なら16進数、奇数なら10進数で出力する処理を書きなさい。',
+       answers:['if(n%2==0){\ncout<<hex<<n<<endl;\n}else{\ncout<<dec<<n<<endl;\n}'],
+       explain:'n%2==0で偶数かどうかを判定し、条件に応じてhexとdecを使い分けて出力します。'},
+      {type:'debug', long:true,
+       before:'void printInfo(string label, int value){\n  ', after:'\n}',
+       lead:'labelとvalueを"label: value"の形式で1行出力する処理を書きなさい。',
+       answers:['cout << label << ": " << value << endl;'],
+       explain:'文字列と数値を<<で自由につなげられるので、labelと": "とvalueを続けて出力すれば指定の形式になります。'},
+      {type:'debug', long:true,
+       before:'int main(){\n  int a = 5;\n  int* p = nullptr;\n  ', after:'\n  cout << *p << endl;\n  return 0;\n}',
+       lead:'pにaのアドレスを代入する行を書きなさい(nullptrのままだと*pは危険)。',
+       answers:['p = &a;'],
+       explain:'まだどこも指していない(nullptr)ポインタは、&aのようにアドレスを代入してから使う必要があります。'},
+      {type:'debug', long:true,
+       before:'void addTen(int& x){\n  ', after:'\n}',
+       lead:'参照渡しで受け取ったxに10を加算する処理を書きなさい。',
+       answers:['x += 10;'],
+       explain:'xは参照なので、xを書き換えると呼び出し元の変数そのものが変わります。'},
+      {type:'debug', long:true,
+       before:'int main(){\n  int a=3, b=7;\n  int* pa = &a;\n  int* pb = &b;\n  ', after:'\n  return 0;\n}',
+       lead:'pa,pbが指す値を入れ替える処理(一時変数を使ってよい)を書きなさい。',
+       answers:['int t=*pa;\n*pa=*pb;\n*pb=t;'],
+       explain:'一時変数tに*paの値を退避し、*paに*pbの値を代入し、最後に*pbにtを書き戻すことで中身が入れ替わります。'},
+      {type:'debug', long:true,
+       before:'int max3(int a,int b,int c){\n  ', after:'\n}',
+       lead:'a,b,cのうち最大値をreturnする処理を書きなさい。',
+       answers:['int m=a;\nif(b>m) m=b;\nif(c>m) m=c;\nreturn m;'],
+       explain:'仮の最大値mをaとしておき、bとcのそれぞれと比較しながら更新していきます。'},
+      {type:'debug', long:true,
+       before:'void showBase(int n, int base){\n  if(base==16){\n    ', after:'\n  }else if(base==8){\n    cout<<oct<<n<<endl;\n  }else{\n    cout<<dec<<n<<endl;\n  }\n}',
+       lead:'baseが16のときhexで出力する処理を書きなさい。',
+       answers:['cout<<hex<<n<<endl;'],
+       explain:'baseの値に応じてマニピュレータを使い分ける関数です。base==16のときはhexで出力します。'},
+      {type:'debug', long:true,
+       before:'int square(int x){\n  ', after:'\n}\ndouble square(double x){\n  return x*x;\n}',
+       lead:'int版のsquare関数の中身に、xの2乗をreturnする処理を書きなさい(オーバーロード)。',
+       answers:['return x*x;'],
+       explain:'int型引数を受け取る版でも、double版と同じ計算(x*x)をそのままreturnします。'},
+      {type:'debug', long:true,
+       before:'int main(){\n  int n;\n  int total=0;\n  for(int i=0;i<3;i++){\n    ', after:'\n  }\n  cout << dec << total << endl;\n  return 0;\n}',
+       lead:'3回繰り返し、cinで読み込んだ値をtotalに加算する処理を書きなさい。',
+       answers:['cin >> n;\ntotal += n;'],
+       explain:'ループのたびに新しい値nを読み込み、totalに足し込んでいきます。'},
+      {type:'debug', long:true,
+       before:'bool isPositive(int* p){\n  ', after:'\n}',
+       lead:'pが指す値が0より大きいかをbool型でreturnする処理を書きなさい。',
+       answers:['return *p > 0;'],
+       explain:'*pでpが指す先の値を取り出し、0より大きいかどうかの比較結果をそのままreturnします。'},
+      {type:'debug', long:true,
+       before:'void printRange(int start, int end){\n  ', after:'\n}',
+       lead:'startからendまでの整数を1つずつ出力するfor文を書きなさい。',
+       answers:['for(int i=start;i<=end;i++){\ncout << i << endl;\n}'],
+       explain:'forループの開始値・終了条件に引数をそのまま使い、i<=endとすることでendの値も含めて出力されます。'},
+      {type:'debug', long:true,
+       before:'int main(){\n  int a = 10;\n  int& ref = a;\n  ', after:'\n  cout << a << endl;\n  return 0;\n}',
+       lead:'refを通してaの値を20にする処理を書きなさい。',
+       answers:['ref = 20;'],
+       explain:'refはaの別名なので、refに20を代入するとaそのものが20に変わります。'},
+      {type:'debug', long:true,
+       before:'', after:'',
+       lead:'#include<iostream>とusing namespace std;を書いたうえで、int型の変数xを読み込み、xを8進数、10進数、16進数の順で1行ずつ出力するmain関数一式を書きなさい。',
+       answers:['#include <iostream>\nusing namespace std;\nint main(){\nint x;\ncin>>x;\ncout<<oct<<x<<endl;\ncout<<dec<<x<<endl;\ncout<<hex<<x<<endl;\nreturn 0;\n}'],
+       explain:'ヘッダを取り込み、xを読み込んだあと、oct→dec→hexの順にマニピュレータを切り替えながら3回出力します。'},
+      {type:'debug', long:true,
+       before:'void swapIfDescending(int* a, int* b){\n  ', after:'\n}',
+       lead:'*aが*bより大きい場合だけ、値を入れ替えて*aの方が小さくなるようにする処理を書きなさい。',
+       answers:['if(*a > *b){\nint t=*a;\n*a=*b;\n*b=t;\n}'],
+       explain:'if(*a > *b)で入れ替えが必要かどうかを判定し、必要な場合だけ一時変数を使って値を入れ替えます。'},
+      {type:'debug', long:true,
+       before:'int main(){\n  int a, b;\n  cin >> a >> b;\n  ', after:'\n  return 0;\n}',
+       lead:'aとbのうち小さい方をdecで、大きい方をhexで、それぞれ1行ずつ出力する処理を書きなさい。',
+       answers:['if(a<b){\ncout<<dec<<a<<endl;\ncout<<hex<<b<<endl;\n}else{\ncout<<dec<<b<<endl;\ncout<<hex<<a<<endl;\n}'],
+       explain:'aとbを比較し、小さい方をdecで、大きい方をhexで出力するよう条件分岐します。'}
     ],
     b2: [
       {type:'debug', long:true,
@@ -6884,7 +7024,82 @@
        before:'Results students[3];\n', after:'',
        lead:'students配列の3人分に、名前と得点を読み込むfor文一式を書きなさい。',
        answers:['for(int i=0;i<3;i++){\ncin>>students[i].name>>students[i].score;\n}'],
-       explain:'0から2までの添字でループし、各要素のnameとscoreにcinで読み込みます。'}
+       explain:'0から2までの添字でループし、各要素のnameとscoreにcinで読み込みます。'},
+      {type:'debug', long:true,
+       before:'int a[5]={3,1,4,1,5};\nint sum=0;\n', after:'\ncout << sum << endl;',
+       lead:'配列aの合計をsumに求めるfor文を書きなさい。',
+       answers:['for(int i=0;i<5;i++){\nsum += a[i];\n}'],
+       explain:'sumを0で初期化しておき、全要素を1つずつ足し込んでいきます。'},
+      {type:'debug', long:true,
+       before:'void reverseArray(int* a, int n){\n  ', after:'\n}',
+       lead:'配列aを前後逆順に並べ替える処理を書きなさい(前半と後半を1つずつ入れ替える方法でよい)。',
+       answers:['for(int i=0;i<n/2;i++){\nint w=a[i];a[i]=a[n-1-i];a[n-1-i]=w;\n}'],
+       explain:'先頭からi番目と末尾からi番目(添字n-1-i)を1組ずつ交換していきます。'},
+      {type:'debug', long:true,
+       before:'int countChar(string s, char target){\n  ', after:'\n}',
+       lead:'sの中にtargetと同じ文字がいくつあるか数えてreturnする処理を書きなさい。',
+       answers:['int count=0;\nfor(int i=0;i<s.size();i++){\nif(s[i]==target) count++;\n}\nreturn count;'],
+       explain:'カウンタcountを0で初期化し、全文字を調べてtargetと一致するたびに1増やします。'},
+      {type:'debug', long:true,
+       before:'struct Item{ string name; int price; };\nint totalPrice(Item* items, int n){\n  ', after:'\n}',
+       lead:'items配列n個分のpriceを合計してreturnする処理を書きなさい。',
+       answers:['int sum=0;\nfor(int i=0;i<n;i++){\nsum += items[i].price;\n}\nreturn sum;'],
+       explain:'合計用のsumを0で初期化し、全要素のpriceを足し込んでからreturnします。'},
+      {type:'debug', long:true,
+       before:'int findMax(int* a, int n){\n  ', after:'\n}',
+       lead:'配列aの中から最大値を探してreturnする処理を書きなさい。',
+       answers:['int maxVal=a[0];\nfor(int i=1;i<n;i++){\nif(a[i]>maxVal) maxVal=a[i];\n}\nreturn maxVal;'],
+       explain:'maxValをa[0]から始め、残りの要素と比較しながら最大値を更新します。'},
+      {type:'debug', long:true,
+       before:'bool isPalindrome(string s){\n  ', after:'\n}',
+       lead:'sが前から読んでも後ろから読んでも同じ(回文)かどうかをbool型でreturnする処理を書きなさい。',
+       answers:['for(int i=0;i<s.size()/2;i++){\nif(s[i]!=s[s.size()-1-i]) return false;\n}\nreturn true;'],
+       explain:'先頭からi番目と末尾からi番目を比較し、1組でも一致しなければfalseをreturnします。'},
+      {type:'debug', long:true,
+       before:'struct Point{ int x; int y; };\nint distanceSquared(Point a, Point b){\n  ', after:'\n}',
+       lead:'aとbのxの差の2乗とyの差の2乗の合計(距離の2乗)をreturnする処理を書きなさい。',
+       answers:['int dx = a.x-b.x;\nint dy = a.y-b.y;\nreturn dx*dx+dy*dy;'],
+       explain:'xの差とyの差をそれぞれ求めて2乗し、足し合わせた値をreturnします。'},
+      {type:'debug', long:true,
+       before:'void selectionSort(int* a, int n){\n  ', after:'\n}',
+       lead:'選択ソートでaを昇順に並べ替える処理を書きなさい(各周でi番目以降の最小値を探し、i番目と交換する)。',
+       answers:['for(int i=0;i<n-1;i++){\nint minIdx=i;\nfor(int j=i+1;j<n;j++){\nif(a[j]<a[minIdx]) minIdx=j;\n}\nint t=a[i];a[i]=a[minIdx];a[minIdx]=t;\n}'],
+       explain:'未処理の範囲の中で最小の要素の場所を探してからi番目と1回だけ交換します。'},
+      {type:'debug', long:true,
+       before:'struct Results{ string name; int score; };\nResults findTopScorer(Results* students, int n){\n  ', after:'\n}',
+       lead:'students配列の中から最も得点が高い生徒をreturnする処理を書きなさい。',
+       answers:['Results top=students[0];\nfor(int i=1;i<n;i++){\nif(students[i].score>top.score) top=students[i];\n}\nreturn top;'],
+       explain:'topをstudents[0]で仮に設定し、それより得点の高い生徒が見つかるたびに丸ごと更新します。'},
+      {type:'debug', long:true,
+       before:'int countVowels(string s){\n  ', after:'\n}',
+       lead:'sの中の母音(a,i,u,e,o)の数を数えてreturnする処理を書きなさい。',
+       answers:['int count=0;\nfor(int i=0;i<s.size();i++){\nchar c=s[i];\nif(c==\'a\'||c==\'i\'||c==\'u\'||c==\'e\'||c==\'o\') count++;\n}\nreturn count;'],
+       explain:'各文字を順番に調べ、5つの母音のいずれかと一致すればcountを増やします。'},
+      {type:'debug', long:true,
+       before:'void copyArray(int* src, int* dest, int n){\n  ', after:'\n}',
+       lead:'srcの内容をdestにそのままコピーする処理を書きなさい。',
+       answers:['for(int i=0;i<n;i++){\ndest[i] = src[i];\n}'],
+       explain:'要素を1つずつdest[i]=src[i]と代入していきます。'},
+      {type:'debug', long:true,
+       before:'struct Item{ string name; int price; };\nvoid applyDiscount(Item* items, int n, int percent){\n  ', after:'\n}',
+       lead:'items配列全員のpriceをpercent%引きにする処理を書きなさい(price = price - price*percent/100)。',
+       answers:['for(int i=0;i<n;i++){\nitems[i].price = items[i].price - items[i].price*percent/100;\n}'],
+       explain:'各要素についてprice*percent/100(割引額)を計算し、元のpriceから引いた値を代入し直します。'},
+      {type:'debug', long:true,
+       before:'int search(int* a, int n, int target){\n  ', after:'\n}',
+       lead:'配列aの中からtargetと同じ値を探し、見つかった添字をreturnする処理を書きなさい(見つからない場合は-1をreturnする)。',
+       answers:['for(int i=0;i<n;i++){\nif(a[i]==target) return i;\n}\nreturn -1;'],
+       explain:'見つかった時点でその添字iをreturnし、最後まで見つからなければ-1をreturnします。'},
+      {type:'debug', long:true,
+       before:'void toUpperManual(string& s){\n  ', after:'\n}',
+       lead:'sの中の小文字アルファベットを大文字に変換する処理を書きなさい(\'a\'-\'A\'=32を利用してよい)。',
+       answers:['for(int i=0;i<s.size();i++){\nif(\'a\'<=s[i] && s[i]<=\'z\') s[i] = s[i] - 32;\n}'],
+       explain:'各文字が小文字の範囲にあるかを調べ、そうであれば32を引くことで対応する大文字に変換します。'},
+      {type:'debug', long:true,
+       before:'struct Point{ int x; int y; };\nbool isSamePoint(Point a, Point b){\n  ', after:'\n}',
+       lead:'aとbのxとyがそれぞれ等しいかどうかをbool型でreturnする処理を書きなさい。',
+       answers:['return a.x==b.x && a.y==b.y;'],
+       explain:'xとyの両方が一致しているかを&&(かつ)でつなげて判定します。'}
     ],
     b3: [
       {type:'debug', long:true,
@@ -6896,7 +7111,82 @@
        before:'class ArrayCal{\n  double* array;\npublic:\n  ArrayCal(int n){ array=new double[n]; }\n  ', after:'\n};',
        lead:'デストラクタを定義し、配列として確保したメモリを正しく解放しなさい。',
        answers:['~ArrayCal(){ delete [] array; }'],
-       explain:'デストラクタはクラス名の前に~をつけた名前で定義し、戻り値は書きません。newで配列として確保したメモリは、delete []のように角括弧をつけて解放します。'}
+       explain:'デストラクタはクラス名の前に~をつけた名前で定義し、戻り値は書きません。newで配列として確保したメモリは、delete []のように角括弧をつけて解放します。'},
+      {type:'debug', long:true,
+       before:'class Counter{\n  int count;\npublic:\n  Counter(){ count=0; }\n  ', after:'\n};',
+       lead:'countを1増やすincrement()メソッドと、countの値を返すgetCount()メソッドを、あわせて定義しなさい。',
+       answers:['void increment(){ count++; }\nint getCount(){ return count; }'],
+       explain:'increment()はcountを1つ増やすだけの処理、getCount()はcountの値をそのまま読み取るための窓口です。'},
+      {type:'debug', long:true,
+       before:'class BankAccount{\n  int balance;\npublic:\n  BankAccount(int b){ balance=b; }\n  ', after:'\n};',
+       lead:'balanceがamount以上のときだけ引き出す(減算する)withdraw(int amount)メソッドを定義しなさい。',
+       answers:['void withdraw(int amount){\nif(balance>=amount){\nbalance -= amount;\n}\n}'],
+       explain:'残高が足りているかを確認してから引き出すことで、balanceが不正にマイナスになるのを防ぎます。'},
+      {type:'debug', long:true,
+       before:'class Hero{\n  int HP;\npublic:\n  Hero(){ HP=100; }\n  ', after:'\n};',
+       lead:'HPをptの分だけ減らしつつ、0未満にならないようにするdamaged(int pt)メソッドを定義しなさい。',
+       answers:['void damaged(int pt){\nHP -= pt;\nif(HP<0) HP=0;\n}'],
+       explain:'まずHPをptの分だけ減らし、その結果0未満になってしまった場合はHPを0に補正します。'},
+      {type:'debug', long:true,
+       before:'class Rectangle{\n  int width, height;\npublic:\n  Rectangle(int w,int h){ width=w; height=h; }\n  ', after:'\n};',
+       lead:'widthとheightを掛け合わせた面積をreturnするgetArea()メソッドを定義しなさい。',
+       answers:['int getArea(){ return width*height; }'],
+       explain:'widthとheightを掛け合わせた値を、そのままreturnするだけのメソッドです。'},
+      {type:'debug', long:true,
+       before:'', after:'',
+       lead:'int levelをprivateに持ち、level省略時は1を使うコンストラクタと、levelを1増やすlevelUp()メソッド、levelを返すgetLevel()メソッドを、あわせて定義したPlayerクラスを書きなさい。',
+       answers:['class Player{\nint level;\npublic:\nPlayer(int l=1){ level=l; }\nvoid levelUp(){ level++; }\nint getLevel(){ return level; }\n};'],
+       explain:'デフォルト引数付きのコンストラクタで初期状態を設定し、levelUp()で成長を表現し、getLevel()で外部から確認できるようにします。'},
+      {type:'debug', long:true,
+       before:'#include <vector>\nclass ScoreBoard{\n  vector<int> scores;\npublic:\n  ', after:'\n};',
+       lead:'得点を追加するadd(int s)メソッドと、平均をdouble型でreturnするaverage()メソッドを、あわせて定義しなさい。',
+       answers:['void add(int s){ scores.push_back(s); }\ndouble average(){\nint sum=0;\nfor(int i=0;i<scores.size();i++){\nsum+=scores[i];\n}\nreturn (double)sum/scores.size();\n}'],
+       explain:'add()でvectorに得点を追加し、average()では合計を求めてから(double)で変換し要素数で割ります。'},
+      {type:'debug', long:true,
+       before:'#include <vector>\nclass Stack{\n  vector<int> data;\npublic:\n  void push(int x){ data.push_back(x); }\n  ', after:'\n};',
+       lead:'dataの末尾の要素を削除するpop()メソッドと、末尾の要素をreturnするtop()メソッドを、あわせて定義しなさい。',
+       answers:['void pop(){ data.pop_back(); }\nint top(){ return data[data.size()-1]; }'],
+       explain:'pop_back()で末尾を削除し、top()ではdata.size()-1番目(末尾)の値をreturnします。'},
+      {type:'debug', long:true,
+       before:'class Temperature{\n  int celsius;\npublic:\n  Temperature(int c){ celsius=c; }\n  ', after:'\n};',
+       lead:'celsiusがc以上のときだけ代入するsetCelsius(int c)メソッドを定義しなさい(絶対零度-273未満は無視する)。',
+       answers:['void setCelsius(int c){\nif(c>=-273){\ncelsius = c;\n}\n}'],
+       explain:'絶対零度(-273度)より低い温度は現実には存在しないため、その範囲を下回る値は無視します。'},
+      {type:'debug', long:true,
+       before:'#include <vector>\nclass Inventory{\n  vector<int> items;\npublic:\n  void add(int x){ items.push_back(x); }\n  ', after:'\n};',
+       lead:'itemsの中にtargetと同じ値が含まれているかをbool型でreturnするhas(int target)メソッドを定義しなさい。',
+       answers:['bool has(int target){\nfor(int i=0;i<items.size();i++){\nif(items[i]==target) return true;\n}\nreturn false;\n}'],
+       explain:'一致する要素が見つかった時点でtrueをreturnし、最後まで見つからなければfalseをreturnします。'},
+      {type:'debug', long:true,
+       before:'class Employee{\n  int salary;\npublic:\n  Employee(int s){ salary=s; }\n  ', after:'\n};',
+       lead:'salaryを返すgetSalary()メソッドと、salaryがs以上のときだけ更新するsetSalary(int s)メソッドを、あわせて定義しなさい。',
+       answers:['int getSalary(){ return salary; }\nvoid setSalary(int s){\nif(s>=0){\nsalary=s;\n}\n}'],
+       explain:'getSalary()は値をそのまま読み取る窓口、setSalary()は負の値を弾いてから更新するセッターです。'},
+      {type:'debug', long:true,
+       before:'class Logger{\npublic:\n  Logger(){ cout << "生成" << endl; }\n  ', after:'\n};',
+       lead:'オブジェクトが消滅するときに"消滅"と出力するデストラクタを定義しなさい。',
+       answers:['~Logger(){ cout << "消滅" << endl; }'],
+       explain:'デストラクタはクラス名の前に~をつけた名前で定義し、オブジェクトが消滅する瞬間に自動的に呼ばれます。'},
+      {type:'debug', long:true,
+       before:'#include <vector>\nclass Playlist{\n  vector<string> songs;\npublic:\n  void add(string s){ songs.push_back(s); }\n  ', after:'\n};',
+       lead:'songsの数をreturnするcount()メソッドを定義しなさい。',
+       answers:['int count(){ return songs.size(); }'],
+       explain:'songs.size()でvectorの要素数がわかるので、それをそのままreturnします。'},
+      {type:'debug', long:true,
+       before:'class Battery{\n  int level;\npublic:\n  Battery(int l){ level=l; }\n  int getLevel(){ return level; }\n  ', after:'\n};',
+       lead:'lが0以上100以下のときだけlevelに代入するsetLevel(int l)メソッドを定義しなさい。',
+       answers:['void setLevel(int l){\nif(l>=0 && l<=100){\nlevel = l;\n}\n}'],
+       explain:'&&を使って0以上100以下の範囲であることを確認してから代入します。'},
+      {type:'debug', long:true,
+       before:'class Wallet{\n  int money;\npublic:\n  Wallet(int m){ money=m; }\n  ', after:'\n};',
+       lead:'moneyにamountを加算するdeposit(int amount)メソッドと、moneyを返すgetMoney()メソッドを、あわせて定義しなさい。',
+       answers:['void deposit(int amount){ money += amount; }\nint getMoney(){ return money; }'],
+       explain:'deposit()はmoneyに加算するだけの処理、getMoney()はmoneyの値をそのまま読み取る窓口です。'},
+      {type:'debug', long:true,
+       before:'class Thermostat{\n  int temp;\npublic:\n  Thermostat(int t){ temp=t; }\n  int getTemp(){ return temp; }\n  ', after:'\n};',
+       lead:'tが-30以上50以下のときだけtempに代入するsetTemp(int t)メソッドを定義しなさい。',
+       answers:['void setTemp(int t){\nif(t>=-30 && t<=50){\ntemp = t;\n}\n}'],
+       explain:'現実的な温度範囲(-30〜50度)を条件にし、その範囲内のときだけ代入します。'}
     ],
     b4: [
       {type:'debug', long:true,
@@ -6908,7 +7198,82 @@
        before:'', after:'',
        lead:'attack()を純粋仮想関数として持つ抽象クラスCreatureと、それを継承してattack()が10を返すクラスHeroを、あわせて定義しなさい。',
        answers:['class Creature{\npublic:\nvirtual int attack()=0;\n};\nclass Hero : public Creature{\npublic:\nint attack(){ return 10; }\n};'],
-       explain:'virtual int attack()=0; で純粋仮想関数を持つ抽象クラスCreatureを定義し、それを継承したHeroでattack()の中身を実装(オーバーライド)します。'}
+       explain:'virtual int attack()=0; で純粋仮想関数を持つ抽象クラスCreatureを定義し、それを継承したHeroでattack()の中身を実装(オーバーライド)します。'},
+      {type:'debug', long:true,
+       before:'class Animal{\npublic:\n  void speak(){ cout << "..." << endl; }\n};\n', after:'',
+       lead:'Animalを継承し、speak()を"Meow"を出力するようにオーバーライドするCatクラスを定義しなさい。',
+       answers:['class Cat : public Animal{\npublic:\nvoid speak(){ cout << "Meow" << endl; }\n};'],
+       explain:'基本クラスと同じ名前・引数のspeak()を再定義することで、オーバーライドが成立します。'},
+      {type:'debug', long:true,
+       before:'class Employee{\nprotected:\n  int salary;\npublic:\n  Employee(int s){ salary=s; }\n};\n', after:'',
+       lead:'Employeeを継承し、salaryとbonusを受け取るコンストラクタ(:Employee(s)経由でsalaryを初期化)と、salaryとbonusの合計をreturnするgetTotalPay()メソッドを持つManagerクラスを定義しなさい。',
+       answers:['class Manager : public Employee{\nint bonus;\npublic:\nManager(int s,int b):Employee(s){ bonus=b; }\nint getTotalPay(){ return salary+bonus; }\n};'],
+       explain:'イニシャライザ:Employee(s)で基本クラス部分を初期化し、本体でbonusを初期化します。'},
+      {type:'debug', long:true,
+       before:'class Shape{\npublic:\n  virtual double area()=0;\n};\n', after:'',
+       lead:'Shapeを継承し、半径rを受け取るコンストラクタとarea()(r*r*3.14をreturn)を持つCircleクラスを定義しなさい。',
+       answers:['class Circle : public Shape{\ndouble r;\npublic:\nCircle(double radius){ r=radius; }\ndouble area(){ return r*r*3.14; }\n};'],
+       explain:'コンストラクタで半径を受け取って保存し、area()では円の面積の公式をreturnします。'},
+      {type:'debug', long:true,
+       before:'class Base{\npublic:\n  void show(){ cout << "Base" << endl; }\n};\nclass Derived : public Base{\npublic:\n  void show(){\n    ', after:'\n    cout << "Derived" << endl;\n  }\n};',
+       lead:'まず基本クラス側のshow()を呼び出す処理を書きなさい(Base::show()の形)。',
+       answers:['Base::show();'],
+       explain:'Base::show();と書けば、オーバーライドで隠れてしまった基本クラス側のshow()をあえて呼び出せます。'},
+      {type:'debug', long:true,
+       before:'class Vehicle{\npublic:\n  virtual int wheels()=0;\n};\n', after:'',
+       lead:'Vehicleを継承し、wheels()が2を返すBikeクラスを定義しなさい。',
+       answers:['class Bike : public Vehicle{\npublic:\nint wheels(){ return 2; }\n};'],
+       explain:'純粋仮想関数wheels()を、2を返す処理として実装します。'},
+      {type:'debug', long:true,
+       before:'class Base{\nprotected:\n  int hp;\npublic:\n  Base(int h){ hp=h; }\n};\n', after:'',
+       lead:'Baseを継承し、コンストラクタで:Base(h)を呼びつつ、hpをptの分だけ減らすdamage(int pt)メソッドを持つMonsterクラスを定義しなさい。',
+       answers:['class Monster : public Base{\npublic:\nMonster(int h):Base(h){}\nvoid damage(int pt){ hp -= pt; }\n};'],
+       explain:'protectedで継承したhpに、派生クラスのメンバ関数から直接アクセスして減算できます。'},
+      {type:'debug', long:true,
+       before:'class Task{\npublic:\n  virtual bool isDone()=0;\n};\n', after:'',
+       lead:'Taskを継承し、コンストラクタでdoneを受け取り、isDone()がdoneをreturnするSimpleTaskクラスを定義しなさい。',
+       answers:['class SimpleTask : public Task{\nbool done;\npublic:\nSimpleTask(bool d){ done=d; }\nbool isDone(){ return done; }\n};'],
+       explain:'純粋仮想関数isDone()を、コンストラクタで受け取ったdoneをそのままreturnする処理として実装します。'},
+      {type:'debug', long:true,
+       before:'class Base{\npublic:\n  int getBonus(){ return 5; }\n};\nclass Derived : public Base{\npublic:\n  int getBonus(){\n    ', after:'\n  }\n};',
+       lead:'Base側のgetBonus()の戻り値に10を足した値をreturnする処理を書きなさい(Base::getBonus()を使う)。',
+       answers:['return Base::getBonus() + 10;'],
+       explain:'Base::getBonus()で隠れてしまった基本クラス側の戻り値(5)を呼び出し、それに10を足した値をreturnします。'},
+      {type:'debug', long:true,
+       before:'class Payable{\npublic:\n  virtual int amount()=0;\n};\n', after:'',
+       lead:'Payableを継承し、コンストラクタでpriceを受け取り、amount()がpriceをreturnするFixedPriceクラスを定義しなさい。',
+       answers:['class FixedPrice : public Payable{\nint price;\npublic:\nFixedPrice(int p){ price=p; }\nint amount(){ return price; }\n};'],
+       explain:'純粋仮想関数amount()を、コンストラクタで受け取ったpriceをそのままreturnする処理として実装します。'},
+      {type:'debug', long:true,
+       before:'class Base{\nprotected:\n  int x;\npublic:\n  Base(int v){ x=v; }\n};\n', after:'',
+       lead:'Baseを継承し、コンストラクタで:Base(v)を呼び出しつつ、xを2倍した値をreturnするdoubled()メソッドを持つDerivedクラスを定義しなさい。',
+       answers:['class Derived : public Base{\npublic:\nDerived(int v):Base(v){}\nint doubled(){ return x*2; }\n};'],
+       explain:'protectedで継承したxを使い、doubled()ではx*2をそのままreturnします。'},
+      {type:'debug', long:true,
+       before:'class Instrument{\npublic:\n  virtual void sound()=0;\n};\n', after:'',
+       lead:'Instrumentを継承し、sound()が"ドラムの音"と出力するDrumクラスを定義しなさい。',
+       answers:['class Drum : public Instrument{\npublic:\nvoid sound(){ cout << "ドラムの音" << endl; }\n};'],
+       explain:'純粋仮想関数sound()を、指定された内容(「ドラムの音」の出力)で実装します。'},
+      {type:'debug', long:true,
+       before:'class Base{\npublic:\n  Base(){ cout << "A"; }\n};\nclass Derived : public Base{\npublic:\n  ', after:'\n};',
+       lead:'コンストラクタでcout << "B";と出力するDerivedのコンストラクタを定義しなさい(生成すると"AB"と表示されるはず)。',
+       answers:['Derived(){ cout << "B"; }'],
+       explain:'派生クラスのオブジェクトを生成すると、まず基本クラスのコンストラクタ(A)が呼ばれ、続けて派生クラスのコンストラクタ(B)が呼ばれます。'},
+      {type:'debug', long:true,
+       before:'class Shape{\npublic:\n  virtual double area()=0;\n};\n', after:'',
+       lead:'Shapeを継承し、baseとheightを受け取るコンストラクタと、area()(base*height/2をreturn、三角形の面積)を持つTriangleクラスを定義しなさい。',
+       answers:['class Triangle : public Shape{\ndouble base, height;\npublic:\nTriangle(double b,double h){ base=b; height=h; }\ndouble area(){ return base*height/2; }\n};'],
+       explain:'三角形の面積は「底辺×高さ÷2」なので、その計算式をそのままreturnします。'},
+      {type:'debug', long:true,
+       before:'class Base{\nprotected:\n  int score;\npublic:\n  Base(int s){ score=s; }\n};\n', after:'',
+       lead:'Baseを継承し、コンストラクタで:Base(s)を呼びつつ、scoreが60以上かをbool型でreturnするisPassing()メソッドを持つStudentクラスを定義しなさい。',
+       answers:['class Student : public Base{\npublic:\nStudent(int s):Base(s){}\nbool isPassing(){ return score>=60; }\n};'],
+       explain:'protectedで継承したscoreを使い、60以上かどうかの比較結果をそのままreturnします。'},
+      {type:'debug', long:true,
+       before:'class Employee{\npublic:\n  virtual int salary()=0;\n};\n', after:'',
+       lead:'Employeeを継承し、salary()が350000を返すDirectorクラスを定義しなさい。',
+       answers:['class Director : public Employee{\npublic:\nint salary(){ return 350000; }\n};'],
+       explain:'純粋仮想関数salary()を、固定値350000を返す処理として実装します。'}
     ],
     b5: [
       {type:'debug', long:true,
@@ -6920,7 +7285,82 @@
        before:'', after:'',
        lead:'ttk.Frameを継承し、__init__でsuper().__init__(root)を呼ぶTimeAppクラスの定義と、root=tk.Tk()から始めてそれを生成・配置・待受する一連の流れを、あわせて書きなさい。',
        answers:['class TimeApp(ttk.Frame):\ndef __init__(self, root):\nsuper().__init__(root)\nroot = tk.Tk()\napp = TimeApp(root)\napp.pack()\nroot.mainloop()'],
-       explain:'ttk.Frameを継承した自作ウィジェットクラスを定義したら、root=tk.Tk()でウィンドウ本体を用意し、そのクラスのオブジェクトを生成してpack()で配置し、最後にmainloop()で操作を待ち受けます。'}
+       explain:'ttk.Frameを継承した自作ウィジェットクラスを定義したら、root=tk.Tk()でウィンドウ本体を用意し、そのクラスのオブジェクトを生成してpack()で配置し、最後にmainloop()で操作を待ち受けます。'},
+      {type:'debug', long:true,
+       before:'class Hero:\n    def __init__(self, hp):\n        self.hp = hp\n    ', after:'',
+       lead:'HPをptの分だけ減らすdamagedメソッドを定義しなさい(pythonのメソッド定義、インデント込みで)。',
+       answers:['def damaged(self, pt):\nself.hp -= pt'],
+       explain:'selfをつけてself.hpにアクセスし、引数ptの分だけ減算します。'},
+      {type:'debug', long:true,
+       before:'class Counter:\n    def __init__(self):\n        self.count = 0\n    ', after:'',
+       lead:'countを1増やすincrementメソッドと、countを返すget_countメソッドを、あわせて定義しなさい。',
+       answers:['def increment(self):\nself.count += 1\ndef get_count(self):\nreturn self.count'],
+       explain:'incrementはself.countを1増やすだけの処理、get_countはself.countの値をそのまま読み取るための窓口です。'},
+      {type:'debug', long:true,
+       before:'class Animal:\n    def __init__(self, name):\n        self.name = name\n    def speak(self):\n        return "..."\n\n', after:'',
+       lead:'Animalを継承し、speak()が"Meow"を返すようにオーバーライドするCatクラスを定義しなさい。',
+       answers:['class Cat(Animal):\ndef speak(self):\nreturn "Meow"'],
+       explain:'親クラスと同じ名前speakでメソッドを再定義することで、Cat側の実装がオーバーライドとして優先されます。'},
+      {type:'debug', long:true,
+       before:'class Employee:\n    def __init__(self, salary):\n        self.salary = salary\n\n', after:'',
+       lead:'Employeeを継承し、super()で親を初期化しつつbonusを追加で持ち、total_payメソッドでsalaryとbonusの合計をreturnするManagerクラスを定義しなさい。',
+       answers:['class Manager(Employee):\ndef __init__(self, salary, bonus):\nsuper().__init__(salary)\nself.bonus = bonus\ndef total_pay(self):\nreturn self.salary + self.bonus'],
+       explain:'super().__init__(salary)で親クラスの初期化を再利用し、続けてbonusを初期化します。total_payでは継承したself.salaryと自分のself.bonusを足します。'},
+      {type:'debug', long:true,
+       before:'class BankAccount:\n    def __init__(self, balance):\n        self.balance = balance\n    ', after:'',
+       lead:'balanceがamount以上のときだけ引き出すwithdrawメソッドを定義しなさい。',
+       answers:['def withdraw(self, amount):\nif self.balance >= amount:\nself.balance -= amount'],
+       explain:'残高が十分にあるときだけ減算することで、self.balanceが不正にマイナスになるのを防ぎます。'},
+      {type:'debug', long:true,
+       before:'class ScoreBoard:\n    def __init__(self):\n        self.scores = []\n    ', after:'',
+       lead:'得点を追加するaddメソッドと、平均をreturnするaverageメソッドを、あわせて定義しなさい(len()が使える)。',
+       answers:['def add(self, s):\nself.scores.append(s)\ndef average(self):\nreturn sum(self.scores) / len(self.scores)'],
+       explain:'addでリストに得点を追加し、averageではsum()とlen()を使って平均を計算します。'},
+      {type:'debug', long:true,
+       before:'class Task:\n    def __init__(self):\n        self.done = False\n    ', after:'',
+       lead:'doneをTrueにするcompleteメソッドと、doneをreturnするis_doneメソッドを、あわせて定義しなさい。',
+       answers:['def complete(self):\nself.done = True\ndef is_done(self):\nreturn self.done'],
+       explain:'completeはself.doneをTrueにするだけの処理、is_doneはその値をそのまま読み取る窓口です。'},
+      {type:'debug', long:true,
+       before:'class Hero:\n    def __init__(self, hp):\n        self.hp = hp\n    def is_alive(self):\n        return self.hp > 0\n    ', after:'',
+       lead:'is_alive()がTrueなら"生存"、そうでなければ"戦闘不能"をreturnするstatusメソッドを定義しなさい。',
+       answers:['def status(self):\nif self.is_alive():\nreturn "生存"\nreturn "戦闘不能"'],
+       explain:'同じクラスの中からself.is_alive()を呼び出し、その結果に応じて異なる文字列をreturnします。'},
+      {type:'debug', long:true,
+       before:'import tkinter as tk\nfrom tkinter import ttk\nroot = tk.Tk()\nentry = ttk.Entry(root)\nentry.grid(column=0,row=0)\nresult_var = tk.StringVar()\nlabel = ttk.Label(root, textvariable=result_var)\nlabel.grid(column=0,row=1)\n', after:'\nbtn = ttk.Button(root, text="摂氏→華氏", command=on_convert)\nbtn.grid(column=0,row=2)\nroot.mainloop()',
+       lead:'entryに入力された摂氏の値をint型に変換し、華氏(値*9/5+32)に変換してresult_varにセットするon_convert関数を定義しなさい。',
+       answers:['def on_convert():\ncelsius = int(entry.get())\nresult_var.set(celsius*9/5+32)'],
+       explain:'entry.get()で取得できる値は文字列なのでint()で変換し、摂氏→華氏の変換式を計算してresult_varにセットします。'},
+      {type:'debug', long:true,
+       before:'class BankAccount:\n    def __init__(self, balance):\n        self.balance = balance\n    def deposit(self, amount):\n        self.balance += amount\n    ', after:'',
+       lead:'balanceを返すget_balanceメソッドを定義しなさい。',
+       answers:['def get_balance(self):\nreturn self.balance'],
+       explain:'self.balanceの値をそのままreturnするだけの、安全な読み取り用メソッドです。'},
+      {type:'debug', long:true,
+       before:'class Animal:\n    def speak(self):\n        return "..."\n\n', after:'',
+       lead:'Animalを継承し、speak()が"Tweet"を返すBirdクラスを定義しなさい。',
+       answers:['class Bird(Animal):\ndef speak(self):\nreturn "Tweet"'],
+       explain:'親クラスと同じ名前speakを再定義することで、Bird側の実装がオーバーライドとして優先されます。'},
+      {type:'debug', long:true,
+       before:'import tkinter as tk\nfrom tkinter import ttk\nroot = tk.Tk()\nscore = tk.IntVar()\nscore.set(0)\nlabel = ttk.Label(root, textvariable=score)\nlabel.grid(column=0,row=0)\n', after:'\nbtn = ttk.Button(root, text="リセット", command=on_reset)\nbtn.grid(column=0,row=1)\nroot.mainloop()',
+       lead:'scoreを0に戻すon_reset関数を定義しなさい。',
+       answers:['def on_reset():\nscore.set(0)'],
+       explain:'IntVarのset(0)を呼ぶことで、表示されている値を0にリセットできます。'},
+      {type:'debug', long:true,
+       before:'class Stack:\n    def __init__(self):\n        self.items = []\n    def push(self, x):\n        self.items.append(x)\n    ', after:'',
+       lead:'itemsの末尾の要素を取り出して削除するpopメソッドを定義しなさい(pop()はリストの末尾を削除して返す組み込みメソッド)。',
+       answers:['def pop(self):\nreturn self.items.pop()'],
+       explain:'リストのpop()メソッドは、末尾の要素を削除してその値を返してくれるので、それをそのままreturnします。'},
+      {type:'debug', long:true,
+       before:'class Vehicle:\n    def wheels(self):\n        return 0\n\n', after:'',
+       lead:'Vehicleを継承し、wheels()が4を返すCarクラスを定義しなさい。',
+       answers:['class Car(Vehicle):\ndef wheels(self):\nreturn 4'],
+       explain:'親クラスと同じ名前wheelsを再定義し、4を返すように実装します。'},
+      {type:'debug', long:true,
+       before:'import tkinter as tk\nfrom tkinter import ttk\nclass SettingsPanel(ttk.Frame):\n    def __init__(self, root):\n        super().__init__(root)\n        label = ttk.Label(self, text="設定")\n        label.grid(column=0, row=0)\n\n', after:'',
+       lead:'if __name__ == \'__main__\': のブロックの中に、root=tk.Tk()でウィンドウを用意し、SettingsPanel(root)を生成してpack()で配置し、mainloop()で待ち受ける処理を書きなさい。',
+       answers:['if __name__ == \'__main__\':\nroot = tk.Tk()\napp = SettingsPanel(root)\napp.pack()\nroot.mainloop()'],
+       explain:'このファイルが直接実行されたときだけ動く定番のイディオムの中で、ウィンドウを用意し、自作ウィジェットクラスSettingsPanelを生成して配置し、mainloop()で操作を待ち受けます。'}
     ]
   };
   Object.keys(BOSS_LONG_QS).forEach(function(bossId){
@@ -7023,6 +7463,9 @@
   }
   if(!progress.missed){
     progress.missed = {};
+  }
+  if(!progress.studyCompleted){
+    progress.studyCompleted = {};
   }
 
   function recordUnitAnswer(unit, correct){
@@ -7128,7 +7571,7 @@
     progress.endless.pos = 0;
   }
 
-  var state = {screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, activeQs:[], pickerSelection:[], pickerDiffSelection:[1,2,3,4], reviewQueue:[], reviewPos:0, reviewStats:{correct:0, wrong:0}, dragPlacement:{}, dragSelected:null, dragQid:null, startTier:1};
+  var state = {screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, activeQs:[], pickerSelection:[], pickerDiffSelection:[1,2,3,4], reviewQueue:[], reviewPos:0, reviewStats:{correct:0, wrong:0}, dragPlacement:{}, dragSelected:null, dragQid:null, startTier:1, studyStep:0, studyPicked:null};
 
   function shuffle(arr){
     var a = arr.slice();
@@ -7302,7 +7745,8 @@
       '</div>';
     }).join('');
 
-    var backLabel = state.lessonFromBattle ? '← 戦闘へ戻る' : '← 地図へ戻る';
+    var hasPortal = !!(st.studyBeats && st.studyBeats.length);
+    var backLabel = state.lessonFromBattle ? '← 戦闘へ戻る' : (hasPortal ? '← 門へ戻る' : '← 地図へ戻る');
 
     var actionHtml;
     if(state.lessonFromBattle){
@@ -7330,6 +7774,104 @@
     '</div>'+
     '<div class="lessongrid">'+cards+'</div>'+
     actionHtml;
+  }
+
+  /* studyBeatsを持つ章(今のところWeekD/E Tkinterのみ)だけ、地図からいきなり戦闘へ
+     進ませず、まず「冒険の準備(学習パート)」か「挑戦する(問題パート)」かを選ばせる
+     分岐ポータルを挟む。studyBeatsを持たない章は今まで通りopenLessonへ直接進む。 */
+  function openPortal(idx){
+    state.stageIndex = idx;
+    state.screen = 'portal';
+    render();
+  }
+
+  function renderPortal(){
+    var st = STAGES[state.stageIndex];
+    var done = !!progress.studyCompleted[st.id];
+    return ''+ renderTopbar() +
+    '<div class="battlebar"><button class="backbtn" id="btnPortalBack">← 地図へ戻る</button></div>'+
+    '<div class="frame lessonintro">'+
+      '<h2>'+st.emoji+' '+esc(st.title)+'の門</h2>'+
+      '<p>'+esc(st.sub)+'。まずは道を選ぼう——じっくり基礎を固めてから挑むか、力試しにすぐ挑むか。'+esc(st.mon)+'はどちらでも待っている。</p>'+
+    '</div>'+
+    '<div class="portalgrid">'+
+      '<button class="frame portalcard" id="btnGoStudy">'+
+        '<span class="picon">🧭</span>'+
+        '<span class="ptitle">冒険の準備をする<small>学習パート</small></span>'+
+        '<span class="pdesc">物語形式のミニ講義とクイズで、'+esc(st.sub)+'の急所だけを短時間で仕上げる。'+(done ? '<b class="pdone">✓ 修了済み(何度でも復習できる)</b>' : '')+'</span>'+
+      '</button>'+
+      '<button class="frame portalcard" id="btnGoChallenge">'+
+        '<span class="picon">⚔️</span>'+
+        '<span class="ptitle">挑戦する<small>問題パート</small></span>'+
+        '<span class="pdesc">直前の一夜漬けや実力試しはこちら。準備を飛ばして今すぐ'+esc(st.mon)+'に挑める。</span>'+
+      '</button>'+
+    '</div>';
+  }
+
+  function startStudy(idx){
+    state.stageIndex = idx;
+    state.studyStep = 0;
+    state.studyPicked = null;
+    state.screen = 'study';
+    render();
+  }
+
+  function renderStudy(){
+    var st = STAGES[state.stageIndex];
+    var beats = st.studyBeats || [];
+    var total = beats.length;
+
+    if(state.studyStep >= total){
+      progress.studyCompleted[st.id] = true;
+      saveProgress(progress);
+      return ''+ renderTopbar() +
+      '<div class="battlebar"><button class="backbtn" id="btnStudyBack">← ポータルへ戻る</button></div>'+
+      '<div class="frame result">'+
+        '<span class="bigemoji">🎉</span><h2>準備が整った！</h2>'+
+        '<p>'+esc(st.sub)+'の急所は仕込み終えた。この勢いのまま、'+esc(st.mon)+'に挑んでみよう。</p>'+
+        '<div class="resultbtns">'+
+          '<button class="primary" id="btnStudyToChallenge">問題に挑戦する →</button>'+
+          '<button class="ghost" id="btnStudyToPortal">ポータルに戻る</button>'+
+        '</div>'+
+      '</div>';
+    }
+
+    var beat = beats[state.studyStep];
+    var answered = state.studyPicked !== null;
+    var dots = beats.map(function(_, i){
+      return '<span class="dot'+(i<state.studyStep?' done':'')+(i===state.studyStep?' cur':'')+'"></span>';
+    }).join('');
+
+    var quizHtml;
+    if(!answered){
+      var optsHtml = beat.quiz.options.map(function(opt, i){
+        return '<button class="choicebtn studyquizbtn" data-opt="'+i+'">'+esc(opt)+'</button>';
+      }).join('');
+      quizHtml = '<div class="quizbox"><p class="quizq">🧩 '+esc(beat.quiz.q)+'</p>'+
+        '<div class="choicegrid">'+optsHtml+'</div></div>';
+    } else {
+      var good = state.studyPicked === beat.quiz.correct;
+      quizHtml = '<div class="quizbox"><p class="quizq">🧩 '+esc(beat.quiz.q)+'</p>'+
+        '<div class="feedback '+(good?'good':'bad')+'">'+
+          '<div class="head">'+(good ? '✅ 正解！' : '❌ 惜しい、正解は「'+esc(beat.quiz.options[beat.quiz.correct])+'」')+'</div>'+
+          '<p class="explain">'+esc(beat.quiz.explain)+'</p>'+
+        '</div>'+
+        '<div class="actionrow"><button class="primary" id="btnStudyNext">'+(state.studyStep+1<total?'次へ →':'仕上げる →')+'</button></div>'+
+      '</div>';
+    }
+
+    return ''+ renderTopbar() +
+    '<div class="battlebar">'+
+      '<button class="backbtn" id="btnStudyBack">← ポータルへ戻る</button>'+
+      '<button class="backbtn" id="btnStudySkip">問題へスキップ →</button>'+
+    '</div>'+
+    '<div class="studydots">'+dots+'<span class="studystep">'+(state.studyStep+1)+' / '+total+'</span></div>'+
+    '<div class="frame storycard">'+
+      '<span class="sicon">'+beat.icon+'</span>'+
+      '<p class="sstory">'+esc(beat.story)+'</p>'+
+      '<pre class="codeblock">'+esc(beat.code)+'</pre>'+
+    '</div>'+
+    quizHtml;
   }
 
   /* その章の全設問(qs/qsHard/qsExtra/qsDrag/qsExpert、ボス戦は集約されたqsのみ)を
@@ -7755,7 +8297,10 @@
       Array.prototype.forEach.call(app.querySelectorAll('.stagecard:not(.locked)'), function(btn){
         btn.addEventListener('click', function(){
           CUR_Q = null;
-          openLesson(parseInt(btn.getAttribute('data-idx'),10), false);
+          var idx = parseInt(btn.getAttribute('data-idx'),10);
+          var st = STAGES[idx];
+          if(st.studyBeats && st.studyBeats.length) openPortal(idx);
+          else openLesson(idx, false);
         });
       });
       document.getElementById('btnEndless').addEventListener('click', function(){
@@ -7822,10 +8367,44 @@
         state.screen = 'endless';
         render();
       });
+    } else if(state.screen==='portal'){
+      app.innerHTML = renderPortal();
+      document.getElementById('btnPortalBack').addEventListener('click', function(){
+        state.screen = 'map';
+        render();
+      });
+      document.getElementById('btnGoStudy').addEventListener('click', function(){
+        startStudy(state.stageIndex);
+      });
+      document.getElementById('btnGoChallenge').addEventListener('click', function(){
+        openLesson(state.stageIndex, false);
+      });
+    } else if(state.screen==='study'){
+      app.innerHTML = renderStudy();
+      var studyBack = document.getElementById('btnStudyBack');
+      if(studyBack) studyBack.addEventListener('click', function(){ openPortal(state.stageIndex); });
+      var studySkip = document.getElementById('btnStudySkip');
+      if(studySkip) studySkip.addEventListener('click', function(){ openLesson(state.stageIndex, false); });
+      var studyNext = document.getElementById('btnStudyNext');
+      if(studyNext) studyNext.addEventListener('click', function(){
+        state.studyStep++; state.studyPicked = null; render();
+      });
+      var studyToChallenge = document.getElementById('btnStudyToChallenge');
+      if(studyToChallenge) studyToChallenge.addEventListener('click', function(){ openLesson(state.stageIndex, false); });
+      var studyToPortal = document.getElementById('btnStudyToPortal');
+      if(studyToPortal) studyToPortal.addEventListener('click', function(){ openPortal(state.stageIndex); });
+      Array.prototype.forEach.call(app.querySelectorAll('.studyquizbtn'), function(btn){
+        btn.addEventListener('click', function(){
+          state.studyPicked = parseInt(btn.getAttribute('data-opt'),10);
+          render();
+        });
+      });
     } else if(state.screen==='lesson'){
       app.innerHTML = renderLesson();
       document.getElementById('btnLessonBack').addEventListener('click', function(){
-        state.screen = state.lessonFromBattle ? 'battle' : 'map';
+        var st = STAGES[state.stageIndex];
+        var hasPortal = !!(st.studyBeats && st.studyBeats.length);
+        state.screen = state.lessonFromBattle ? 'battle' : (hasPortal ? 'portal' : 'map');
         render();
       });
       var toBattleBtn = document.getElementById('btnToBattle');
