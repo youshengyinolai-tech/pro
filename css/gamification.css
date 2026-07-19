@@ -1,0 +1,79 @@
+/*
+ gamification.css — EXPバー・コンボバッジ・達成メダルなど、学習進捗を盛り上げるためだけの演出専用CSS。
+ 本文の正確さや命題文の雰囲気には一切関与せず、進捗の可視化と即時フィードバックだけを担当する。
+*/
+  .tierbadge{
+    display:inline-block; font-family:var(--font-body); font-size:.68rem; font-weight:700;
+    letter-spacing:.02em; text-transform:none; padding:2px 8px; margin-left:6px; border-radius:3px; vertical-align:middle;
+  }
+  .tierbadge.t1{background:color-mix(in srgb, var(--danger) 20%, var(--bg-2)); color:var(--danger); border:1px solid var(--danger);}
+  .tierbadge.t2{background:color-mix(in srgb, var(--accent) 18%, var(--bg-2)); color:var(--accent); border:1px solid var(--accent);}
+  .tierbadge.t3{background:color-mix(in srgb, var(--hero) 16%, var(--bg-2)); color:var(--hero); border:1px solid var(--hero);}
+  .tierbadge.t4{background:color-mix(in srgb, var(--tier-deep) 18%, var(--bg-2)); color:var(--tier-deep); border:1px solid var(--tier-deep);}
+  .tierbadge.t5{background:color-mix(in srgb, var(--tier-legend) 18%, var(--bg-2)); color:var(--tier-legend); border:1px solid var(--tier-legend);}
+  .studyexpbar{height:10px; background:var(--bg-2); border:1px solid var(--line); border-radius:6px; overflow:hidden; margin-bottom:10px;}
+  .studyexpfill{height:100%; background:linear-gradient(90deg, var(--accent), var(--hero)); transition:width .5s cubic-bezier(.3,.9,.4,1);}
+  .combobadge{
+    display:inline-block; font-family:var(--font-display); font-weight:700; font-size:1rem;
+    color:var(--danger); background:color-mix(in srgb, var(--danger) 14%, var(--bg-2));
+    border:1px solid var(--danger); padding:6px 14px; margin-bottom:12px;
+    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+    animation:comboPop .4s cubic-bezier(.3,1.6,.4,1);
+  }
+  @keyframes comboPop{
+    0%{transform:scale(.4); opacity:0;}
+    60%{transform:scale(1.15); opacity:1;}
+    100%{transform:scale(1);}
+  }
+  .result.achieve{animation:achieveReveal .5s ease;}
+  @keyframes achieveReveal{
+    0%{transform:translateY(10px) scale(.97); opacity:0;}
+    100%{transform:translateY(0) scale(1); opacity:1;}
+  }
+  .result.achieve .bigemoji{font-size:3.4rem; animation:pulse 1s ease .3s 1;}
+  .result.achieve.gold{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset;}
+  .result.achieve.silver{border-color:var(--ink-dim); box-shadow:0 0 0 1px var(--ink-dim) inset;}
+  .result.achieve.bronze{border-color:var(--tier-deep); box-shadow:0 0 0 1px var(--tier-deep) inset;}
+  .achievestats{display:flex; justify-content:center; gap:20px; font-size:.85rem; color:var(--ink-dim); margin:0 0 18px;}
+  .achievestats b{color:var(--accent); font-family:var(--font-mono);}
+
+  /* ---- study (story-driven lesson) screen ---- */
+  .studydots{display:flex; align-items:center; gap:6px; margin-bottom:16px;}
+  .studydots .dot{width:8px; height:8px; border-radius:50%; background:var(--bg-2); border:1px solid var(--line);}
+  .studydots .dot.done{background:var(--accent); border-color:var(--accent);}
+  .studydots .dot.cur{background:var(--accent-ink); border-color:var(--accent); box-shadow:0 0 0 2px var(--accent);}
+  .studydots .studystep{margin-left:8px; font-family:var(--font-mono); font-size:.75rem; color:var(--ink-dim);}
+
+  /* ---- study accordion: tap-to-reveal detail sections (line-by-line / exam traps) ----
+     一目で読める「要約」だけを最初に見せ、密度の高いセクションはタップするまで
+     折りたたんでおくことで認知負荷を下げる。ネイティブの<details>/<summary>を使い、
+     開閉状態はDOM/ブラウザ側だけで管理されるため、クイズの採点ロジックとは無関係。 */
+  .sstory .accordion{
+    margin:14px 0; border:1px solid var(--line); background:var(--panel-2);
+    clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+    overflow:hidden; transition:border-color .2s ease, background .2s ease;
+  }
+  .sstory .accordion:last-child{margin-bottom:0;}
+  .sstory .accordion[open]{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 6%, var(--panel-2));}
+  .sstory .accordion.trap{border-color:color-mix(in srgb, var(--danger) 45%, var(--line));}
+  .sstory .accordion.trap[open]{border-color:var(--danger); background:color-mix(in srgb, var(--danger) 8%, var(--panel-2));}
+  .sstory .accordion summary{
+    cursor:pointer; list-style:none; padding:12px 16px; font-weight:700; font-size:.85rem;
+    color:var(--accent); display:flex; align-items:center; gap:8px; user-select:none;
+    transition:background .15s ease;
+  }
+  .sstory .accordion summary::-webkit-details-marker{display:none;}
+  .sstory .accordion summary:hover{background:color-mix(in srgb, var(--accent) 10%, transparent);}
+  .sstory .accordion.trap summary{color:var(--danger);}
+  .sstory .accordion.trap summary:hover{background:color-mix(in srgb, var(--danger) 10%, transparent);}
+  .sstory .accordion summary .chev{
+    margin-left:auto; flex:none; font-size:.75rem; display:inline-block;
+    transition:transform .25s cubic-bezier(.3,.9,.4,1);
+  }
+  .sstory .accordion[open] summary .chev{transform:rotate(90deg);}
+  .sstory .accordion-body{padding:2px 16px 16px; animation:accordionOpen .25s ease;}
+  .sstory .accordion-body p:first-child{margin-top:0;}
+  @keyframes accordionOpen{
+    0%{opacity:0; transform:translateY(-4px);}
+    100%{opacity:1; transform:translateY(0);}
+  }
