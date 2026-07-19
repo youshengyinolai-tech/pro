@@ -12,6 +12,14 @@ import {
 import { icon, stageIcon } from '../core/icons.js';
 import { render, renderTopbar, openLesson } from '../core/router.js';
 
+  var CASE_LABEL = {
+    w1:'CASE 01「消えた出力」', w2:'CASE 02「存在しない住所」', w3:'CASE 03「繰り返される証言」',
+    w4:'CASE 04「十三番目の記録」', w5:'CASE 05「途切れたメッセージ」', w6:'CASE 06「継ぎ接ぎの人物像」',
+    w7:'CASE 07「もう一人の容疑者」', w8:'CASE 08「鍵のかかった情報」', w9:'CASE 09「消された後始末」',
+    wa:'CASE 10「受け継がれた秘密」', wb:'CASE 11「偽りの家系図」',
+    py:'CASE 12「姿を変えた容疑者」', tk:'CASE 13「硝子窓の向こう側」'
+  };
+
 
   export function renderLesson(){
     var st = STAGES[state.stageIndex];
@@ -152,6 +160,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       var rate = info.wrongRate===null ? null : Math.round(info.wrongRate*100);
       return '<button class="unitchip'+(on?' on':'')+'" data-unit="'+u.id+'">'+
         '<span class="uc-emoji">'+stageIcon(u.id,false)+'</span>'+
+        (CASE_LABEL[u.id] ? '<span class="uc-case">'+esc(CASE_LABEL[u.id])+'</span>' : '')+
         '<span class="uc-title">'+esc(u.sub||u.title)+'</span>'+
         '<span class="uc-rate">'+(rate===null?'未挑戦':'誤答率'+rate+'%')+'</span>'+
       '</button>';
