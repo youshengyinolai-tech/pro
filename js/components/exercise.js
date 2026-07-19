@@ -12,14 +12,6 @@ import {
 import { icon, stageIcon } from '../core/icons.js';
 import { render, renderTopbar, openLesson } from '../core/router.js';
 
-  var CASE_LABEL = {
-    w1:'CASE 01「消えた出力」', w2:'CASE 02「存在しない住所」', w3:'CASE 03「繰り返される証言」',
-    w4:'CASE 04「十三番目の記録」', w5:'CASE 05「途切れたメッセージ」', w6:'CASE 06「継ぎ接ぎの人物像」',
-    w7:'CASE 07「もう一人の容疑者」', w8:'CASE 08「鍵のかかった情報」', w9:'CASE 09「消された後始末」',
-    wa:'CASE 10「受け継がれた秘密」', wb:'CASE 11「偽りの家系図」',
-    py:'CASE 12「姿を変えた容疑者」', tk:'CASE 13「硝子窓の向こう側」'
-  };
-
 
   export function renderLesson(){
     var st = STAGES[state.stageIndex];
@@ -160,8 +152,8 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       var rate = info.wrongRate===null ? null : Math.round(info.wrongRate*100);
       return '<button class="unitchip'+(on?' on':'')+'" data-unit="'+u.id+'">'+
         '<span class="uc-emoji">'+stageIcon(u.id,false)+'</span>'+
-        (CASE_LABEL[u.id] ? '<span class="uc-case">'+esc(CASE_LABEL[u.id])+'</span>' : '')+
-        '<span class="uc-title">'+esc(u.sub||u.title)+'</span>'+
+        '<span class="uc-case">'+esc(u.title)+'</span>'+
+        '<span class="uc-title">'+esc(u.sub)+'</span>'+
         '<span class="uc-rate">'+(rate===null?'未挑戦':'誤答率'+rate+'%')+'</span>'+
       '</button>';
     }).join('');
@@ -423,6 +415,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     '<div class="battlebar">'+
       '<button class="backbtn" id="btnHome">← 地図へ戻る</button>'+
       '<button class="backbtn" id="btnEndlessFilter">'+icon('target')+' 単元を絞る '+esc(filterNote)+'</button>'+
+      '<button class="backbtn pauseinvestigation" id="btnPauseEndless">'+icon('lock')+' 捜査を中断する</button>'+
     '</div>'+
     '<div class="frame endlessbar">'+
       '<div class="estat"><span class="elabel">出題元</span><span class="evalue">'+esc(state.endlessSrc.srcTitle)+'</span></div>'+
@@ -585,7 +578,18 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       '</div>';
     } else {
       yourAnsChip = '<div class="yourans"><span class="label">あなたの回答</span><span class="chip">'+esc(val)+'</span></div>';
-      correctAnsChip = correct ? '' : '<div class="correctans"><span class="label">正解例</span><span class="chip">'+esc(state.curQ.answers.join(' / '))+'</span></div>';
+      if(correct){
+        correctAnsChip = '';
+      } else {
+        var altList = (progress.settings.allowAlt && state.curQ.altAnswers && state.curQ.altAnswers.length) ? state.curQ.altAnswers : [];
+        var primaryBadges = state.curQ.answers.map(function(a){
+          return '<button type="button" class="ghost-badge copyable" data-copy="'+esc(a)+'">'+esc(a)+'</button>';
+        }).join('');
+        var altBadges = altList.map(function(a){
+          return '<button type="button" class="ghost-badge copyable alt" data-copy="'+esc(a)+'">'+esc(a)+' <small>(別解)</small></button>';
+        }).join('');
+        correctAnsChip = '<div class="correctans"><span class="label">正解例(クリックでコピー)</span>'+primaryBadges+altBadges+'</div>';
+      }
     }
 
     var missedNow = !!progress.missed[state.curQ.qid];
@@ -600,6 +604,28 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       '<div class="actionrow"><button class="primary" id="btnContinue">つづける →</button></div>';
 
     if(!isEndless && !isReview) setTimeout(refreshBars, 30);
+
+    Array.prototype.forEach.call(slot.querySelectorAll('.copyable'), function(btn){
+      btn.addEventListener('click', function(){
+        var text = btn.getAttribute('data-copy');
+        var original = btn.innerHTML;
+        function flash(){
+          btn.classList.add('copied');
+          btn.innerHTML = icon('check')+' コピーしました';
+          setTimeout(function(){ btn.classList.remove('copied'); btn.innerHTML = original; }, 1200);
+        }
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(text).then(flash, flash);
+        } else {
+          var ta = document.createElement('textarea');
+          ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+          document.body.appendChild(ta); ta.select();
+          try{ document.execCommand('copy'); }catch(e){}
+          document.body.removeChild(ta);
+          flash();
+        }
+      });
+    });
 
     document.getElementById('missedToggle').addEventListener('change', function(e){
       if(e.target.checked) progress.missed[state.curQ.qid] = true;

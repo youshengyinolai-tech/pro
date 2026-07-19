@@ -78,6 +78,10 @@ import {
     }
   }
 
+  function hasResumableEndless(e){
+    return !!(e && e.queue && e.queue.length > 0 && e.pos > 0 && e.pos < e.queue.length);
+  }
+
   function installGlobalKeyboard(){
     if(globalKeyboardReady) return;
     document.addEventListener('keydown', onGlobalKeydown);
@@ -163,7 +167,9 @@ import {
         '<button class="alt-file" id="btnAltToggle" aria-pressed="'+(progress.settings.allowAlt?'true':'false')+'">'+icon(progress.settings.allowAlt?'unlock':'lock')+' 別解 '+(progress.settings.allowAlt?'採用':'不採用')+'</button>'+
       '</aside>'+
       '<section class="evidence-board"><header class="board-head"><div><small>ACTIVE CASE FILES</small><h2>プログラム事件一覧</h2></div><p>不具合の証拠を読み、すべての事件を解決せよ。</p></header><div class="case-scroll">'+sectionsHtml+'</div></section>'+
-      '<aside class="desk-evidence"><div class="desk-lamp">'+icon('search')+'</div><h3>本日の捜査</h3><p>'+esc(endlessFilterLabel)+'</p><dl><div><dt>連続解決</dt><dd>'+e.streak+'</dd></div><div><dt>最高記録</dt><dd>'+e.bestStreak+'</dd></div></dl><button id="btnEndlessDesk">捜査を開始</button></aside>'+
+      '<aside class="desk-evidence"><div class="desk-lamp">'+icon('search')+'</div><h3>本日の捜査</h3><p>'+esc(endlessFilterLabel)+'</p><dl><div><dt>連続解決</dt><dd>'+e.streak+'</dd></div><div><dt>最高記録</dt><dd>'+e.bestStreak+'</dd></div></dl>'+
+        (hasResumableEndless(e) ? '<button id="btnEndlessResume" class="resume-file">'+icon('review')+' 前回の捜査を再開('+(e.queue.length-e.pos)+'問残り)</button>' : '')+
+        '<button id="btnEndlessDesk">捜査を開始</button></aside>'+
     '</main><p class="footer-note">捜査記録はこの端末に自動保存されます。</p>';
   }
 
@@ -312,6 +318,10 @@ import {
       document.getElementById('btnEndlessDesk').addEventListener('click', function(){
         openEndless();
       });
+      var btnEndlessResume = document.getElementById('btnEndlessResume');
+      if(btnEndlessResume) btnEndlessResume.addEventListener('click', function(){
+        openEndless();
+      });
       document.getElementById('btnAltToggle').addEventListener('click', function(){
         progress.settings.allowAlt = !progress.settings.allowAlt;
         saveProgress(progress);
@@ -348,6 +358,10 @@ import {
       });
       document.getElementById('btnEndlessFilter').addEventListener('click', function(){
         state.curQ=null; openUnitPicker();
+      });
+      document.getElementById('btnPauseEndless').addEventListener('click', function(){
+        saveProgress(progress);
+        state.curQ=null; state.screen='map'; render();
       });
       wireQuestionControls(app);
     } else if(state.screen==='review'){
