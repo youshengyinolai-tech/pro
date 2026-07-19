@@ -9,6 +9,7 @@ import {
   recordUnitAnswer, recordMissed, rebuildEndlessQueue, reshuffleEndlessQueue,
   currentEndlessPoolIndices, ENDLESS_POOL
 } from '../core/state.js';
+import { icon, stageIcon } from '../core/icons.js';
 import { render, renderTopbar, openLesson } from '../core/router.js';
 
 
@@ -39,7 +40,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
         '</button>';
       }).join('');
       actionHtml = '<div class="frame diffpick">'+
-        '<div class="difftitle">🗡️ 難易度を選んで'+esc(st.mon)+'に挑もう</div>'+
+        '<div class="difftitle">'+icon('sword')+' 難易度を選んで'+esc(st.mon)+'に挑もう</div>'+
         '<p class="ddesc" style="margin:0 0 14px;">選んだ難易度の設問からランダムに出題が始まり、勇者が生きているかぎり、そのグループを出し切るごとに1つ上の難易度へ自動でエスカレートしていく。高い難易度から始めるほど、序盤から手強い相手になる。</p>'+
         '<div class="diffrow">'+diffBtnsHtml+'</div>'+
       '</div>';
@@ -48,7 +49,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     return ''+ renderTopbar() +
     '<div class="battlebar"><button class="backbtn" id="btnLessonBack">'+backLabel+'</button>'+toggleHtml+'</div>'+
     '<div class="frame lessonintro">'+
-      '<h2>'+st.emoji+' 訓練場 — '+esc(st.title)+'</h2>'+
+      '<h2>'+stageIcon(st.id,st.isBoss)+' 訓練場 — '+esc(st.title)+'</h2>'+
       '<p>'+esc(st.sub)+'の要点を、完成した正しいコードと解説で確認しよう。まずは読んで感覚をつかんでから、'+esc(st.mon)+'に挑むと理解しやすい。</p>'+
     '</div>'+
     '<div class="lessongrid">'+cards+'</div>'+
@@ -112,6 +113,9 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
 
 
   export function openUnitPicker(){
+    state.pickerReturnScreen = state.screen || 'map';
+    var trigger = document.activeElement;
+    state.pickerReturnFocusId = trigger && trigger.id ? trigger.id : null;
     var cur = progress.settings.endlessUnits;
     var curDiff = progress.settings.endlessDiffs;
     var curTier = progress.settings.endlessTiers;
@@ -120,6 +124,21 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     state.pickerTierSelection = (curTier && curTier.length) ? curTier.slice() : [1,2,3,4,5];
     state.screen = 'unitPicker';
     render();
+  }
+
+  export function closeUnitPicker(){
+    var returnScreen = state.pickerReturnScreen || 'map';
+    var returnFocusId = state.pickerReturnFocusId;
+    state.screen = returnScreen;
+    state.pickerReturnScreen = 'map';
+    state.pickerReturnFocusId = null;
+    render();
+    if(returnFocusId){
+      requestAnimationFrame(function(){
+        var trigger = document.getElementById(returnFocusId);
+        if(trigger) trigger.focus();
+      });
+    }
   }
 
 
@@ -132,7 +151,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       var info = unitAttemptInfo(u.id);
       var rate = info.wrongRate===null ? null : Math.round(info.wrongRate*100);
       return '<button class="unitchip'+(on?' on':'')+'" data-unit="'+u.id+'">'+
-        '<span class="uc-emoji">'+u.emoji+'</span>'+
+        '<span class="uc-emoji">'+stageIcon(u.id,false)+'</span>'+
         '<span class="uc-title">'+esc(u.title)+'</span>'+
         '<span class="uc-rate">'+(rate===null?'未挑戦':'誤答率'+rate+'%')+'</span>'+
       '</button>';
@@ -155,20 +174,21 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
 
     var recoLevel = recommendDifficulty(sel);
 
+    var backLabel = state.pickerReturnScreen==='endless' ? '← 問題へ戻る' : '← 地図へ戻る';
     return ''+ renderTopbar() +
-    '<div class="battlebar"><button class="backbtn" id="btnPickerBack">← 地図へ戻る</button></div>'+
+    '<div class="battlebar"><button class="backbtn" id="btnPickerBack" data-escape-dismiss>'+backLabel+'</button></div>'+
     '<div class="frame intro">'+
-      '<h2>🎯 出題する単元・難易度・重要度を選ぶ</h2>'+
+      '<h2>'+icon('target')+' 出題する単元・難易度・重要度を選ぶ</h2>'+
       '<p>チェックした単元・難易度・重要度だけを対象に1000本ノックを出題します。誤答率が高い単元には目印がついているので、絞り込みの参考にしよう。何も選ばなければ開始できません。</p>'+
     '</div>'+
     '<div class="frame recobar cramcard">'+
-      '<div class="reco-text">⚡ 時間がないなら「🔥鉄板」と「⚡頻出」だけに絞って、全単元をひと通り最短で回そう。</div>'+
-      '<button class="primary" id="btnPickerCram">⚡ 一夜漬けモード(鉄板+頻出のみ即開始) →</button>'+
+      '<div class="reco-text">'+icon('spark')+' 時間がないなら「鉄板」と「頻出」だけに絞って、全単元をひと通り最短で回そう。</div>'+
+      '<button class="primary" id="btnPickerCram">'+icon('spark')+' 一夜漬けモード（鉄板・頻出のみ）→</button>'+
     '</div>'+
     '<div class="frame recobar">'+
-      '<div class="reco-text">🤖 選択中の単元でのおすすめ難易度: <b>'+esc(DIFF_BATCH_LABEL[recoLevel])+'</b>'+
+      '<div class="reco-text">'+icon('chip')+' 選択中の単元でのおすすめ難易度: <b>'+esc(DIFF_BATCH_LABEL[recoLevel])+'</b>'+
         '<span class="reco-sub">(正答実績から自動判定。データが少ない単元はまず初級から勧めます)</span></div>'+
-      '<button class="ghost" id="btnPickerAuto">🎯 苦手分野+おすすめ難易度に自動設定</button>'+
+      '<button class="ghost" id="btnPickerAuto">'+icon('target')+' 苦手分野+おすすめ難易度に自動設定</button>'+
     '</div>'+
     '<div class="actionrow" style="justify-content:flex-start; margin-bottom:14px;">'+
       '<button class="ghost" id="btnPickerAll">単元を全選択</button>'+
@@ -186,8 +206,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
 
   export function wireUnitPicker(app){
     document.getElementById('btnPickerBack').addEventListener('click', function(){
-      state.screen = 'map';
-      render();
+      closeUnitPicker();
     });
     Array.prototype.forEach.call(app.querySelectorAll('.unitchip'), function(btn){
       btn.addEventListener('click', function(){
@@ -278,7 +297,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     debug:'🐛 このコードには誤りが1箇所ある。正しく直した内容を入力して唱えよう。',
     choice:'次のうち正しいものを選んで唱えよう。',
     order:'正しい順番になるように、記号をカンマ区切りで入力して唱えよう(例: B,A,C)。',
-    dragfill:'🧩 下のピースをドラッグ(またはタップで選んでタップで配置)して、空欄をすべて埋めよう。'
+    dragfill:'下のピースをドラッグ（またはタップで選んで配置）して、空欄をすべて埋めよう。'
   };
 
 
@@ -356,14 +375,14 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     return ''+ renderTopbar() +
     '<div class="battlebar">'+
       '<button class="backbtn" id="btnHome">← 地図へ戻る</button>'+
-      '<button class="backbtn" id="btnReview">📖 訓練場で例題を見直す</button>'+
+      '<button class="backbtn" id="btnReview">'+icon('book')+' 訓練場で例題を見直す</button>'+
     '</div>'+
     '<div class="combatants">'+
-      '<div class="frame fighter"><div class="who"><span class="emoji">🧙</span><div class="name">受験の勇者<small>あなた</small></div></div>'+
+      '<div class="frame fighter"><div class="who"><span class="emoji">'+icon('shield')+'</span><div class="name">受験の勇者<small>PLAYER UNIT</small></div></div>'+
         '<div class="hpbar hero"><i style="transform:scaleX('+(state.heroHP/100)+')"></i></div>'+
         '<div class="hpnum"><span>HP</span><span class="num">'+state.heroHP+' / 100</span></div></div>'+
       '<div class="vs">VS</div>'+
-      '<div class="frame fighter"><div class="who"><span class="emoji">'+st.emoji+'</span><div class="name">'+esc(st.mon)+'<small>'+esc(st.sub)+'</small></div></div>'+
+      '<div class="frame fighter"><div class="who"><span class="emoji">'+stageIcon(st.id,true)+'</span><div class="name">'+esc(st.mon)+'<small>'+esc(st.sub)+'</small></div></div>'+
         '<div class="hpbar monster"><i style="transform:scaleX('+(state.monsterHP/100)+')"></i></div>'+
         '<div class="hpnum"><span>HP</span><span class="num">'+state.monsterHP+' / 100</span></div></div>'+
     '</div>'+
@@ -394,7 +413,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     return ''+ renderTopbar() +
     '<div class="battlebar">'+
       '<button class="backbtn" id="btnHome">← 地図へ戻る</button>'+
-      '<button class="backbtn" id="btnEndlessFilter">🎯 単元を絞る '+esc(filterNote)+'</button>'+
+      '<button class="backbtn" id="btnEndlessFilter">'+icon('target')+' 単元を絞る '+esc(filterNote)+'</button>'+
     '</div>'+
     '<div class="frame endlessbar">'+
       '<div class="estat"><span class="elabel">出題元</span><span class="evalue">'+esc(state.endlessSrc.srcTitle)+'</span></div>'+
@@ -563,11 +582,11 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     var missedNow = !!progress.missed[state.curQ.qid];
     slot.innerHTML = ''+
       '<div class="frame feedback '+(correct?'good':'bad')+'">'+
-        '<div class="head">'+(correct? '⚔️ 会心の一撃！' : '💥 手痛い反撃を受けた…')+'</div>'+
+        '<div class="head">'+icon(correct?'sword':'alert')+(correct? ' 会心の一撃！' : ' 手痛い反撃を受けた…')+'</div>'+
         yourAnsChip+
         correctAnsChip+
         '<div class="explain"><span class="tag">解説</span>'+esc(state.curQ.explain)+'</div>'+
-        '<label class="missedcheck"><input type="checkbox" id="missedToggle"'+(missedNow?' checked':'')+'> 📕 この問題を復習ノートに入れる</label>'+
+        '<label class="missedcheck"><input type="checkbox" id="missedToggle"'+(missedNow?' checked':'')+'> '+icon('review')+' この問題を復習ノートに入れる</label>'+
       '</div>'+
       '<div class="actionrow"><button class="primary" id="btnContinue">つづける →</button></div>';
 
@@ -643,4 +662,3 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     Array.prototype.forEach.call(document.querySelectorAll('.choicebtn'), function(b){ b.disabled = true; });
     resolveAnswer(state.curQ.options[idx]);
   }
-

@@ -7,22 +7,89 @@
 import { BASE_STAGES, BOSS_GROUPS, STAGES, TOTAL_STARS, DIFF_BATCH_LABEL, TIER_LABEL } from '../data/questions.js';
 import {
   state, progress, saveProgress, esc, totalStarsEarned, missedCount,
-  recommendDifficulty, starString, STUDY_MEDAL_ICON, UNIT_LIST, ENDLESS_POOL,
+  recommendDifficulty, starString, UNIT_LIST, ENDLESS_POOL,
   shuffle, POOL_INDEX_BY_QID
 } from './state.js';
 import { renderStudy, startStudy, wireStudy } from '../components/study.js';
+import { icon, stageIcon } from './icons.js';
 import {
   renderLesson, wireLesson, openUnitPicker, renderUnitPicker, wireUnitPicker,
+  closeUnitPicker,
   renderBattle, renderEndless, renderQuestionBody, wireQuestionControls,
   startStage
 } from '../components/exercise.js';
+
+  var globalKeyboardReady = false;
+
+  function isEditableTarget(target){
+    if(!target || target.nodeType!==1) return false;
+    var tag = target.tagName;
+    return tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || target.isContentEditable;
+  }
+
+  function isInsideEscapeSurface(target){
+    return !!(target && target.closest && target.closest('dialog[open], [data-escape-surface]'));
+  }
+
+  function closeTopmostEscapeSurface(){
+    var dialogs = document.querySelectorAll('dialog[open]');
+    if(dialogs.length){
+      var dialog = dialogs[dialogs.length-1];
+      var cancelEvent = new Event('cancel', {cancelable:true});
+      if(dialog.dispatchEvent(cancelEvent)) dialog.close();
+      return true;
+    }
+
+    var dismissers = document.querySelectorAll('[data-escape-dismiss]:not([hidden])');
+    if(dismissers.length){
+      dismissers[dismissers.length-1].click();
+      return true;
+    }
+
+    var openDetails = document.querySelectorAll('details[open]');
+    if(openDetails.length){
+      var details = openDetails[openDetails.length-1];
+      details.open = false;
+      var summary = details.querySelector('summary');
+      if(summary) summary.focus();
+      return true;
+    }
+
+    if(state.screen==='unitPicker'){
+      closeUnitPicker();
+      return true;
+    }
+    return false;
+  }
+
+  function onGlobalKeydown(event){
+    if(event.key!=='Escape' && event.key!=='Esc') return;
+    if(event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey) return;
+
+    if(isEditableTarget(event.target) && isInsideEscapeSurface(event.target)){
+      event.target.blur();
+      event.preventDefault();
+      return;
+    }
+
+    if(closeTopmostEscapeSurface()){
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
+  function installGlobalKeyboard(){
+    if(globalKeyboardReady) return;
+    document.addEventListener('keydown', onGlobalKeydown);
+    globalKeyboardReady = true;
+  }
 
 
   export function renderTopbar(){
     return ''+
     '<div class="topbar">'+
-      '<div class="brand"><span class="glyph">🧙</span><div><h1>コード転生記</h1><small>期末試験サバイバル・クエスト</small></div></div>'+
-      '<div class="tally">総獲得星 <span class="stars num">'+totalStarsEarned()+' / '+TOTAL_STARS+'</span></div>'+
+      '<div class="brand"><span class="glyph">⬡</span><div><h1>コード転生記</h1><small>CODE BATTLE // EXAM SURVIVAL</small></div></div>'+
+      '<div class="tally">MISSION SCORE <span class="stars num">'+totalStarsEarned()+' / '+TOTAL_STARS+'</span></div>'+
     '</div>';
   }
 
@@ -52,11 +119,11 @@ import {
       var done = !!progress.studyCompleted[st.id];
       var medal = progress.studyMedal[st.id];
       var studyBadge = done
-        ? '<span class="studydonebadge">'+(medal ? STUDY_MEDAL_ICON[medal] : '✓')+' 学習済み</span>'
-        : (studyMode ? '<span class="studyhint">📖 クリックで学習パートへ</span>' : '');
+        ? '<span class="studydonebadge">'+icon(medal?'trophy':'check')+' 学習済み</span>'
+        : (studyMode ? '<span class="studyhint">'+icon('book')+' 学習パートへ</span>' : '');
       cardsBuf.push(''+
         '<button class="stagecard'+(st.isBoss?' boss':'')+'" data-idx="'+i+'" aria-label="'+esc(st.title)+'">'+
-          '<div class="row1"><span class="emoji">'+st.emoji+'</span><span class="idx">'+(st.isBoss?'★ BOSS ★':'STAGE '+(i+1))+'</span></div>'+
+          '<div class="row1"><span class="emoji">'+stageIcon(st.id,st.isBoss)+'</span><span class="idx">'+(st.isBoss?'BOSS NODE':'NODE '+String(i+1).padStart(2,'0'))+'</span></div>'+
           '<h3>'+esc(st.title)+'</h3>'+
           '<div class="sub">'+esc(st.sub)+' ・ '+esc(st.mon)+'</div>'+
           studyBadge+
@@ -84,57 +151,20 @@ import {
     var overallReco = recommendDifficulty(selUnits);
     var missedN = missedCount();
 
-    return ''+ renderTopbar() +
-    '<button class="frame modetoggle '+(studyMode?'study':'quest')+'" id="btnModeToggle" aria-pressed="'+(studyMode?'true':'false')+'">'+
-      '<span class="modeicon">'+(studyMode?'📖':'⚔️')+'</span>'+
-      '<span class="modebody">'+
-        '<span class="modetitle">今の地図モード: '+(studyMode?'学習モード':'冒険モード')+'</span>'+
-        '<span class="modedesc">'+(studyMode
-          ? 'この状態で章をクリックすると、まず学習パート(要点講義)へ案内される。準備ができたらここを押して冒険モードに切り替えよう。'
-          : 'この状態で章をクリックすると、そのまま訓練場(問題パート)へ進む。要点から仕込みたい章は、ここを押して学習モードに切り替えてから選ぼう。')+
-        '</span>'+
-      '</span>'+
-      '<span class="modeswitch" aria-hidden="true"><span class="modeswitch-knob"></span></span>'+
-    '</button>'+
-    '<div class="frame intro">'+
-      '<h2>試験前夜、記憶の迷宮へ</h2>'+
-      '<p>全'+STAGES.length+'章(通常'+BASE_STAGES.length+'章+ボス'+BOSS_GROUPS.length+'体)。各章にはまず「訓練場」があり、完成した正しいコードと解説を読んで感覚をつかめる。準備ができたら難易度(初級/中級/上級)を選んで、記述式・選択式・並べ替えなど様々な形式の設問に挑もう。まとまりを1つ終えるごとに総復習のボスが待ち構えている。</p>'+
-    '</div>'+
-    '<button class="frame alttoggle" id="btnAltToggle" aria-pressed="'+(progress.settings.allowAlt?'true':'false')+'">'+
-      '<span class="alticon">'+(progress.settings.allowAlt?'🔓':'🔒')+'</span>'+
-      '<span class="altbody">'+
-        '<span class="alttitle">別解モード: '+(progress.settings.allowAlt?'ON':'OFF')+'</span>'+
-        '<span class="altdesc">'+(progress.settings.allowAlt
-          ? '授業で扱っていない書き方(別解)も正解として受け付け中。クリックでOFFに戻せます。'
-          : '一部の設問には、授業で扱っていない別解にも対応した採点があります。ONにすると、それらの別解も正解として受け付けます。')+
-        '</span>'+
-      '</span>'+
-    '</button>'+
-    '<div class="frame endlesscard">'+
-      '<button class="endlesscard-main" id="btnEndless" aria-label="1000本ノックを開始する">'+
-        '<div class="endlesscard-head">'+
-          '<span class="emoji">📚</span>'+
-          '<div><h3>1000本ノック</h3>'+
-          '<div class="sub">'+esc(endlessFilterLabel)+' ・ 全'+ENDLESS_POOL.length+'問のプールから尽きるまで出題され続ける総復習モード。1週間の勉強量でも解き切れないボリュームで、誤答が多い単元ほど優先的に出やすくなる。</div></div>'+
-        '</div>'+
-        '<div class="endlesscard-stats">'+
-          '<span>連続正解 <b>'+e.streak+'</b>(最高'+e.bestStreak+')</span>'+
-          '<span>通算正答率 <b>'+e.correct+' / '+totalAns+'</b>('+acc+'%)</span>'+
-          '<span>🤖 おすすめ難易度 <b>'+esc(DIFF_BATCH_LABEL[overallReco])+'</b></span>'+
-        '</div>'+
-      '</button>'+
-      '<button class="endlesscard-filter" id="btnUnitPicker">🎯 出題する単元・難易度を選ぶ</button>'+
-    '</div>'+
-    '<button class="frame reviewcard'+(missedN===0?' empty':'')+'" id="btnReview2" aria-label="間違いノートを復習する">'+
-      '<span class="emoji">📕</span>'+
-      '<div><h3>間違いノートを復習する</h3>'+
-      '<div class="sub">'+(missedN>0
-        ? '今までに間違えた問題が'+missedN+'問たまっています。正解するたびにノートから消えていきます。'
-        : 'まだ間違えた問題はありません。戦闘や1000本ノックで間違えると、ここに自動で集まります。')+'</div></div>'+
-      '<span class="reviewcard-count">'+missedN+'問</span>'+
-    '</button>'+
-    sectionsHtml+
-    '<p class="footer-note">進行状況はこの端末に自動保存されます。</p>';
+    return ''+renderTopbar()+'<main class="case-office">'+
+      '<aside class="case-sidebar">'+
+        '<div class="office-plate"><span>'+icon('target')+'</span><div><small>BUG INVESTIGATION UNIT</small><h2>事件管理簿</h2></div></div>'+
+        '<button class="case-nav active"><span>'+icon('archive')+'</span><b>事件一覧</b><small>'+STAGES.length+'件</small></button>'+
+        '<button class="case-nav" id="btnEndless"><span>'+icon('terminal')+'</span><b>総合捜査</b><small>1000本ノック</small></button>'+
+        '<button class="case-nav" id="btnReview2"><span>'+icon('review')+'</span><b>未解決</b><small>'+missedN+'件</small></button>'+
+        '<button class="case-nav" id="btnUnitPicker"><span>'+icon('target')+'</span><b>捜査条件</b><small>'+esc(DIFF_BATCH_LABEL[overallReco])+'</small></button>'+
+        '<div class="case-stats"><h3>捜査記録</h3><dl><div><dt>解決評価</dt><dd class="num">'+totalStarsEarned()+' / '+TOTAL_STARS+'</dd></div><div><dt>連続正解</dt><dd class="num">'+e.streak+'</dd></div><div><dt>正答率</dt><dd class="num">'+acc+'%</dd></div></dl></div>'+
+        '<button class="mode-file '+(studyMode?'study':'quest')+'" id="btnModeToggle" aria-pressed="'+(studyMode?'true':'false')+'"><span>'+icon(studyMode?'book':'sword')+'</span><b>'+(studyMode?'証拠を読む':'推理に挑む')+'</b><small>章選択時の動作</small></button>'+
+        '<button class="alt-file" id="btnAltToggle" aria-pressed="'+(progress.settings.allowAlt?'true':'false')+'">'+icon(progress.settings.allowAlt?'unlock':'lock')+' 別解 '+(progress.settings.allowAlt?'採用':'不採用')+'</button>'+
+      '</aside>'+
+      '<section class="evidence-board"><header class="board-head"><div><small>ACTIVE CASE FILES</small><h2>プログラム事件一覧</h2></div><p>不具合の証拠を読み、すべての事件を解決せよ。</p></header><div class="case-scroll">'+sectionsHtml+'</div></section>'+
+      '<aside class="desk-evidence"><div class="desk-lamp">'+icon('search')+'</div><h3>本日の捜査</h3><p>'+esc(endlessFilterLabel)+'</p><dl><div><dt>連続解決</dt><dd>'+e.streak+'</dd></div><div><dt>最高記録</dt><dd>'+e.bestStreak+'</dd></div></dl><button id="btnEndlessDesk">捜査を開始</button></aside>'+
+    '</main><p class="footer-note">捜査記録はこの端末に自動保存されます。</p>';
   }
 
 
@@ -180,7 +210,7 @@ import {
       return ''+ renderTopbar() +
       '<div class="battlebar"><button class="backbtn" id="btnHome">← 地図へ戻る</button></div>'+
       '<div class="frame result">'+
-        '<span class="bigemoji">📗</span><h2>間違いノートは空っぽです</h2>'+
+        '<span class="bigemoji">'+icon('check')+'</span><h2>間違いノートは空っぽです</h2>'+
         '<p>今のところ間違えた問題は記録されていません。各章の戦闘や1000本ノックで間違えると、その問題が自動的にここへ集まってきます。</p>'+
         '<div class="resultbtns"><button class="ghost" id="btnMap">地図へ戻る</button></div>'+
       '</div>';
@@ -190,7 +220,7 @@ import {
       return ''+ renderTopbar() +
       '<div class="battlebar"><button class="backbtn" id="btnHome">← 地図へ戻る</button></div>'+
       '<div class="frame result">'+
-        '<span class="bigemoji">📕</span><h2>この周の復習が終わりました</h2>'+
+        '<span class="bigemoji">'+icon('review')+'</span><h2>この周の復習が終わりました</h2>'+
         '<p>正解 '+state.reviewStats.correct+'問 ／ 誤答 '+state.reviewStats.wrong+'問。間違いノートには、まだ'+remaining+'問残っています。</p>'+
         '<div class="resultbtns">'+
           (remaining>0 ? '<button class="primary" id="btnReviewAgain">もう一度復習する →</button>' : '')+
@@ -212,7 +242,7 @@ import {
       '<div class="estat"><span class="elabel">間違いノート残り</span><span class="evalue">'+missedCount()+'問</span></div>'+
     '</div>'+
     '<div class="frame qcard" id="qcard">'+
-      '<div class="qmeta"><span>📕 復習モード <span class="tierbadge t'+state.endlessSrc.tier+'">'+esc(TIER_LABEL[state.endlessSrc.tier])+'</span></span><span>'+esc(state.endlessSrc.srcSub)+'</span></div>'+
+      '<div class="qmeta"><span>'+icon('review')+' 復習モード <span class="tierbadge t'+state.endlessSrc.tier+'">'+esc(TIER_LABEL[state.endlessSrc.tier])+'</span></span><span>'+esc(state.endlessSrc.srcSub)+'</span></div>'+
       '<div class="qlead">'+qb.qlead+'</div>'+
       qb.bodyHtml+
       qb.answerHtml+
@@ -236,10 +266,10 @@ import {
       saveProgress(progress);
     }
     var failMsg = state.failReason==='outofq'
-      ? ('<span class="bigemoji">🌀</span><h2>とどめを刺しきれなかった…</h2><p>設問はすべて解き終えたが、'+esc(st.mon)+'にはまだ息がある。誤答が多いと決定打が足りない。訓練場で復習してもう一度挑もう。</p>')
-      : ('<span class="bigemoji">💤</span><h2>力尽きた…</h2><p>'+esc(st.mon)+'にHPを削り切られてしまった。訓練場で復習してもう一度挑もう。</p>');
+      ? ('<span class="bigemoji">'+icon('alert')+'</span><h2>ミッション未完了</h2><p>設問はすべて解き終えたが、'+esc(st.mon)+'にはまだ息がある。誤答が多いと決定打が足りない。訓練場で復習してもう一度挑もう。</p>')
+      : ('<span class="bigemoji">'+icon('shield')+'</span><h2>戦闘継続不能</h2><p>'+esc(st.mon)+'にHPを削り切られてしまった。訓練場で復習してもう一度挑もう。</p>');
     var body = win ?
-      ('<span class="bigemoji">🏆</span><h2>'+esc(st.mon)+'を撃破した！</h2><div class="starsline">'+starString(stars)+'</div><p>誤答'+state.wrong+'回で切り抜けた。単元「'+esc(st.sub)+'」はもう怖くない。</p>')
+      ('<span class="bigemoji">'+icon('trophy')+'</span><h2>'+esc(st.mon)+'を撃破した！</h2><div class="starsline">'+starString(stars)+'</div><p>誤答'+state.wrong+'回で切り抜けた。単元「'+esc(st.sub)+'」はもう怖くない。</p>')
       : failMsg;
 
     var nextIdx = state.stageIndex+1;
@@ -249,13 +279,13 @@ import {
     '<div class="frame result">'+
       body+
       '<div class="resultbtns">'+
-        '<button class="ghost" id="btnReview">📖 訓練場で見直す</button>'+
+        '<button class="ghost" id="btnReview">'+icon('book')+' 訓練場で見直す</button>'+
         '<button class="ghost" id="btnRetry">'+(win?'もう一度挑む':'再挑戦する')+'</button>'+
         (hasNext? '<button class="primary" id="btnNext">次の間へ進む →</button>' : '')+
         '<button class="ghost" id="btnMap">地図へ戻る</button>'+
       '</div>'+
     '</div>'+
-    (!hasNext && win && nextIdx>=STAGES.length ? '<div class="frame allclear"><h2>🎉 全'+STAGES.length+'章 制覇！</h2><p>期末試験の範囲をひと通り旅した。総獲得星 <span class="num">'+totalStarsEarned()+' / '+TOTAL_STARS+'</span>。仕上げにもう一周して星を集めよう。</p></div>' : '');
+    (!hasNext && win && nextIdx>=STAGES.length ? '<div class="frame allclear"><h2>'+icon('trophy')+' 全'+STAGES.length+'章 制覇</h2><p>期末試験の範囲をひと通り旅した。総獲得星 <span class="num">'+totalStarsEarned()+' / '+TOTAL_STARS+'</span>。仕上げにもう一周して星を集めよう。</p></div>' : '');
   }
 
 
@@ -277,6 +307,9 @@ import {
         render();
       });
       document.getElementById('btnEndless').addEventListener('click', function(){
+        openEndless();
+      });
+      document.getElementById('btnEndlessDesk').addEventListener('click', function(){
         openEndless();
       });
       document.getElementById('btnAltToggle').addEventListener('click', function(){
@@ -361,5 +394,6 @@ import {
     resolveAnswer(state.curQ.options[idx]);
   }
 export function boot(){
+  installGlobalKeyboard();
   render();
 }

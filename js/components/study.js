@@ -6,8 +6,9 @@
 */
 import { STAGES } from '../data/questions.js';
 import { resolveStudyBeats } from '../data/studyBeats.js';
-import { state, progress, saveProgress, esc, STUDY_MEDAL_ICON, MEDAL_RANK } from '../core/state.js';
+import { state, progress, saveProgress, esc, MEDAL_RANK } from '../core/state.js';
 import { render, renderTopbar, openLesson } from '../core/router.js';
+import { icon, stageIcon } from '../core/icons.js';
 
 
   /* 地図の「学習モード」トグルがONの状態で章をクリックすると、この章に入る。
@@ -63,8 +64,8 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
         return headingHtml + bodyHtml;
       }
       var label = sec.heading
-        ? (isTrap ? '⚠️ タップして「'+esc(sec.heading)+'」を確認' : '📖 タップして「'+esc(sec.heading)+'」を表示')
-        : '📖 タップして詳細を表示';
+        ? (isTrap ? icon('alert')+' タップして「'+esc(sec.heading)+'」を確認' : icon('book')+' タップして「'+esc(sec.heading)+'」を表示')
+        : icon('book')+' タップして詳細を表示';
       return '<details class="accordion'+(isTrap?' trap':'')+'">'+
         '<summary>'+label+'<span class="chev">▸</span></summary>'+
         '<div class="accordion-body">'+bodyHtml+'</div>'+
@@ -111,12 +112,12 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       '<button class="togglebtn" id="btnStudyToggle">⇄ 問題パートに切替</button>'+
     '</div>'+
     '<div class="frame lessonintro">'+
-      '<h2>'+st.emoji+' 📖 学習ノート — '+esc(st.title)+'</h2>'+
+      '<h2>'+stageIcon(st.id,st.isBoss)+' 学習ノート — '+esc(st.title)+'</h2>'+
       '<p>'+esc(st.sub)+'の要点を、完成した正しいコードと解説でひと通り確認しよう。この章はまだ物語形式の学習パートを準備中なので、訓練場と同じ要点ノートを学習パートとして表示している。</p>'+
     '</div>'+
     '<div class="lessongrid">'+cards+'</div>'+
     '<div class="frame result">'+
-      '<span class="bigemoji">✓</span><h2>学習ノートを確認しました</h2>'+
+      '<span class="bigemoji">'+icon('check')+'</span><h2>学習ノートを確認しました</h2>'+
       '<p>準備ができたら、問題パートで実際に手を動かして定着させよう。</p>'+
       '<div class="resultbtns">'+
         '<button class="primary" id="btnStudyToChallenge">問題に挑戦する →</button>'+
@@ -137,16 +138,16 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       var medal = state.studyWrongCount===0 ? 'gold' : (state.studyWrongCount<=2 ? 'silver' : 'bronze');
       awardStudyMedal(st.id, medal);
       saveProgress(progress);
-      var medalLabel = {gold:'🏅 ノーミス達成！完璧な理解です', silver:'🥈 好調な仕上がりです', bronze:'🥉 学習を修了しました'}[medal];
+      var medalLabel = {gold:'ノーミス達成 — 完璧な理解です', silver:'好調な仕上がりです', bronze:'学習を修了しました'}[medal];
       return ''+ renderTopbar() +
       '<div class="battlebar">'+
         '<button class="backbtn" id="btnStudyBack">← 地図へ戻る</button>'+
         '<button class="togglebtn" id="btnStudyToggle">⇄ 問題パートに切替</button>'+
       '</div>'+
       '<div class="frame result achieve '+medal+'">'+
-        '<span class="bigemoji">'+STUDY_MEDAL_ICON[medal]+'</span><h2>'+medalLabel+'</h2>'+
+        '<span class="bigemoji">'+icon('trophy')+'</span><h2>'+medalLabel+'</h2>'+
         '<p>'+esc(st.sub)+'の急所は仕込み終えた。この勢いのまま、'+esc(st.mon)+'に挑んでみよう。</p>'+
-        '<div class="achievestats"><span>誤答 <b>'+state.studyWrongCount+'</b>回</span><span>最高コンボ <b>🔥'+state.studyBestCombo+'</b></span></div>'+
+        '<div class="achievestats"><span>誤答 <b>'+state.studyWrongCount+'</b>回</span><span>最高コンボ <b>'+state.studyBestCombo+'</b></span></div>'+
         '<div class="resultbtns">'+
           '<button class="primary" id="btnStudyToChallenge">問題に挑戦する →</button>'+
           '<button class="ghost" id="btnStudyToMap">地図に戻る</button>'+
@@ -162,27 +163,27 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       return '<span class="dot'+(i<state.studyStep?' done':'')+(i===state.studyStep?' cur':'')+'"></span>';
     }).join('');
     var comboHtml = (good && state.studyCombo>=2)
-      ? '<div class="combobadge">🔥 '+state.studyCombo+' COMBO!</div>' : '';
+      ? '<div class="combobadge">'+icon('spark')+' '+state.studyCombo+' COMBO</div>' : '';
 
     var quizHtml;
     if(!answered){
       var optsHtml = beat.quiz.options.map(function(opt, i){
         return '<button class="choicebtn studyquizbtn" data-opt="'+i+'">'+esc(opt)+'</button>';
       }).join('');
-      quizHtml = '<div class="quizbox"><p class="quizq">🧩 '+esc(beat.quiz.q)+'</p>'+
+      quizHtml = '<div class="quizbox"><p class="quizq">'+icon('chip')+' '+esc(beat.quiz.q)+'</p>'+
         '<div class="choicegrid">'+optsHtml+'</div></div>';
     } else {
       var correctAnswerText = beat.quiz.options[beat.quiz.correct];
       var guidanceHtml = (!good && beat.quiz.sourceQuote)
         ? '<div class="guidance">'+
-            '<span class="glabel">📖 本文のここをもう一度確認しよう</span>'+
+            '<span class="glabel">'+icon('book')+' 本文のここをもう一度確認しよう</span>'+
             '<p class="gquote">'+highlightQuote(beat.quiz.sourceQuote, correctAnswerText)+'</p>'+
           '</div>'
         : '';
-      quizHtml = '<div class="quizbox"><p class="quizq">🧩 '+esc(beat.quiz.q)+'</p>'+
+      quizHtml = '<div class="quizbox"><p class="quizq">'+icon('chip')+' '+esc(beat.quiz.q)+'</p>'+
         comboHtml+
         '<div class="feedback '+(good?'good':'bad')+'">'+
-          '<div class="head">'+(good ? '✅ 正解！' : '❌ 惜しい、正解は「'+esc(correctAnswerText)+'」')+'</div>'+
+          '<div class="head">'+icon(good?'check':'alert')+(good ? ' 正解' : ' 惜しい、正解は「'+esc(correctAnswerText)+'」')+'</div>'+
           guidanceHtml+
           '<div class="explain sstory">'+renderStoryHtml(beat.quiz.explain)+'</div>'+
         '</div>'+
@@ -198,7 +199,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     '<div class="studyexpbar"><div class="studyexpfill" style="width:'+expPct+'%"></div></div>'+
     '<div class="studydots">'+dots+'<span class="studystep">'+(state.studyStep+1)+' / '+total+'</span></div>'+
     '<div class="frame storycard">'+
-      '<span class="sicon">'+beat.icon+'</span>'+
+      '<span class="sicon">'+icon('chip')+'</span>'+
       '<div class="sstory">'+renderStoryHtml(beat.story)+'</div>'+
       '<pre class="codeblock">'+esc(beat.code)+'</pre>'+
     '</div>'+
@@ -236,4 +237,3 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       });
     });
   }
-
