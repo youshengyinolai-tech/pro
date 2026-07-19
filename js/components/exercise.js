@@ -581,7 +581,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       if(correct){
         correctAnsChip = '';
       } else {
-        var altList = (progress.settings.allowAlt && state.curQ.altAnswers && state.curQ.altAnswers.length) ? state.curQ.altAnswers : [];
+        var altList = (state.curQ.altAnswers && state.curQ.altAnswers.length) ? state.curQ.altAnswers : [];
         var primaryBadges = state.curQ.answers.map(function(a){
           return '<button type="button" class="ghost-badge copyable" data-copy="'+esc(a)+'">'+esc(a)+'</button>';
         }).join('');

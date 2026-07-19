@@ -79,7 +79,7 @@ import {
   }
 
   function hasResumableEndless(e){
-    return !!(e && e.queue && e.queue.length > 0 && e.pos > 0 && e.pos < e.queue.length);
+    return !!(e && e.queue && e.queue.length > 0 && e.pos < e.queue.length);
   }
 
   function installGlobalKeyboard(){
