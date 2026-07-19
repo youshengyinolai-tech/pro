@@ -8,7 +8,7 @@ import { BASE_STAGES, BOSS_GROUPS, STAGES, TOTAL_STARS, DIFF_BATCH_LABEL, TIER_L
 import {
   state, progress, saveProgress, esc, totalStarsEarned, missedCount,
   recommendDifficulty, starString, UNIT_LIST, ENDLESS_POOL,
-  shuffle, POOL_INDEX_BY_QID
+  shuffle, POOL_INDEX_BY_QID, ensureEndlessQueue
 } from './state.js';
 import { renderStudy, startStudy, wireStudy } from '../components/study.js';
 import { icon, stageIcon } from './icons.js';

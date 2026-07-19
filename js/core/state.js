@@ -32,7 +32,7 @@ export const STORE_KEY = 'oopExamQuest_v3';
   ENDLESS_POOL.forEach(function(entry, i){ POOL_INDEX_BY_QID[entry.q.qid] = i; });
 
   /* unit(章)ごとの出題対象INDEXを引けるようにしておく。弱点集計・単元フィルターの両方で使う。 */
-  export const UNIT_LIST = BASE_STAGES.map(function(st){ return {id:st.id, title:st.title, emoji:st.emoji}; });
+  export const UNIT_LIST = BASE_STAGES.map(function(st){ return {id:st.id, title:st.title, sub:st.sub, emoji:st.emoji}; });
   export const POOL_INDICES_BY_UNIT = {};
   ENDLESS_POOL.forEach(function(entry, i){
     if(!POOL_INDICES_BY_UNIT[entry.unit]) POOL_INDICES_BY_UNIT[entry.unit] = [];

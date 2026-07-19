@@ -152,7 +152,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       var rate = info.wrongRate===null ? null : Math.round(info.wrongRate*100);
       return '<button class="unitchip'+(on?' on':'')+'" data-unit="'+u.id+'">'+
         '<span class="uc-emoji">'+stageIcon(u.id,false)+'</span>'+
-        '<span class="uc-title">'+esc(u.title)+'</span>'+
+        '<span class="uc-title">'+esc(u.sub||u.title)+'</span>'+
         '<span class="uc-rate">'+(rate===null?'未挑戦':'誤答率'+rate+'%')+'</span>'+
       '</button>';
     }).join('');
