@@ -10,19 +10,19 @@ import {
   recommendDifficulty, starString, UNIT_LIST, ENDLESS_POOL,
   shuffle, POOL_INDEX_BY_QID, ensureEndlessQueue,
   learningActivitySummary, investigatorRank
-} from './state.js?v=2026072040';
-import { renderStudy, startStudy, wireStudy } from '../components/study.js';
+} from './state.js?v=2026072044';
+import { renderStudy, startStudy, wireStudy } from '../components/study.js?v=2026072044';
 import { icon, stageIcon } from './icons.js';
 import {
   renderLesson, wireLesson, openUnitPicker, renderUnitPicker, wireUnitPicker,
   closeUnitPicker,
   renderBattle, renderEndless, renderQuestionBody, wireQuestionControls,
   startStage, installExerciseKeyboardShortcuts
-} from '../components/exercise.js?v=2026072040';
+} from '../components/exercise.js?v=2026072044';
 import {
   renderRankingHome, renderRankingRoom, wireRankingHome, wireRankingRoom
-} from '../components/ranking.js?v=2026072042';
-import { setPlayerName } from './ranking.js?v=2026072042';
+} from '../components/ranking.js?v=2026072044';
+import { setPlayerName } from './ranking.js?v=2026072044';
 
   var globalKeyboardReady = false;
   var caseScrollCleanup = null;

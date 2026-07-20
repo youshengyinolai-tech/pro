@@ -6,7 +6,7 @@
 */
 import { STAGES } from '../data/questions.js';
 import { resolveStudyBeats } from '../data/studyBeats.js';
-import { state, progress, saveProgress, esc, MEDAL_RANK, recordLearningActivity } from '../core/state.js?v=2026072040';
+import { state, progress, saveProgress, esc, MEDAL_RANK, recordLearningActivity } from '../core/state.js?v=2026072044';
 import { render, renderTopbar, openLesson } from '../core/router.js';
 import { icon, stageIcon } from '../core/icons.js';
 

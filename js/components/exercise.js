@@ -8,7 +8,7 @@ import {
   UNIT_LIST, unitAttemptInfo, recommendDifficulty, weakUnitIds,
   recordUnitAnswer, recordMissed, rebuildEndlessQueue, reshuffleEndlessQueue,
   currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity
-} from '../core/state.js?v=2026072040';
+} from '../core/state.js?v=2026072044';
 import { icon, stageIcon } from '../core/icons.js';
 import { render, renderTopbar, openLesson } from '../core/router.js';
 
@@ -436,10 +436,35 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     dragfill:'下のピースをドラッグ（またはタップで選んで配置）して、空欄をすべて埋めよう。'
   };
 
-  function mobileAnswerEnabled(q){
-    var type=q.type||'fill';
-    return (type==='fill'||type==='debug') && progress.settings.mobileAnswerMode &&
-      typeof window!=='undefined' && window.matchMedia('(max-width: 760px)').matches;
+  function selectionAnswerEnabled(){
+    return !!progress.settings.mobileAnswerMode;
+  }
+
+  function answerModeToggleHtml(useSelection){
+    return '<div class="answer-mode" role="group" aria-label="回答方法">'+
+      '<span class="answer-mode-label">回答方法</span>'+
+      '<button type="button" class="answer-mode-btn'+(!useSelection?' active':'')+'" data-answer-mode="input" aria-pressed="'+(!useSelection)+'">⌨ 入力</button>'+
+      '<span class="answer-mode-arrow" aria-hidden="true">→</span>'+
+      '<button type="button" class="answer-mode-btn'+(useSelection?' active':'')+'" data-answer-mode="selection" aria-pressed="'+useSelection+'">☝ 選択</button>'+
+    '</div>';
+  }
+
+  function choiceButtonHtml(text,index,extraClass,extraAttr){
+    return '<button type="button" class="choicebtn answer-choice '+(extraClass||'')+'" '+(extraAttr||'')+'>'+
+      '<span class="choice-index" aria-hidden="true">'+String.fromCharCode(65+index)+'</span>'+
+      '<span class="choice-text">'+esc(text)+'</span></button>';
+  }
+
+  function textInputAnswerHtml(q){
+    if(q.long){
+      return '<div class="answerrow long">'+
+        '<textarea class="codeinput long" id="ansInput" rows="6" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="答えを入力…（複数行も入力できます）"></textarea>'+
+        '</div><div class="actionrow"><button class="primary" id="btnSubmit">入力した答えで回答 →</button></div>';
+    }
+    return '<div class="answerrow">'+
+      '<input class="codeinput" id="ansInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="答えを入力…">'+
+      '<button class="primary" id="btnSubmit">入力した答えで回答 →</button>'+
+    '</div>';
   }
 
   function mobileAnswerKind(answer){
@@ -510,6 +535,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
 
   export function renderQuestionBody(q){
     var type = q.type || 'fill';
+    var useSelection=selectionAnswerEnabled();
     var leadText = q.lead;
     if(type==='order' && leadText){
       leadText=leadText.replace(/正しい順番を記号で答えなさい。?/,'カードを正しい順番に並べなさい。');
@@ -523,7 +549,11 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     }
 
     var bodyHtml;
-    if(type==='order'){
+    if(type==='order' && !useSelection){
+      bodyHtml='<div class="order-reference" aria-label="並べ替えるコード">'+q.lines.map(function(ln){
+        return '<div><b>'+esc(ln.label)+'</b><code>'+esc(ln.code)+'</code></div>';
+      }).join('')+'</div>';
+    } else if(type==='order'){
       var orderUsed=Object.keys(state.dragPlacement).map(function(key){ return state.dragPlacement[key]; }).filter(Boolean);
       var orderCards=q.lines.map(function(ln){
         var used=orderUsed.indexOf(ln.label)!==-1;
@@ -559,17 +589,17 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     }
 
     var answerHtml;
-    if(type==='choice'){
+    if(type==='choice' && useSelection){
       answerHtml = '<div class="choicegrid" id="choiceGrid">'+
         q.options.map(function(opt,i){
-          return '<button class="choicebtn" data-opt="'+i+'">'+esc(opt)+'</button>';
+          return choiceButtonHtml(opt,i,'','data-opt="'+i+'"');
         }).join('')+
       '</div>';
-    } else if(type==='order'){
+    } else if(type==='order' && useSelection){
       var orderComplete=q.lines.every(function(ln,index){ return !!state.dragPlacement['order-'+index]; });
       answerHtml='<div class="actionrow"><button class="ghost" id="btnDragReset" type="button">並び順をリセット</button>'+
         '<button class="primary" id="btnSubmit"'+(orderComplete?'':' disabled')+'>この順番で回答 →</button></div>';
-    } else if(type==='dragfill'){
+    } else if(type==='dragfill' && useSelection){
       var usedIds = Object.keys(state.dragPlacement).map(function(b){ return state.dragPlacement[b]; }).filter(Boolean);
       var trayHtml = q.pieces.map(function(p){
         var used = usedIds.indexOf(p.id)!==-1;
@@ -583,28 +613,16 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
           '<button class="ghost" id="btnDragReset" type="button">やり直す</button>'+
           '<button class="primary" id="btnSubmit"'+(allFilled?'':' disabled')+'>詠唱する →</button>'+
         '</div>';
-    } else if(mobileAnswerEnabled(q) && q.long && mobileLineBuilder(q)){
+    } else if((type==='fill'||type==='debug') && useSelection && q.long && mobileLineBuilder(q)){
       answerHtml=mobileLineBuilder(q);
-    } else if(mobileAnswerEnabled(q) && !q.long){
+    } else if((type==='fill'||type==='debug') && useSelection){
       answerHtml='<div class="mobile-choicegrid">'+mobileChoiceAnswers(q).map(function(answer,index){
-        return '<button type="button" class="choicebtn mobile-answer-choice" data-mobile-answer="'+index+'">'+esc(answer)+'</button>';
+        return choiceButtonHtml(answer,index,'mobile-answer-choice','data-mobile-answer="'+index+'"');
       }).join('')+'</div>';
-    } else if(q.long){
-      answerHtml = '<div class="answerrow long">'+
-        '<textarea class="codeinput long" id="ansInput" rows="6" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="ここに複数行のコードを入力…(Enterで改行できます)"></textarea>'+
-      '</div>'+
-      '<div class="actionrow"><button class="primary" id="btnSubmit">詠唱する →</button></div>';
     } else {
-      answerHtml = '<div class="answerrow">'+
-        '<input class="codeinput" id="ansInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="ここにコードを入力…">'+
-        '<button class="primary" id="btnSubmit">詠唱する →</button>'+
-      '</div>';
+      answerHtml=textInputAnswerHtml(q);
     }
-    var mobileSwitch=(type==='fill'||type==='debug')
-      ? '<button type="button" class="mobile-answer-toggle" id="btnMobileAnswerToggle">'+
-        (progress.settings.mobileAnswerMode?'⌨ キーボード入力へ':'☝ タップ回答へ')+'</button>'
-      : '';
-    return {qlead:qlead, bodyHtml:bodyHtml, answerHtml:mobileSwitch+answerHtml};
+    return {qlead:qlead, bodyHtml:bodyHtml, answerHtml:answerModeToggleHtml(useSelection)+answerHtml};
   }
 
 
@@ -676,27 +694,28 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
 
   export function wireQuestionControls(app){
     var type = state.curQ.type||'fill';
-    var mobileToggle=document.getElementById('btnMobileAnswerToggle');
-    if(mobileToggle) mobileToggle.addEventListener('click',function(){
-      progress.settings.mobileAnswerMode=!progress.settings.mobileAnswerMode;
-      saveProgress(progress);
-      render();
+    Array.prototype.forEach.call(document.querySelectorAll('[data-answer-mode]'),function(btn){
+      btn.addEventListener('click',function(){
+        var useSelection=btn.getAttribute('data-answer-mode')==='selection';
+        if(progress.settings.mobileAnswerMode===useSelection) return;
+        progress.settings.mobileAnswerMode=useSelection;
+        saveProgress(progress);
+        render();
+      });
     });
     var mobileChoices=app.querySelectorAll('.mobile-answer-choice');
     if(mobileChoices.length){
       var answers=mobileChoiceAnswers(state.curQ);
       Array.prototype.forEach.call(mobileChoices,function(btn){
-        btn.addEventListener('click',function(){ resolveAnswer(answers[parseInt(btn.getAttribute('data-mobile-answer'),10)]); });
+        btn.addEventListener('click',function(){
+          btn.classList.add('chosen');
+          Array.prototype.forEach.call(mobileChoices,function(choice){ choice.disabled=true; });
+          resolveAnswer(answers[parseInt(btn.getAttribute('data-mobile-answer'),10)]);
+        });
       });
     } else if(document.getElementById('btnMobileLineSubmit')){
       wireMobileLineBuilder(app);
-    } else if(type==='choice'){
-      Array.prototype.forEach.call(app.querySelectorAll('.choicebtn'), function(btn){
-        btn.addEventListener('click', function(){ onChoice(parseInt(btn.getAttribute('data-opt'),10)); });
-      });
-    } else if(type==='dragfill'||type==='order'){
-      wireDragfillControls(app);
-    } else {
+    } else if(document.getElementById('ansInput')){
       var input = document.getElementById('ansInput');
       var submitBtn = document.getElementById('btnSubmit');
       submitBtn.addEventListener('click', onSubmit);
@@ -708,6 +727,12 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
         onSubmit();
       });
       input.focus();
+    } else if(type==='choice'){
+      Array.prototype.forEach.call(app.querySelectorAll('.choicebtn'), function(btn){
+        btn.addEventListener('click', function(){ onChoice(parseInt(btn.getAttribute('data-opt'),10)); });
+      });
+    } else if(type==='dragfill'||type==='order'){
+      wireDragfillControls(app);
     }
   }
 
@@ -1052,6 +1077,8 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
 
   function onChoice(idx){
     if(state.locked) return;
+    var chosen=document.querySelector('.choicebtn[data-opt="'+idx+'"]');
+    if(chosen) chosen.classList.add('chosen');
     Array.prototype.forEach.call(document.querySelectorAll('.choicebtn'), function(b){ b.disabled = true; });
     resolveAnswer(state.curQ.options[idx]);
   }

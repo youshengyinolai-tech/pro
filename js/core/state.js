@@ -74,7 +74,11 @@ export const STORE_KEY = 'oopExamQuest_v3';
     progress.settings.soloCollapsed = false;
   }
   if(!('mobileAnswerMode' in progress.settings)){
-    progress.settings.mobileAnswerMode = true;
+    progress.settings.mobileAnswerMode = false;
+  }
+  if(progress.settings.answerModeVersion !== 2){
+    progress.settings.mobileAnswerMode = false;
+    progress.settings.answerModeVersion = 2;
   }
   /* 3段階だった旧重要度スキーマ(1=最重要/2=標準/3=深掘り)を5段階へ移行する。
      旧設定で絞り込み済みだった人が、アップデート後に急に0件になったり範囲が
