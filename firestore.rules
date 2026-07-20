@@ -13,9 +13,12 @@ service cloud.firestore {
 
     function validSnapshot(data) {
       return data.keys().hasOnly([
-          'nickname', 'overall', 'stars', 'clears', 'correct',
+          'clientId', 'nickname', 'overall', 'stars', 'clears', 'correct',
           'accuracy', 'streak', 'study', 'medals', 'updatedAt'
         ])
+        && data.clientId is string
+        && data.clientId.size() > 0
+        && data.clientId.size() <= 64
         && data.nickname is string
         && data.nickname.size() > 0
         && data.nickname.size() <= 16

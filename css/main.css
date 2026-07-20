@@ -608,10 +608,11 @@
   .room-code button{border:0;background:none;color:var(--accent);font-weight:700;cursor:pointer}.your-room-rank{text-align:right}
   .your-room-rank small{display:block;color:var(--ink-dim)}.your-room-rank strong{font:900 1.35rem var(--font-mono);color:var(--accent)}
   .metric-tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 0 12px}.metric-tab{flex:0 0 auto;padding:8px 11px;border:1px solid var(--line);background:rgba(255,255,255,.25);color:var(--ink-dim);font:700 .76rem var(--font-body);cursor:pointer}
-  .metric-tab.active{background:#784128;color:#fff3da;border-color:#784128}.room-ranking-table .league-row{grid-template-columns:42px minmax(120px,1fr) 130px 65px}
+  .metric-tab.active{background:#784128;color:#fff3da;border-color:#784128}.room-ranking-table .league-row{grid-template-columns:42px minmax(120px,1fr) 130px 65px 58px}
   .member-kind{text-align:right;font:.58rem var(--font-mono);color:var(--ink-dim)}.room-detail-actions{display:flex;justify-content:space-between;gap:10px}
+  .member-action{text-align:right}.member-action button{padding:4px 6px;border:1px solid color-mix(in srgb,var(--danger) 55%,var(--line));background:rgba(255,255,255,.28);color:var(--danger);font:700 .62rem var(--font-body);cursor:pointer}.member-action button:disabled{opacity:.4}
   .danger-room{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 50%,var(--line))}
-  @media(max-width:760px){.room-progress-strip{grid-template-columns:repeat(2,1fr)}.room-actions-grid{grid-template-columns:1fr}.room-hero,.room-detail-hero{display:grid}.room-profile,.room-code{width:100%}.room-action form{display:grid}.room-detail-actions{display:grid}.room-ranking-table .league-row{grid-template-columns:32px minmax(90px,1fr) 100px 45px}}
+  @media(max-width:760px){.room-progress-strip{grid-template-columns:repeat(2,1fr)}.room-actions-grid{grid-template-columns:1fr}.room-hero,.room-detail-hero{display:grid}.room-profile,.room-code{width:100%}.room-action form{display:grid}.room-detail-actions{display:grid}.room-ranking-table .league-row{grid-template-columns:32px minmax(82px,1fr) 82px 38px 48px}}
 
   /* ---- solo motivation ---- */
   .solo-momentum{margin:0 0 18px;padding:14px 16px;color:#2b2119;background:linear-gradient(110deg,#f0dfbd,#d9bd8c);border:1px solid #896943;box-shadow:0 5px 12px rgba(49,29,14,.18)}

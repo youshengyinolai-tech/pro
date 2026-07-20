@@ -1,7 +1,7 @@
 /*
  ranking.js — ランキングルームの作成、招待コード参加、複数観点順位表を描画する。
 */
-import { state, progress, esc } from '../core/state.js';
+import { state, progress, saveProgress, esc } from '../core/state.js';
 import {
   RANKING_METRICS, playerIdentity, setPlayerName, captureProgress,
   createRoom, joinRoom, listRooms, getRoom, openRoom, syncCurrentPlayer,
@@ -9,10 +9,68 @@ import {
 } from '../core/ranking.js';
 import { firebaseAvailable } from '../services/firebase.js';
 import {
-  createFirebaseRoom, joinFirebaseRoom, syncFirebaseProgress, loadFirebaseRoom
+  createFirebaseRoom, joinFirebaseRoom, syncFirebaseProgress, loadFirebaseRoom,
+  subscribeFirebaseRoomMembers, kickFirebaseMember
 } from '../services/firebaseRanking.js';
 import { render, renderTopbar } from '../core/router.js';
 import { icon } from '../core/icons.js';
+
+var realtimeRoomId=null;
+var stopRealtimeRoom=null;
+var REMOTE_SYNC_INTERVAL=4*60*60*1000;
+var MAX_AUTO_SYNCS_PER_DAY=6;
+var MAX_REALTIME_STARTS_PER_DAY=5;
+
+function dailyBudget(name){
+  if(!progress.ranking.autoUpdateBudget) progress.ranking.autoUpdateBudget={};
+  var today=new Date().toISOString().slice(0,10);
+  var budget=progress.ranking.autoUpdateBudget[name];
+  if(!budget||budget.day!==today) budget={day:today,count:0};
+  progress.ranking.autoUpdateBudget[name]=budget;
+  return budget;
+}
+
+function stopRealtimeRanking(){
+  if(stopRealtimeRoom) stopRealtimeRoom();
+  stopRealtimeRoom=null;
+  realtimeRoomId=null;
+}
+
+async function syncProgressIfDue(room){
+  if(!firebaseAvailable()||!room) return false;
+  if(!progress.ranking.remoteSyncAt) progress.ranking.remoteSyncAt={};
+  var last=progress.ranking.remoteSyncAt[room.id]||0;
+  if(Date.now()-last<REMOTE_SYNC_INTERVAL) return false;
+  var budget=dailyBudget('syncs');
+  if(budget.count>=MAX_AUTO_SYNCS_PER_DAY) return false;
+  await syncFirebaseProgress(room.id,playerIdentity().name,captureProgress(),playerIdentity().id);
+  progress.ranking.remoteSyncAt[room.id]=Date.now();
+  budget.count++;
+  saveProgress(progress);
+  return true;
+}
+
+async function startRealtimeRanking(room){
+  if(!firebaseAvailable()||!room||realtimeRoomId===room.id) return;
+  stopRealtimeRanking();
+  var realtimeBudget=dailyBudget('listeners');
+  if(realtimeBudget.count>=MAX_REALTIME_STARTS_PER_DAY) return;
+  realtimeBudget.count++;
+  saveProgress(progress);
+  realtimeRoomId=room.id;
+  try{
+    await syncProgressIfDue(room);
+    if(realtimeRoomId!==room.id) return;
+    stopRealtimeRoom=await subscribeFirebaseRoomMembers(room,function(remote){
+      saveRemoteRoom(remote);
+      if(state.screen==='ranking-room'&&getRoom()&&getRoom().id===remote.id) render();
+    },function(error){
+      console.warn('ランキング自動更新を停止しました',error);
+    });
+  }catch(error){
+    console.warn('ランキング自動同期に失敗しました',error);
+  }
+}
 
 function metricLabel(metricId){
   return RANKING_METRICS.filter(function(m){ return m.id===metricId; })[0]||RANKING_METRICS[0];
@@ -77,12 +135,14 @@ function metricTabs(active){
 
 function rankingTable(room,active){
   var metric=metricLabel(active);
+  var isOwner=room.members.some(function(member){ return member.isPlayer&&member.id===room.ownerId; });
   return '<div class="league-table room-ranking-table" role="table">'+roomRanking(room,active).map(function(row){
     return '<div class="league-row'+(row.isPlayer?' player':'')+'" role="row">'+
       '<span class="league-rank">'+row.rank+'</span>'+
       '<span class="league-name">'+esc(row.name)+(row.isPlayer?' <small>YOU</small>':'')+'</span>'+
       '<strong>'+row.value.toLocaleString()+' '+metric.unit+'</strong>'+
       '<span class="member-kind">'+(row.isDemo?'DEMO':'MEMBER')+'</span>'+
+      '<span class="member-action">'+(isOwner&&!row.isPlayer?'<button type="button" data-kick-member="'+esc(row.id)+'" data-kick-name="'+esc(row.name)+'">キック</button>':'')+'</span>'+
     '</div>';
   }).join('')+'</div>';
 }
@@ -137,7 +197,7 @@ export function wireRankingHome(){
     var code=document.getElementById('roomCode').value;
     if(firebaseAvailable()){
       try{
-        var roomId=await joinFirebaseRoom(code,playerIdentity().name,captureProgress());
+        var roomId=await joinFirebaseRoom(code,playerIdentity().name,captureProgress(),playerIdentity().id);
         var remote=await loadFirebaseRoom(roomId);
         if(remote) saveRemoteRoom(remote);
         state.screen='ranking-room'; render();
@@ -156,19 +216,37 @@ export function wireRankingHome(){
 }
 
 export function wireRankingRoom(){
-  document.getElementById('btnRankingBack').addEventListener('click',function(){ state.screen='ranking'; render(); });
-  document.getElementById('btnMap').addEventListener('click',function(){ state.screen='map'; render(); });
+  var currentRoom=getRoom();
+  startRealtimeRanking(currentRoom);
+  document.getElementById('btnRankingBack').addEventListener('click',function(){ stopRealtimeRanking(); state.screen='ranking'; render(); });
+  document.getElementById('btnMap').addEventListener('click',function(){ stopRealtimeRanking(); state.screen='map'; render(); });
   Array.prototype.forEach.call(document.querySelectorAll('.metric-tab'),function(button){
     button.addEventListener('click',function(){ progress.ranking.activeMetric=button.getAttribute('data-metric'); render(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-kick-member]'),function(button){
+    button.addEventListener('click',async function(){
+      var room=getRoom();
+      var name=button.getAttribute('data-kick-name')||'このメンバー';
+      if(!room||!window.confirm('「'+name+'」をこの部屋からキックしますか？')) return;
+      button.disabled=true;
+      try{
+        await kickFirebaseMember(room.id,button.getAttribute('data-kick-member'));
+      }catch(error){
+        button.disabled=false;
+        window.alert('キックに失敗しました: '+error.message);
+      }
+    });
   });
   document.getElementById('btnSyncProgress').addEventListener('click',async function(){
     var room=getRoom();
     syncCurrentPlayer();
     if(firebaseAvailable()&&room){
       try{
-        await syncFirebaseProgress(room.id,playerIdentity().name,captureProgress());
-        var remote=await loadFirebaseRoom(room.id);
-        if(remote) saveRemoteRoom(remote);
+        var synced=await syncProgressIfDue(room);
+        if(!synced){
+          this.textContent='自動同期済み';
+          setTimeout(function(){ var button=document.getElementById('btnSyncProgress'); if(button) button.textContent='進捗を同期'; },1200);
+        }
       }catch(error){
         window.alert('Firebase同期に失敗しました: '+error.message);
       }
@@ -182,6 +260,6 @@ export function wireRankingRoom(){
   });
   document.getElementById('btnRemoveRoom').addEventListener('click',function(){
     var room=getRoom();
-    if(room&&window.confirm('「'+room.name+'」をこの端末から削除しますか？')){ removeRoom(room.id); state.screen='ranking'; render(); }
+    if(room&&window.confirm('「'+room.name+'」をこの端末から削除しますか？')){ stopRealtimeRanking(); removeRoom(room.id); state.screen='ranking'; render(); }
   });
 }
