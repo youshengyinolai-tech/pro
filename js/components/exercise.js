@@ -8,9 +8,9 @@ import {
   UNIT_LIST, unitAttemptInfo, recommendDifficulty, weakUnitIds,
   recordUnitAnswer, recordMissed, rebuildEndlessQueue, reshuffleEndlessQueue,
   currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity
-} from '../core/state.js?v=2026072044';
+} from '../core/state.js?v=2026072102';
 import { icon, stageIcon } from '../core/icons.js';
-import { render, renderTopbar, openLesson } from '../core/router.js';
+import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072102';
 
   var exerciseKeyboardInstalled = false;
 

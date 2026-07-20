@@ -31,6 +31,50 @@ export const STORE_KEY = 'oopExamQuest_v3';
   export const POOL_INDEX_BY_QID = {};
   ENDLESS_POOL.forEach(function(entry, i){ POOL_INDEX_BY_QID[entry.q.qid] = i; });
 
+  /* 表示上の4段階は維持しつつ、同じ段階内の問題差を100〜1000で表す内部レート。
+     解説文の長さは難しさに含めず、実際に読むコード・組み立てる回答の特徴だけを見る。 */
+  function questionComplexityScore(q){
+    var type=q.type||'fill';
+    var answer=String((q.answers&&q.answers[0])||'');
+    var code=[q.before||'',q.after||'',q.code||'',q.lead||'']
+      .concat((q.lines||[]).map(function(line){ return line.code||''; })).join('\n');
+    var codeLines=code.split('\n').filter(function(line){ return line.trim(); }).length;
+    var answerLines=answer.split('\n').filter(function(line){ return line.trim(); }).length;
+    var controlTokens=(code.match(/\b(?:if|else|for|while|switch|case|return|new|delete|class|template|try|catch)\b/g)||[]).length;
+    var operators=(code.match(/(?:<<|>>|==|!=|<=|>=|&&|\|\||\+\+|--|[+\-*\/%=<>])/g)||[]).length;
+    var brackets=(code.match(/[()[\]{}]/g)||[]).length;
+    var typeWeight={choice:-20,fill:0,debug:42,order:34,dragfill:28}[type]||0;
+    var score=typeWeight+
+      Math.min(125,answer.length*0.7)+
+      Math.min(90,Math.max(0,answerLines-1)*18)+
+      Math.min(90,codeLines*5)+
+      Math.min(90,controlTokens*13)+
+      Math.min(55,operators*2.2)+
+      Math.min(45,brackets*1.4)+
+      Math.min(70,(q.lines||[]).length*9)+
+      Math.min(35,(q.pieces||[]).length*6);
+    if(q.long) score+=75;
+    if(q.answers&&q.answers.length>1) score-=Math.min(18,(q.answers.length-1)*5);
+    return Math.max(0,score);
+  }
+
+  const DIFFICULTY_RANGES={1:[100,299],2:[300,499],3:[500,749],4:[750,1000]};
+  const QUESTION_RATING_BY_QID={};
+  [1,2,3,4].forEach(function(diff){
+    var entries=ENDLESS_POOL.filter(function(entry){ return entry.diff===diff; });
+    var scores=entries.map(function(entry){ return questionComplexityScore(entry.q); });
+    var min=Math.min.apply(Math,scores),max=Math.max.apply(Math,scores);
+    var range=DIFFICULTY_RANGES[diff];
+    entries.forEach(function(entry,index){
+      var ratio=max===min?0.5:(scores[index]-min)/(max-min);
+      QUESTION_RATING_BY_QID[entry.q.qid]=Math.round(range[0]+ratio*(range[1]-range[0]));
+    });
+  });
+
+  export function questionDifficultyRating(q){
+    return QUESTION_RATING_BY_QID[q.qid] || 100;
+  }
+
   /* unit(章)ごとの出題対象INDEXを引けるようにしておく。弱点集計・単元フィルターの両方で使う。 */
   export const UNIT_LIST = BASE_STAGES.map(function(st){ return {id:st.id, title:st.title, sub:st.sub, emoji:st.emoji}; });
   export const POOL_INDICES_BY_UNIT = {};
@@ -54,6 +98,11 @@ export const STORE_KEY = 'oopExamQuest_v3';
   export const progress = loadProgress();
   if(!progress.endless || !Array.isArray(progress.endless.queue)){
     progress.endless = {queue:[], pos:0, correct:0, wrong:0, streak:0, bestStreak:0};
+  }
+  if(progress.endless.adaptiveQueueVersion !== 2){
+    progress.endless.queue = [];
+    progress.endless.pos = 0;
+    progress.endless.adaptiveQueueVersion = 2;
   }
   if(!progress.settings){
     progress.settings = {allowAlt:false, endlessUnits:null, endlessDiffs:null, endlessTiers:null, studyModeActive:false};
@@ -261,6 +310,47 @@ export const STORE_KEY = 'oopExamQuest_v3';
     }).sort(function(a,b){ return b.key - a.key; }).map(function(k){ return k.i; });
   }
 
+  /* 難易度をユーザーが絞っていないときの、単元別の習熟度を1.0〜4.0で返す。
+     5問未満は基礎寄りから少しずつ上げ、十分な実績があれば誤答率に応じて連続的に変化させる。 */
+  export function unitDifficultyTarget(unit){
+    var info = unitAttemptInfo(unit);
+    if(info.total < 5) return 1 + info.total*0.15;
+    return Math.max(1, Math.min(4, 4 - info.wrongRate*5));
+  }
+
+  function adaptiveDifficultyWeight(entry){
+    var targetLevel = unitDifficultyTarget(entry.unit);
+    var targetRating = 100 + (targetLevel-1)*300;
+    var distance = (questionDifficultyRating(entry.q)-targetRating)/145;
+    return unitWeight(entry.unit) * (0.025 + Math.exp(-0.5*distance*distance));
+  }
+
+  /* 全難易度が選ばれている（endlessDiffs=null）場合だけ使う適応出題。
+     プールと同じ問数を保ちながら、単元ごとの目標難易度に近い問題を高確率で抽選する。 */
+  export function adaptiveEndlessQueue(indices){
+    if(progress.settings.endlessDiffs && progress.settings.endlessDiffs.length){
+      return weightedShuffle(indices);
+    }
+    if(indices.length < 2) return indices.slice();
+    var queue=[];
+    for(var n=0;n<indices.length;n++){
+      var totalWeight=0;
+      var weighted=indices.map(function(i){
+        var weight=adaptiveDifficultyWeight(ENDLESS_POOL[i]);
+        if(queue.length && i===queue[queue.length-1]) weight*=0.08;
+        totalWeight+=weight;
+        return {i:i, ceiling:totalWeight};
+      });
+      var pick=Math.random()*totalWeight;
+      var chosen=weighted[weighted.length-1].i;
+      for(var j=0;j<weighted.length;j++){
+        if(pick<weighted[j].ceiling){ chosen=weighted[j].i; break; }
+      }
+      queue.push(chosen);
+    }
+    return queue;
+  }
+
   export function currentEndlessPoolIndices(){
     var units = progress.settings.endlessUnits;
     var diffs = progress.settings.endlessDiffs;
@@ -282,7 +372,7 @@ export const STORE_KEY = 'oopExamQuest_v3';
   }
 
   export function rebuildEndlessQueue(){
-    progress.endless.queue = weightedShuffle(currentEndlessPoolIndices());
+    progress.endless.queue = adaptiveEndlessQueue(currentEndlessPoolIndices());
     progress.endless.pos = 0;
   }
   export function ensureEndlessQueue(){
@@ -293,7 +383,7 @@ export const STORE_KEY = 'oopExamQuest_v3';
   }
   export function reshuffleEndlessQueue(){
     var lastIdx = progress.endless.queue.length ? progress.endless.queue[progress.endless.queue.length-1] : -1;
-    var next = weightedShuffle(currentEndlessPoolIndices());
+    var next = adaptiveEndlessQueue(currentEndlessPoolIndices());
     if(next.length>1 && next[0]===lastIdx){
       var tmp=next[0]; next[0]=next[1]; next[1]=tmp;
     }
