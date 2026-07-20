@@ -3,14 +3,16 @@
  本文の正確さや命題文の雰囲気には一切関与せず、進捗の可視化と即時フィードバックだけを担当する。
 */
   .tierbadge{
-    display:inline-block; font-family:var(--font-body); font-size:.68rem; font-weight:700;
-    letter-spacing:.02em; text-transform:none; padding:2px 8px; margin-left:6px; border-radius:3px; vertical-align:middle;
+    display:inline-block; font-family:var(--font-body); font-size:.68rem; font-weight:800;
+    letter-spacing:.04em; text-transform:none; padding:3px 9px; margin-left:6px; border-radius:3px; vertical-align:middle;
+    color:#fffaf0; border:1px solid rgba(255,255,255,.72); text-shadow:0 1px 1px rgba(0,0,0,.55);
+    box-shadow:0 0 0 1px rgba(31,20,14,.72), inset 0 1px rgba(255,255,255,.18);
   }
-  .tierbadge.t1{background:color-mix(in srgb, var(--danger) 20%, var(--bg-2)); color:var(--danger); border:1px solid var(--danger);}
-  .tierbadge.t2{background:color-mix(in srgb, var(--accent) 18%, var(--bg-2)); color:var(--accent); border:1px solid var(--accent);}
-  .tierbadge.t3{background:color-mix(in srgb, var(--hero) 16%, var(--bg-2)); color:var(--hero); border:1px solid var(--hero);}
-  .tierbadge.t4{background:color-mix(in srgb, var(--tier-deep) 18%, var(--bg-2)); color:var(--tier-deep); border:1px solid var(--tier-deep);}
-  .tierbadge.t5{background:color-mix(in srgb, var(--tier-legend) 18%, var(--bg-2)); color:var(--tier-legend); border:1px solid var(--tier-legend);}
+  .tierbadge.t1{background:#762f28;}
+  .tierbadge.t2{background:#73501c;}
+  .tierbadge.t3{background:#315c42;}
+  .tierbadge.t4{background:#31546b;}
+  .tierbadge.t5{background:#653568;}
   .studyexpbar{height:10px; background:var(--bg-2); border:1px solid var(--line); border-radius:6px; overflow:hidden; margin-bottom:10px;}
   .studyexpfill{height:100%; background:linear-gradient(90deg, var(--accent), var(--hero)); transition:width .5s cubic-bezier(.3,.9,.4,1);}
   .combobadge{

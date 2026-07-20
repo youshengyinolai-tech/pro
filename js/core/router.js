@@ -18,13 +18,14 @@ import {
   closeUnitPicker,
   renderBattle, renderEndless, renderQuestionBody, wireQuestionControls,
   startStage, installExerciseKeyboardShortcuts
-} from '../components/exercise.js';
+} from '../components/exercise.js?v=2026072033';
 import {
   renderRankingHome, renderRankingRoom, wireRankingHome, wireRankingRoom
 } from '../components/ranking.js';
 import { setPlayerName } from './ranking.js';
 
   var globalKeyboardReady = false;
+  var caseScrollCleanup = null;
 
   function isEditableTarget(target){
     if(!target || target.nodeType!==1) return false;
@@ -71,7 +72,9 @@ import { setPlayerName } from './ranking.js';
       return true;
     }
 
-    var homeBtn = document.getElementById('btnHome');
+    var homeBtn = document.getElementById('btnHome') ||
+      document.getElementById('btnStudyBack') ||
+      document.getElementById('btnLessonBack');
     if(homeBtn && homeBtn.offsetParent !== null){
       homeBtn.click();
       return true;
@@ -86,7 +89,10 @@ import { setPlayerName } from './ranking.js';
   }
 
   function tryAdvanceWithEnter(){
-    var continueBtn = document.getElementById('btnContinue');
+    var continueBtn = document.getElementById('btnContinue') ||
+      document.getElementById('btnStudyNext') ||
+      document.getElementById('btnStudyToChallenge') ||
+      document.getElementById('btnToBattle');
     if(continueBtn && !continueBtn.disabled){
       continueBtn.click();
       return true;
@@ -178,6 +184,7 @@ import { setPlayerName } from './ranking.js';
   export function renderSoloMomentum(){
     var activity=learningActivitySummary();
     var rank=investigatorRank();
+    var collapsed=!!progress.settings.soloCollapsed;
     var missions=activity.missions.map(function(mission){
       var done=mission.value>=mission.target;
       var pct=Math.min(100,Math.round(mission.value/mission.target*100));
@@ -190,14 +197,17 @@ import { setPlayerName } from './ranking.js';
     var nextText=rank.next
       ? '次の「'+rank.next.name+'」まで '+(rank.next.min-rank.points)+' pt'
       : '最高ランクに到達';
-    return '<section class="solo-momentum">'+
+    return '<section class="solo-momentum'+(collapsed?' collapsed':'')+'">'+
       '<div class="solo-head"><div><small>SOLO INVESTIGATION</small><h3>今日の一歩</h3></div>'+
-        '<span class="solo-streak">'+icon('spark')+' '+activity.streak+'日</span></div>'+
-      '<ul class="solo-missions">'+missions+'</ul>'+
-      '<div class="solo-rank"><span><small>現在の階級</small><b>'+esc(rank.name)+'</b></span><strong>'+rank.points+' pt</strong></div>'+
-      '<div class="solo-rank-bar"><i style="width:'+rank.percent+'%"></i></div>'+
-      '<p>'+esc(nextText)+' ・ 1日最高 '+activity.bestDayCorrect+'正解</p>'+
-      (activity.completed===3?'<div class="solo-complete">'+icon('trophy')+' 本日の捜査目標を全達成！</div>':'')+
+        '<div class="solo-head-actions"><span class="solo-streak">'+icon('spark')+' '+activity.streak+'日</span>'+
+          '<button type="button" id="btnSoloCollapse" aria-expanded="'+(!collapsed)+'" aria-label="'+(collapsed?'今日の一歩を展開':'今日の一歩を最小化')+'">'+(collapsed?'＋':'−')+'</button></div></div>'+
+      '<div class="solo-content">'+
+        '<ul class="solo-missions">'+missions+'</ul>'+
+        '<div class="solo-rank"><span><small>現在の階級</small><b>'+esc(rank.name)+'</b></span><strong>'+rank.points+' pt</strong></div>'+
+        '<div class="solo-rank-bar"><i style="width:'+rank.percent+'%"></i></div>'+
+        '<p>'+esc(nextText)+' ・ 1日最高 '+activity.bestDayCorrect+'正解</p>'+
+        (activity.completed===3?'<div class="solo-complete">'+icon('trophy')+' 本日の捜査目標を全達成！</div>':'')+
+      '</div>'+
     '</section>';
   }
 
@@ -1029,16 +1039,49 @@ import { setPlayerName } from './ranking.js';
 
   export function render(){
     var app = document.getElementById('app');
+    if(caseScrollCleanup){ caseScrollCleanup(); caseScrollCleanup=null; }
+    document.body.classList.toggle('case-map-screen',state.screen==='map');
     if(state.screen==='map'){
       app.innerHTML = renderMap();
       Array.prototype.forEach.call(app.querySelectorAll('.stagecard:not(.locked)'), function(btn){
         btn.addEventListener('click', function(){
+          if(btn.disabled) return;
+          btn.disabled=true;
+          btn.classList.add('opening');
           state.curQ = null;
           var idx = parseInt(btn.getAttribute('data-idx'),10);
-          if(progress.settings.studyModeActive) startStudy(idx);
-          else openLesson(idx, false);
+          requestAnimationFrame(function(){
+            if(progress.settings.studyModeActive) startStudy(idx);
+            else openLesson(idx, false);
+          });
         });
       });
+      var soloCollapse=document.getElementById('btnSoloCollapse');
+      if(soloCollapse) soloCollapse.addEventListener('click',function(){
+        progress.settings.soloCollapsed=!progress.settings.soloCollapsed;
+        saveProgress(progress);
+        var panel=soloCollapse.closest('.solo-momentum');
+        if(panel) panel.classList.toggle('collapsed',progress.settings.soloCollapsed);
+        soloCollapse.textContent=progress.settings.soloCollapsed?'＋':'−';
+        soloCollapse.setAttribute('aria-expanded',String(!progress.settings.soloCollapsed));
+        soloCollapse.setAttribute('aria-label',progress.settings.soloCollapsed?'今日の一歩を展開':'今日の一歩を最小化');
+      });
+      var caseOffice=app.querySelector('.case-office');
+      var caseScroll=app.querySelector('.case-scroll');
+      var scrollIdleTimer=0;
+      function markCaseScrolling(){
+        if(!caseOffice) return;
+        caseOffice.classList.add('is-scrolling');
+        clearTimeout(scrollIdleTimer);
+        scrollIdleTimer=setTimeout(function(){ caseOffice.classList.remove('is-scrolling'); },120);
+      }
+      if(caseScroll) caseScroll.addEventListener('scroll',markCaseScrolling,{passive:true});
+      window.addEventListener('scroll',markCaseScrolling,{passive:true});
+      caseScrollCleanup=function(){
+        clearTimeout(scrollIdleTimer);
+        if(caseScroll) caseScroll.removeEventListener('scroll',markCaseScrolling);
+        window.removeEventListener('scroll',markCaseScrolling);
+      };
       document.getElementById('btnModeToggle').addEventListener('click', function(){
         progress.settings.studyModeActive = !progress.settings.studyModeActive;
         saveProgress(progress);

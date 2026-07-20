@@ -67,7 +67,9 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       return true;
     }
 
-    var homeBtn = document.getElementById('btnHome');
+    var homeBtn = document.getElementById('btnHome') ||
+      document.getElementById('btnStudyBack') ||
+      document.getElementById('btnLessonBack');
     if(homeBtn && homeBtn.offsetParent !== null){
       homeBtn.click();
       return true;
@@ -82,7 +84,10 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
   }
 
   function tryAdvanceWithEnter(){
-    var continueBtn = document.getElementById('btnContinue');
+    var continueBtn = document.getElementById('btnContinue') ||
+      document.getElementById('btnStudyNext') ||
+      document.getElementById('btnStudyToChallenge') ||
+      document.getElementById('btnToBattle');
     if(continueBtn && !continueBtn.disabled){
       continueBtn.click();
       return true;
@@ -575,14 +580,13 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       var input = document.getElementById('ansInput');
       var submitBtn = document.getElementById('btnSubmit');
       submitBtn.addEventListener('click', onSubmit);
-      if(input.tagName !== 'TEXTAREA'){
-        input.addEventListener('keydown', function(e){
-          if(e.key!=='Enter' || state.locked) return;
-          e.preventDefault();
-          e.stopPropagation();
-          onSubmit();
-        });
-      }
+      input.addEventListener('keydown', function(e){
+        if(e.key!=='Enter' || state.locked || e.isComposing) return;
+        if(input.tagName==='TEXTAREA' && e.shiftKey) return;
+        e.preventDefault();
+        e.stopPropagation();
+        onSubmit();
+      });
       input.focus();
     }
   }
