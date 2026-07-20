@@ -4,25 +4,25 @@
  それぞれの画面のHTML生成と、その画面固有の配線(wireStudy/wireLesson/wireUnitPicker/
  wireQuestionControls)だけを担当し、render()から呼び出される。
 */
-import { BASE_STAGES, BOSS_GROUPS, STAGES, TOTAL_STARS, DIFF_BATCH_LABEL, TIER_LABEL } from '../data/questions.js';
+import { BASE_STAGES, BOSS_GROUPS, STAGES, TOTAL_STARS, DIFF_BATCH_LABEL, TIER_LABEL } from '../data/questions.js?v=2026072108';
 import {
   state, progress, saveProgress, esc, totalStarsEarned, missedCount,
   recommendDifficulty, starString, UNIT_LIST, ENDLESS_POOL,
-  shuffle, POOL_INDEX_BY_QID, ensureEndlessQueue,
+  shuffle, POOL_INDEX_BY_QID, ensureEndlessQueue, reshuffleEndlessQueue,
   learningActivitySummary, investigatorRank
-} from './state.js?v=2026072103';
-import { renderStudy, startStudy, wireStudy } from '../components/study.js?v=2026072103';
+} from './state.js?v=2026072108';
+import { renderStudy, startStudy, wireStudy } from '../components/study.js?v=2026072108';
 import { icon, stageIcon } from './icons.js';
 import {
   renderLesson, wireLesson, openUnitPicker, renderUnitPicker, wireUnitPicker,
   closeUnitPicker,
-  renderBattle, renderEndless, renderQuestionBody, wireQuestionControls,
+  renderBattle, renderEndless, renderEndlessResult, renderQuestionBody, wireQuestionControls,
   startStage, installExerciseKeyboardShortcuts
-} from '../components/exercise.js?v=2026072103';
+} from '../components/exercise.js?v=2026072108';
 import {
   renderRankingHome, renderRankingRoom, wireRankingHome, wireRankingRoom
-} from '../components/ranking.js?v=2026072103';
-import { setPlayerName } from './ranking.js?v=2026072103';
+} from '../components/ranking.js?v=2026072108';
+import { setPlayerName } from './ranking.js?v=2026072108';
 
   var globalKeyboardReady = false;
   var caseScrollCleanup = null;
@@ -1158,6 +1158,17 @@ import { setPlayerName } from './ranking.js?v=2026072103';
         state.curQ=null; state.screen='map'; render();
       });
       wireQuestionControls(app);
+    } else if(state.screen==='endless-result'){
+      app.innerHTML = renderEndlessResult();
+      document.getElementById('btnHome').addEventListener('click', function(){
+        state.curQ=null; state.screen='map'; render();
+      });
+      document.getElementById('btnEndlessAgain').addEventListener('click', function(){
+        state.curQ=null; reshuffleEndlessQueue(); state.screen='endless'; render();
+      });
+      document.getElementById('btnEndlessSettings').addEventListener('click', function(){
+        state.curQ=null; openUnitPicker();
+      });
     } else if(state.screen==='review'){
       app.innerHTML = renderReview();
       var reviewHome = document.getElementById('btnHome');

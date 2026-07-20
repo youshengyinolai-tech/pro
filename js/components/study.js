@@ -4,10 +4,10 @@
  自体はここでは一切生成せず、questions.js/studyBeats.jsにある確認済みの文面をそのまま
  表示するだけに徹する(演出はUI側だけに閉じ込め、内容の正確性はデータ側に委ねる)。
 */
-import { STAGES } from '../data/questions.js';
+import { STAGES } from '../data/questions.js?v=2026072108';
 import { resolveStudyBeats } from '../data/studyBeats.js';
-import { state, progress, saveProgress, esc, MEDAL_RANK, recordLearningActivity } from '../core/state.js?v=2026072103';
-import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103';
+import { state, progress, saveProgress, esc, MEDAL_RANK, recordLearningActivity } from '../core/state.js?v=2026072108';
+import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072108';
 import { icon, stageIcon } from '../core/icons.js';
 
 

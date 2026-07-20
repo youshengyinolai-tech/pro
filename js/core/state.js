@@ -4,7 +4,7 @@
  画面のHTMLを直接組み立てることはせず、router/study/exerciseがここを介して
  データを読み書きする。
 */
-import { BASE_STAGES, STAGES, BOSS_GROUPS, BOSS_LONG_QS, questionTier } from '../data/questions.js';
+import { BASE_STAGES, STAGES, BOSS_GROUPS, BOSS_LONG_QS, questionTier } from '../data/questions.js?v=2026072108';
 
 export const STORE_KEY = 'oopExamQuest_v3';
 
@@ -112,6 +112,13 @@ export const STORE_KEY = 'oopExamQuest_v3';
   }
   if(!('endlessDiffs' in progress.settings)){
     progress.settings.endlessDiffs = null;
+  }
+  if([0,10,20,50,100].indexOf(progress.settings.endlessBatchSize)===-1){
+    progress.settings.endlessBatchSize = 0;
+  }
+  if(progress.settings.endlessBatchSizeVersion !== 2){
+    progress.settings.endlessBatchSize = 0;
+    progress.settings.endlessBatchSizeVersion = 2;
   }
   if(!('endlessTiers' in progress.settings)){
     progress.settings.endlessTiers = null;
@@ -327,13 +334,22 @@ export const STORE_KEY = 'oopExamQuest_v3';
 
   /* 全難易度が選ばれている（endlessDiffs=null）場合だけ使う適応出題。
      プールと同じ問数を保ちながら、単元ごとの目標難易度に近い問題を高確率で抽選する。 */
-  export function adaptiveEndlessQueue(indices){
+  export function adaptiveEndlessQueue(indices, requestedCount){
+    var count=requestedCount||indices.length;
     if(progress.settings.endlessDiffs && progress.settings.endlessDiffs.length){
-      return weightedShuffle(indices);
+      var explicitQueue=[];
+      while(explicitQueue.length<count && indices.length){
+        var batch=weightedShuffle(indices);
+        if(explicitQueue.length && batch.length>1 && explicitQueue[explicitQueue.length-1]===batch[0]){
+          var swap=batch[0];batch[0]=batch[1];batch[1]=swap;
+        }
+        explicitQueue=explicitQueue.concat(batch);
+      }
+      return explicitQueue.slice(0,count);
     }
     if(indices.length < 2) return indices.slice();
     var queue=[];
-    for(var n=0;n<indices.length;n++){
+    for(var n=0;n<count;n++){
       var totalWeight=0;
       var weighted=indices.map(function(i){
         var weight=adaptiveDifficultyWeight(ENDLESS_POOL[i]);
@@ -372,27 +388,60 @@ export const STORE_KEY = 'oopExamQuest_v3';
   }
 
   export function rebuildEndlessQueue(){
-    progress.endless.queue = adaptiveEndlessQueue(currentEndlessPoolIndices());
+    progress.endless.queue = adaptiveEndlessQueue(currentEndlessPoolIndices(),progress.settings.endlessBatchSize);
     progress.endless.pos = 0;
+    progress.endless.sessionCorrect = 0;
+    progress.endless.sessionWrong = 0;
   }
   export function ensureEndlessQueue(){
-    var pool = currentEndlessPoolIndices();
-    if(progress.endless.queue.length !== pool.length){
+    var expectedLength=progress.settings.endlessBatchSize || currentEndlessPoolIndices().length;
+    if(progress.endless.queue.length !== expectedLength ||
+       progress.endless.pos >= progress.endless.queue.length){
       rebuildEndlessQueue();
     }
   }
   export function reshuffleEndlessQueue(){
     var lastIdx = progress.endless.queue.length ? progress.endless.queue[progress.endless.queue.length-1] : -1;
-    var next = adaptiveEndlessQueue(currentEndlessPoolIndices());
+    var next = adaptiveEndlessQueue(currentEndlessPoolIndices(),progress.settings.endlessBatchSize);
     if(next.length>1 && next[0]===lastIdx){
       var tmp=next[0]; next[0]=next[1]; next[1]=tmp;
     }
     progress.endless.queue = next;
     progress.endless.pos = 0;
+    progress.endless.sessionCorrect = 0;
+    progress.endless.sessionWrong = 0;
+  }
+
+  /* 制限なしでは1問ごとに最新の正誤実績を反映し、次の出題候補を作り直す。
+     セット成績はリセットせず、直前と同じ問題だけは先頭から外す。 */
+  export function refreshUnlimitedEndlessQueue(lastIdx){
+    var next=adaptiveEndlessQueue(currentEndlessPoolIndices());
+    if(next.length>1 && next[0]===lastIdx){
+      var different=next.findIndex(function(i){ return i!==lastIdx; });
+      if(different>0){
+        var swap=next[0];next[0]=next[different];next[different]=swap;
+      }
+    }
+    progress.endless.queue=next;
+    progress.endless.pos=0;
+  }
+
+  /* 件数指定セットでは回答済み部分と進捗位置を保ち、未出題分だけを毎問再計算する。 */
+  export function refreshRemainingEndlessQueue(lastIdx){
+    var remaining=progress.endless.queue.length-progress.endless.pos;
+    if(remaining<=0) return;
+    var next=adaptiveEndlessQueue(currentEndlessPoolIndices(),remaining);
+    if(next.length>1 && next[0]===lastIdx){
+      var different=next.findIndex(function(i){ return i!==lastIdx; });
+      if(different>0){
+        var swap=next[0];next[0]=next[different];next[different]=swap;
+      }
+    }
+    progress.endless.queue=progress.endless.queue.slice(0,progress.endless.pos).concat(next);
   }
 
 
-  export const state = {curQ:null, screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, activeQs:[], pickerSelection:[], pickerDiffSelection:[1,2,3,4], pickerTierSelection:[1,2,3,4,5], pickerReturnScreen:'map', pickerReturnFocusId:null, reviewQueue:[], reviewPos:0, reviewStats:{correct:0, wrong:0}, dragPlacement:{}, dragSelected:null, dragQid:null, mobileLineOrder:[], mobileLineSelected:null, mobileLineQid:null, startTier:1, studyStep:0, studyPicked:null, studyCombo:0, studyBestCombo:0, studyWrongCount:0};
+  export const state = {curQ:null, screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, activeQs:[], pickerSelection:[], pickerDiffSelection:[1,2,3,4], pickerTierSelection:[1,2,3,4,5], pickerBatchSize:0, pickerReturnScreen:'map', pickerReturnFocusId:null, reviewQueue:[], reviewPos:0, reviewStats:{correct:0, wrong:0}, dragPlacement:{}, dragSelected:null, dragQid:null, mobileLineOrder:[], mobileLineSelected:null, mobileLineQid:null, startTier:1, studyStep:0, studyPicked:null, studyCombo:0, studyBestCombo:0, studyWrongCount:0};
 
 
   export function shuffle(arr){

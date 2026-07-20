@@ -2,16 +2,17 @@
  exercise.js — 訓練場(訓練カード+難易度選択)・1000本ノックの単元/難易度/重要度ピッカー・
  戦闘/エンドレス/復習で共通利用する設問レンダリング&採点ロジックをまとめる。
 */
-import { STAGES, DIFF_BATCH_LABEL, DIFF_WRONG_DMG, TIER_LABEL, TIER_DESC, questionTier } from '../data/questions.js';
+import { STAGES, DIFF_BATCH_LABEL, DIFF_WRONG_DMG, DIFF_CORRECT_DMG, TIER_LABEL, TIER_DESC, questionTier } from '../data/questions.js?v=2026072108';
 import {
   state, progress, saveProgress, esc, shuffle, checkAnswer, normalize,
   UNIT_LIST, unitAttemptInfo, recommendDifficulty, weakUnitIds,
   recordUnitAnswer, recordMissed, rebuildEndlessQueue, reshuffleEndlessQueue,
+  refreshUnlimitedEndlessQueue, refreshRemainingEndlessQueue,
   currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity,
   questionDifficultyRating, unitDifficultyTarget
-} from '../core/state.js?v=2026072103';
+} from '../core/state.js?v=2026072108';
 import { icon, stageIcon } from '../core/icons.js';
-import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103';
+import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072108';
 
   var exerciseKeyboardInstalled = false;
 
@@ -260,6 +261,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103
     state.pickerSelection = (cur && cur.length) ? cur.slice() : UNIT_LIST.map(function(u){ return u.id; });
     state.pickerDiffSelection = (curDiff && curDiff.length) ? curDiff.slice() : [1,2,3,4];
     state.pickerTierSelection = (curTier && curTier.length) ? curTier.slice() : [1,2,3,4,5];
+    state.pickerBatchSize = progress.settings.endlessBatchSize;
     state.screen = 'unitPicker';
     render();
   }
@@ -284,6 +286,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103
     var sel = state.pickerSelection;
     var diffSel = state.pickerDiffSelection;
     var tierSel = state.pickerTierSelection;
+    var batchSize = state.pickerBatchSize;
     var chips = UNIT_LIST.map(function(u){
       var on = sel.indexOf(u.id) !== -1;
       var info = unitAttemptInfo(u.id);
@@ -309,6 +312,9 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103
         '<span class="tc-count">'+count+'問</span>'+
         '<span class="tc-desc">'+esc(TIER_DESC[lv])+'</span>'+
       '</button>';
+    }).join('');
+    var batchChips=[0,10,20,50,100].map(function(count){
+      return '<button class="diffchip'+(batchSize===count?' on':'')+'" data-batch-size="'+count+'">'+(count===0?'制限なし':count+'問')+'</button>';
     }).join('');
 
     var recoLevel = recommendDifficulty(sel);
@@ -338,6 +344,8 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103
     '<div class="tierchiprow">'+tierChips+'</div>'+
     '<div class="difftitle" style="margin-top:24px;">難易度で絞る(複数選択可)</div>'+
     '<div class="diffchiprow">'+diffChips+'</div>'+
+    '<div class="difftitle" style="margin-top:24px;">1セットの出題数</div>'+
+    '<div class="diffchiprow" role="radiogroup" aria-label="出題数">'+batchChips+'</div>'+
     '<div class="actionrow" style="margin-top:20px;">'+
       '<button class="primary" id="btnPickerStart"'+((sel.length===0||diffSel.length===0||tierSel.length===0)?' disabled':'')+'>この設定で1000本ノックを開始 →</button>'+
     '</div>';
@@ -382,6 +390,12 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103
         render();
       });
     });
+    Array.prototype.forEach.call(app.querySelectorAll('[data-batch-size]'), function(btn){
+      btn.addEventListener('click', function(){
+        state.pickerBatchSize=parseInt(btn.getAttribute('data-batch-size'),10);
+        render();
+      });
+    });
     document.getElementById('btnPickerAuto').addEventListener('click', function(){
       var weak = weakUnitIds();
       state.pickerSelection = weak.slice();
@@ -395,6 +409,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103
       progress.settings.endlessUnits = null;
       progress.settings.endlessDiffs = null;
       progress.settings.endlessTiers = [1,2];
+      progress.settings.endlessBatchSize = state.pickerBatchSize;
       saveProgress(progress);
       rebuildEndlessQueue();
       state.curQ = null;
@@ -409,6 +424,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103
         ? null : state.pickerDiffSelection.slice();
       progress.settings.endlessTiers = (state.pickerTierSelection.length===5)
         ? null : state.pickerTierSelection.slice();
+      progress.settings.endlessBatchSize = state.pickerBatchSize;
       saveProgress(progress);
       rebuildEndlessQueue();
       state.curQ = null;
@@ -683,7 +699,8 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103
       '<div class="estat"><span class="elabel">出題元</span><span class="evalue">'+esc(state.endlessSrc.srcTitle)+'</span></div>'+
       '<div class="estat"><span class="elabel">連続正解</span><span class="evalue">'+e.streak+'(最高'+e.bestStreak+')</span></div>'+
       '<div class="estat"><span class="elabel">通算正答率</span><span class="evalue">'+e.correct+' / '+total+'('+acc+'%)</span></div>'+
-      '<div class="estat"><span class="elabel">今周の残数</span><span class="evalue">'+(progress.endless.queue.length - progress.endless.pos)+' / '+progress.endless.queue.length+'</span></div>'+
+      '<div class="estat"><span class="elabel">'+(progress.settings.endlessBatchSize===0?'出題数':'今セットの残数')+'</span><span class="evalue">'+
+        (progress.settings.endlessBatchSize===0?'制限なし（毎問調整）':(progress.endless.queue.length-progress.endless.pos)+' / '+progress.endless.queue.length)+'</span></div>'+
     '</div>'+
     '<div class="frame qcard" id="qcard">'+
       '<div class="qmeta"><span>1000本ノック <span class="tierbadge t'+state.endlessSrc.tier+'">'+esc(TIER_LABEL[state.endlessSrc.tier])+'</span></span><span>'+esc(state.endlessSrc.srcSub)+'</span></div>'+
@@ -692,6 +709,23 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103
       qb.answerHtml+
     '</div>'+
     '<div id="feedbackSlot"></div>';
+  }
+
+  export function renderEndlessResult(){
+    var correct=progress.endless.sessionCorrect||0;
+    var wrong=progress.endless.sessionWrong||0;
+    var total=correct+wrong;
+    var accuracy=total?Math.round(correct/total*100):0;
+    return ''+renderTopbar()+
+      '<div class="battlebar"><button class="backbtn" id="btnHome">← 地図へ戻る</button></div>'+
+      '<div class="frame result achieve">'+
+        '<span class="bigemoji">'+icon('target')+'</span><h2>'+total+'本ノック完了！</h2>'+
+        '<p>正解 <b>'+correct+'</b>問 ／ 誤答 <b>'+wrong+'</b>問 ／ 正答率 <b>'+accuracy+'%</b></p>'+
+        '<div class="resultbtns">'+
+          '<button class="primary" id="btnEndlessAgain">同じ設定でもう一度 →</button>'+
+          '<button class="ghost" id="btnEndlessSettings">条件を変更する</button>'+
+        '</div>'+
+      '</div>';
   }
 
 
@@ -909,11 +943,13 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103
     if(isEndless){
       if(correct){
         progress.endless.correct++;
+        progress.endless.sessionCorrect=(progress.endless.sessionCorrect||0)+1;
         progress.endless.streak++;
         if(progress.endless.streak > progress.endless.bestStreak) progress.endless.bestStreak = progress.endless.streak;
         qcard.classList.add('pulse');
       } else {
         progress.endless.wrong++;
+        progress.endless.sessionWrong=(progress.endless.sessionWrong||0)+1;
         progress.endless.streak = 0;
         qcard.classList.add('shake');
       }
@@ -929,7 +965,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103
       }
       saveProgress(progress);
     } else {
-      var dmgToMonster = Math.ceil(100/state.activeQs.length);
+      var dmgToMonster = DIFF_CORRECT_DMG[state.curQ.diff] || 10;
       var wrongDmg = DIFF_WRONG_DMG[state.curQ.diff] || 20;
       if(correct){
         state.monsterHP = Math.max(0, state.monsterHP - dmgToMonster);
@@ -1022,9 +1058,12 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103
     document.getElementById('btnContinue').addEventListener('click', function(){
       state.curQ = null;
       if(isEndless){
+        var answeredIndex=progress.endless.queue[progress.endless.pos];
         progress.endless.pos++;
-        if(progress.endless.pos >= progress.endless.queue.length){
-          reshuffleEndlessQueue();
+        if(progress.settings.endlessBatchSize===0) refreshUnlimitedEndlessQueue(answeredIndex);
+        else if(progress.endless.pos >= progress.endless.queue.length) state.screen='endless-result';
+        else if(!progress.settings.endlessDiffs || progress.settings.endlessDiffs.length===0){
+          refreshRemainingEndlessQueue(answeredIndex);
         }
         saveProgress(progress);
         state.locked = false;

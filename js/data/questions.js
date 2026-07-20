@@ -6393,6 +6393,7 @@
   export const DIFF_BATCH_KEYS = ['qs','qsHard','qsExtra','qsExpert'];
   export const DIFF_BATCH_LABEL = {1:'初級(基礎)', 2:'中級(標準)', 3:'上級(応用)', 4:'超級(発展)'};
   export const DIFF_WRONG_DMG = {1:14, 2:20, 3:23, 4:28};
+  export const DIFF_CORRECT_DMG = {1:10, 2:11, 3:12, 4:14};
 
   /* 1000本ノックを「重要度」で絞り込むための5段階の階層タグ。既存のdiff(難易度)とは別軸で、
      「試験に出る確率が高いか」を表す。個々の設問にq.tierを直接指定すれば手動で上書きできる。
