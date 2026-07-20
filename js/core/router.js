@@ -107,6 +107,301 @@ import {
     '</div>';
   }
 
+  export function renderCodexPanel(){
+    var recoLabel = DIFF_BATCH_LABEL[recommendDifficulty(progress.settings.endlessUnits)] || '標準';
+    return ''+
+    '<section class="codex-panel" aria-label="Codex Panel">'+
+      '<div class="codex-panel__header">'+
+        '<span class="codex-panel__eyebrow">NEW CODEX PANEL</span>'+
+        '<h4>観測ログ</h4>'+
+      '</div>'+
+      '<div class="codex-panel__body">'+
+        '<p>新しい捜査窓口を展開しました。次の観測点をすぐ確認できます。</p>'+
+        '<ul>'+
+          '<li>未解決事件: '+missedCount()+' 件</li>'+
+          '<li>総合評価: '+totalStarsEarned()+' / '+TOTAL_STARS+'</li>'+
+          '<li>推奨難易度: '+esc(recoLabel)+'</li>'+
+        '</ul>'+
+        '<button class="codex-panel__cta" id="btnCodexOpen" type="button">観測を開く</button>'+
+      '</div>'+
+    '</section>';
+  }
+
+  function getCodexAchievements(){
+    var achievements = [];
+    var stars = totalStarsEarned();
+    var clearedCases = Object.keys(progress.stars).filter(function(stId){ return (progress.stars[stId]||0) > 0; }).length;
+    var endlessTotal = (progress.endless.correct||0) + (progress.endless.wrong||0);
+    var endlessAccuracy = endlessTotal > 0 ? Math.round((progress.endless.correct||0) / endlessTotal * 100) : 0;
+    var studyCount = Object.keys(progress.studyCompleted || {}).filter(function(id){ return !!progress.studyCompleted[id]; }).length;
+    var perfectUnits = 0;
+    Object.keys(progress.unitStats || {}).forEach(function(unit){
+      var s = progress.unitStats[unit] || {};
+      if((s.correct||0) >= 5 && (s.wrong||0) === 0) perfectUnits++;
+    });
+
+    function addAchievement(label, rarity, tone, batch, unlockTest){
+      var earned = !!(unlockTest);
+      achievements.push({label:label, rarity:rarity || 'common', tone:tone || 'neutral', batch:batch || 'base', earned:earned});
+    }
+
+    var batchFlags = {
+      base: true,
+      standard: stars >= 9 || clearedCases >= 3 || endlessTotal >= 50,
+      advanced: stars >= 20 || endlessTotal >= 200 || studyCount >= 6,
+      legendary: stars >= TOTAL_STARS || endlessTotal >= 1000 || progress.endless.bestStreak >= 15
+    };
+
+    addAchievement('初回突破', 'common', 'good', 'base', stars > 0);
+    addAchievement('序盤制圧', 'common', 'good', 'base', stars >= 3);
+    addAchievement('中盤の切り札', 'common', 'good', 'standard', stars >= 9);
+    addAchievement('捜査の手応え', 'rare', 'good', 'standard', stars >= 15);
+    addAchievement('上級捜査官', 'rare', 'good', 'advanced', stars >= 20);
+    addAchievement('伝説の実力者', 'epic', 'good', 'advanced', stars >= 30);
+    addAchievement('完全制覇', 'legendary', 'good', 'legendary', stars >= TOTAL_STARS);
+    addAchievement('半分の証拠', 'common', 'good', 'standard', clearedCases >= Math.ceil(STAGES.length / 2));
+    addAchievement('全章制覇', 'rare', 'good', 'advanced', clearedCases >= STAGES.length);
+    addAchievement('無傷の捜査', 'rare', 'good', 'advanced', missedCount() === 0);
+    addAchievement('短期連勝', 'common', 'good', 'base', progress.endless.bestStreak >= 3);
+    addAchievement('連勝の極意', 'rare', 'good', 'standard', progress.endless.bestStreak >= 8);
+    addAchievement('連鎖突破', 'epic', 'good', 'legendary', progress.endless.bestStreak >= 15);
+    addAchievement('50本ノック達成', 'common', 'good', 'standard', endlessTotal >= 50);
+    addAchievement('100本ノック達成', 'rare', 'good', 'advanced', endlessTotal >= 100);
+    addAchievement('300本ノック達成', 'epic', 'good', 'advanced', endlessTotal >= 300);
+    addAchievement('1000本ノック達成', 'legendary', 'good', 'legendary', endlessTotal >= 1000);
+    addAchievement('高精度の捜査', 'rare', 'good', 'standard', endlessAccuracy >= 80 && endlessTotal >= 20);
+    addAchievement('正答率の鬼', 'epic', 'good', 'advanced', endlessAccuracy >= 90 && endlessTotal >= 20);
+    addAchievement('学習ログ起動', 'common', 'neutral', 'base', studyCount >= 3);
+    addAchievement('学びの習慣', 'common', 'neutral', 'standard', studyCount >= 6);
+    addAchievement('証拠を読み切る', 'rare', 'neutral', 'advanced', studyCount >= 10);
+    addAchievement('学習モード', 'common', 'neutral', 'base', progress.settings.studyModeActive);
+    addAchievement('別解採用', 'common', 'neutral', 'base', progress.settings.allowAlt);
+    addAchievement('双方向攻略', 'rare', 'neutral', 'advanced', progress.settings.studyModeActive && progress.settings.allowAlt);
+    addAchievement('単元を極めた', 'rare', 'neutral', 'standard', perfectUnits >= 1);
+    addAchievement('弱点を克服', 'epic', 'neutral', 'advanced', perfectUnits >= 3);
+    addAchievement('捜査条件を絞る', 'common', 'neutral', 'base', !!(progress.settings.endlessUnits && progress.settings.endlessUnits.length));
+    addAchievement('難易度を見極める', 'common', 'neutral', 'standard', !!(progress.settings.endlessDiffs && progress.settings.endlessDiffs.length));
+    addAchievement('重要度に着目', 'rare', 'neutral', 'advanced', !!(progress.settings.endlessTiers && progress.settings.endlessTiers.length));
+    addAchievement('勉強の証', 'common', 'neutral', 'base', !!Object.keys(progress.studyMedal || {}).some(function(id){ return !!progress.studyMedal[id]; }));
+    addAchievement('まだ一歩目', 'common', 'neutral', 'base', achievements.length === 0);
+    return achievements;
+  }
+
+  function buildCodexShareText(){
+    var clearedCases = Object.keys(progress.stars).filter(function(stId){ return (progress.stars[stId]||0) > 0; }).length;
+    var achievements = getCodexAchievements().map(function(item){ return item.label; }).join(' / ');
+    return 'コード転生記 進捗共有\n総合評価: '+totalStarsEarned()+' / '+TOTAL_STARS+'\n解決済みケース: '+clearedCases+' / '+STAGES.length+'\n実績: '+achievements;
+  }
+
+  function buildCodexShowcaseHtml(){
+    var clearedCases = Object.keys(progress.stars).filter(function(stId){ return (progress.stars[stId]||0) > 0; }).length;
+    var achievements = getCodexAchievements().slice(0, 4).map(function(item){
+      var rarityClass = 'codex-showcase__achievement--'+(item.rarity || 'common');
+      return '<li class="codex-showcase__achievement '+item.tone+' '+rarityClass+'">'+esc(item.label)+'</li>';
+    }).join('');
+    var headline = totalStarsEarned() >= TOTAL_STARS
+      ? '完全制覇の記録を友達に見せよう'
+      : (missedCount() === 0 ? '無傷の捜査記録を自慢しよう' : '次の一歩まで着実に進んでいる');
+    return ''+
+      '<div class="codex-showcase" id="codexShowcase">'+
+        '<div class="codex-showcase__header">'+
+          '<span class="codex-showcase__eyebrow">BRAGGING CARD</span>'+ 
+          '<h6>友人に自慢する進捗</h6>'+ 
+        '</div>'+ 
+        '<div class="codex-showcase__body">'+ 
+          '<div class="codex-showcase__hero">'+
+            '<div class="codex-showcase__stamp">★ '+totalStarsEarned()+' / '+TOTAL_STARS+'</div>'+ 
+            '<div class="codex-showcase__quote">“'+esc(headline)+'”</div>'+ 
+          '</div>'+ 
+          '<div class="codex-showcase__metrics">'+
+            '<div class="codex-showcase__metric"><span>解決済みケース</span><strong>'+clearedCases+' / '+STAGES.length+'</strong></div>'+ 
+            '<div class="codex-showcase__metric"><span>未解決イベント</span><strong>'+missedCount()+' 件</strong></div>'+ 
+            '<div class="codex-showcase__metric"><span>推奨難易度</span><strong>'+esc(DIFF_BATCH_LABEL[recommendDifficulty(progress.settings.endlessUnits)] || '標準')+'</strong></div>'+ 
+          '</div>'+ 
+          '<ul class="codex-showcase__achievements">'+achievements+'</ul>'+ 
+        '</div>'+ 
+      '</div>';
+  }
+
+  function saveCodexAsImage(app){
+    var preview = app.querySelector('#codexShowcase');
+    if(!preview) return;
+    var canvas = document.createElement('canvas');
+    var width = 1080;
+    var height = 1600;
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    function roundedRect(x, y, w, h, r){
+      if(ctx.roundRect){
+        ctx.roundRect(x, y, w, h, r);
+        return;
+      }
+      ctx.beginPath();
+      ctx.moveTo(x+r, y);
+      ctx.arcTo(x+w, y, x+w, y+h, r);
+      ctx.arcTo(x+w, y+h, x, y+h, r);
+      ctx.arcTo(x, y+h, x, y, r);
+      ctx.arcTo(x, y, x+w, y, r);
+      ctx.closePath();
+    }
+
+    var gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, '#241a13');
+    gradient.addColorStop(1, '#5a2b20');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    for(var i=0;i<14;i++){
+      ctx.beginPath();
+      ctx.arc(90 + (i % 7) * 140, 180 + Math.floor(i / 7) * 180, 52, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.save();
+    ctx.translate(70, 100);
+    ctx.fillStyle = '#f3e4bc';
+    roundedRect(0, 0, width - 140, height - 200, 38);
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#b78d4d';
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.fillStyle = '#8d302b';
+    ctx.font = 'bold 34px "Hiragino Mincho ProN", serif';
+    ctx.fillText('コード転生記', 110, 220);
+
+    ctx.fillStyle = '#2b2318';
+    ctx.font = '700 56px "Hiragino Mincho ProN", serif';
+    ctx.fillText('友人に自慢する進捗', 110, 290);
+
+    ctx.fillStyle = '#6b5b3e';
+    ctx.font = '600 28px "Hiragino Kaku Gothic ProN", sans-serif';
+    ctx.fillText('総合評価 ' + totalStarsEarned() + ' / ' + TOTAL_STARS, 110, 380);
+    ctx.fillText('解決済み案件 ' + Object.keys(progress.stars).filter(function(stId){ return (progress.stars[stId]||0) > 0; }).length + ' / ' + STAGES.length, 110, 430);
+    ctx.fillText('未解決イベント ' + missedCount() + ' 件', 110, 480);
+    ctx.fillText('推奨難易度 ' + (DIFF_BATCH_LABEL[recommendDifficulty(progress.settings.endlessUnits)] || '標準'), 110, 530);
+
+    ctx.fillStyle = '#4f3b24';
+    ctx.font = '600 28px "Hiragino Kaku Gothic ProN", sans-serif';
+    ctx.fillText('実績', 110, 620);
+    var achievements = getCodexAchievements().slice(0, 4);
+    achievements.forEach(function(item, index){
+      var y = 680 + index * 86;
+      ctx.fillStyle = item.tone === 'good' ? '#8d302b' : '#3f6a8a';
+      ctx.fillRect(110, y - 25, 18, 18);
+      ctx.fillStyle = '#2b2318';
+      ctx.font = '500 26px "Hiragino Kaku Gothic ProN", sans-serif';
+      ctx.fillText(item.label, 150, y);
+    });
+
+    ctx.fillStyle = '#6b5b3e';
+    ctx.font = '600 24px "Hiragino Kaku Gothic ProN", sans-serif';
+    ctx.fillText('この記録を写真にして、友達に見せよう。', 110, 1450);
+
+    var link = document.createElement('a');
+    link.download = 'コード転生記_進捗.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  function openCodexProgress(app){
+    if(!app) return;
+    var existing = app.querySelector('.codex-overlay');
+    if(existing) existing.remove();
+    var clearedCases = Object.keys(progress.stars).filter(function(stId){ return (progress.stars[stId]||0) > 0; }).length;
+    var achievementsHtml = [];
+    var grouped = {base:[], standard:[], advanced:[], legendary:[]};
+    getCodexAchievements().forEach(function(item){
+      if(!grouped[item.batch]) grouped[item.batch] = [];
+      grouped[item.batch].push(item);
+    });
+    ['base','standard','advanced','legendary'].forEach(function(batch){
+      if(!grouped[batch] || !grouped[batch].length) return;
+      var batchTitle = batch === 'standard' ? '■ 標準バッチ' : (batch === 'advanced' ? '■ 上級バッチ' : (batch === 'legendary' ? '■ 伝説バッチ' : '■ 基礎バッチ'));
+      achievementsHtml.push('<li class="codex-achievement-group">'+esc(batchTitle)+'</li>');
+      grouped[batch].forEach(function(item){
+        var rarityLabel = item.rarity === 'legendary' ? '【伝説】' : (item.rarity === 'epic' ? '【稀】' : (item.rarity === 'rare' ? '【希少】' : '【一般】'));
+        var earnedClass = item.earned ? 'codex-achievement--earned' : 'codex-achievement--locked';
+        return achievementsHtml.push('<li class="codex-achievement '+item.tone+' codex-achievement--'+(item.rarity || 'common')+' '+earnedClass+'">'+esc(rarityLabel)+' '+esc(item.label)+' <span class="codex-achievement__batch">'+esc(item.earned ? '取得済み' : '未取得')+'</span></li>');
+      });
+    });
+    achievementsHtml = achievementsHtml.join('');
+    var shareText = buildCodexShareText();
+    var showcaseHtml = buildCodexShowcaseHtml();
+    var html = ''+
+      '<div class="codex-overlay" role="dialog" aria-modal="true" aria-label="進捗と実績">'+
+        '<div class="codex-sheet">'+
+          '<button class="codex-sheet__close" id="btnCodexClose" type="button" aria-label="閉じる">×</button>'+
+          '<div class="codex-sheet__header">'+
+            '<span class="codex-panel__eyebrow">SHAREABLE PROGRESS</span>'+
+            '<h4>進捗と実績</h4>'+
+          '</div>'+
+          '<div class="codex-sheet__grid">'+
+            '<section class="codex-card">'+
+              '<h5>進捗</h5>'+
+              '<ul class="codex-metrics">'+
+                '<li><span>総合評価</span><strong>'+totalStarsEarned()+' / '+TOTAL_STARS+'</strong></li>'+
+                '<li><span>解決済みケース</span><strong>'+clearedCases+' / '+STAGES.length+'</strong></li>'+
+                '<li><span>未解決イベント</span><strong>'+missedCount()+' 件</strong></li>'+
+                '<li><span>推奨難易度</span><strong>'+esc(DIFF_BATCH_LABEL[recommendDifficulty(progress.settings.endlessUnits)] || '標準')+'</strong></li>'+
+              '</ul>'+
+            '</section>'+
+            '<section class="codex-card">'+
+              '<h5>実績</h5>'+
+              '<ul class="codex-achievements">'+achievementsHtml+'</ul>'+
+            '</section>'+
+          '</div>'+
+          '<div class="codex-share">'+
+            '<p class="codex-share__label">友人に自慢するプレビュー</p>'+
+            '<div class="codex-share__preview">'+showcaseHtml+'</div>'+
+            '<p class="codex-share__label">共有メッセージ</p>'+
+            '<textarea class="codex-share__textarea" readonly>'+esc(shareText)+'</textarea>'+
+            '<div class="codex-share__actions">'+
+              '<button class="codex-panel__cta" id="btnSaveCodexPhoto" type="button">写真にする</button>'+
+              '<button class="codex-panel__cta" id="btnCopyCodexShare" type="button">コピーする</button>'+
+              '<button class="codex-panel__secondary" id="btnShareCodex" type="button">共有する</button>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    app.insertAdjacentHTML('beforeend', html);
+
+    var sheet = app.querySelector('.codex-sheet');
+    if(sheet){ sheet.addEventListener('click', function(event){ event.stopPropagation(); }); }
+    var overlay = app.querySelector('.codex-overlay');
+    if(overlay){ overlay.addEventListener('click', function(){ overlay.remove(); }); }
+    var closeBtn = app.querySelector('#btnCodexClose');
+    if(closeBtn){ closeBtn.addEventListener('click', function(){ overlay.remove(); }); }
+    var copyBtn = app.querySelector('#btnCopyCodexShare');
+    if(copyBtn){ copyBtn.addEventListener('click', function(){
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(shareText).then(function(){ copyBtn.textContent = 'コピー済み'; });
+      } else {
+        copyBtn.textContent = 'コピーできません';
+      }
+    }); }
+    var shareBtn = app.querySelector('#btnShareCodex');
+    if(shareBtn){ shareBtn.addEventListener('click', function(){
+      if(navigator.share){
+        navigator.share({title:'コード転生記 進捗', text:shareText}).catch(function(){});
+      } else if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(shareText).then(function(){ shareBtn.textContent = '共有文をコピー'; });
+      }
+    }); }
+    var photoBtn = app.querySelector('#btnSaveCodexPhoto');
+    if(photoBtn){ photoBtn.addEventListener('click', function(){
+      saveCodexAsImage(app);
+      photoBtn.textContent = '保存しました';
+      setTimeout(function(){ if(photoBtn){ photoBtn.textContent = '写真にする'; } }, 1400);
+    }); }
+  }
+
 
   export const SECTION_TITLES = [
     '第1部 C++入門 ― 入出力・ポインタ・関数',
@@ -182,7 +477,7 @@ import {
       '<section class="evidence-board"><header class="board-head"><div><small>ACTIVE CASE FILES</small><h2>プログラム事件一覧</h2></div><p>不具合の証拠を読み、すべての事件を解決せよ。</p></header><div class="case-scroll">'+sectionsHtml+'</div></section>'+
       '<aside class="desk-evidence"><div class="desk-lamp">'+icon('search')+'</div><h3>本日の捜査</h3><p>'+esc(endlessFilterLabel)+'</p><dl><div><dt>連続解決</dt><dd>'+e.streak+'</dd></div><div><dt>最高記録</dt><dd>'+e.bestStreak+'</dd></div></dl>'+
         (hasResumableEndless(e) ? '<button id="btnEndlessResume" class="resume-file">'+icon('review')+' 前回の捜査を再開('+(e.queue.length-e.pos)+'問残り)</button>' : '')+
-        '<button id="btnEndlessDesk">捜査を開始</button></aside>'+
+        '<button id="btnEndlessDesk">捜査を開始</button>'+renderCodexPanel()+'</aside>'+
     '</main><p class="footer-note">捜査記録はこの端末に自動保存されます。</p>';
   }
 
@@ -325,6 +620,11 @@ import {
         saveProgress(progress);
         render();
       });
+      var codexOpen = document.getElementById('btnCodexOpen');
+      if(codexOpen){ codexOpen.addEventListener('click', function(event){
+        event.preventDefault();
+        openCodexProgress(app);
+      }); }
       document.getElementById('btnEndless').addEventListener('click', function(){
         openEndless();
       });
