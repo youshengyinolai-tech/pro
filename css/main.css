@@ -246,6 +246,31 @@
   .orderslot{display:grid!important;grid-template-columns:32px minmax(0,1fr);align-items:center;gap:9px;min-height:52px;width:100%;text-align:left}
   .orderslot:not(.filled){display:block!important;text-align:center;color:var(--ink-dim)}
   @media(max-width:700px){.ordertray{grid-template-columns:1fr}.orderpiece code,.orderslot code{font-size:.72rem}}
+
+  /* ---- mobile answer mode ---- */
+  .mobile-answer-toggle{display:none}
+  @media(max-width:760px){
+    body:not(.case-map-screen){padding:7px 6px 34px!important}
+    body:not(.case-map-screen) .stage{margin-top:4px!important;padding:12px 9px 24px!important;border-width:6px!important}
+    .topbar{gap:8px;margin-bottom:10px!important}.brand h1{font-size:1.05rem!important}.brand small{font-size:.58rem!important}
+    .battlebar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}.battlebar button{flex:0 0 auto;padding:8px 10px}
+    .combatants{gap:5px!important;margin-bottom:9px}.fighter{padding:8px!important}.fighter .name{font-size:.72rem}.hpnum{font-size:.67rem}
+    .qcard{padding:15px 11px!important}.qmeta{display:grid!important;gap:5px;font-size:.7rem!important}.qlead{font-size:.9rem!important}
+    .mobile-answer-toggle{display:block;width:100%;margin:10px 0;padding:9px;border:1px solid #80603d;background:#ead7b0;color:#302318;font:700 .78rem var(--font-body)}
+    .mobile-choicegrid{display:grid;grid-template-columns:1fr;gap:9px;margin-top:12px}
+    .mobile-choicegrid .choicebtn{min-height:52px;padding:12px 13px;text-align:left;font-size:.86rem;overflow-wrap:anywhere}
+    .mobile-code-builder{display:grid;gap:10px;margin-top:12px}.mobile-code-builder>p{margin:0;font-weight:700;font-size:.78rem}
+    .mobile-code-source,.mobile-code-answer{display:grid;gap:7px;padding:9px;border:1px dashed #8b6b48;background:rgba(255,248,225,.34)}
+    .mobile-code-line,.mobile-code-placed{display:grid;grid-template-columns:minmax(0,1fr);width:100%;padding:10px;text-align:left;border:1px solid #80603d;background:#f4e2bd;color:#241b14}
+    .mobile-code-line,.mobile-code-placed{touch-action:none;cursor:grab}.mobile-code-line.used{opacity:.35}.mobile-code-line.selected{outline:3px solid #315c42;background:#fff3d5}.mobile-code-line.touch-dragging,.mobile-code-placed.touch-dragging{opacity:.72;scale:1.02}
+    .mobile-code-line code,.mobile-code-placed code{white-space:pre-wrap;overflow-wrap:anywhere;font:.75rem/1.5 var(--font-mono)}
+    .mobile-code-slot{display:grid;grid-template-columns:25px minmax(0,1fr);align-items:stretch;gap:7px;min-height:48px;padding:5px;border:1px dashed #9a7954;background:rgba(255,255,255,.2)}
+    .mobile-code-slot>span{display:grid;place-items:center;width:23px;background:#762f28;color:white;font-weight:800}.mobile-code-slot.dragover{outline:3px solid #315c42;background:#fff3d5}
+    .mobile-code-placed,.mobile-code-placeholder{width:100%;border:0;background:#fff3d5;color:#241b14;text-align:left;padding:8px}.mobile-code-placeholder{text-align:center;color:var(--ink-dim);font-size:.7rem}
+    .mobile-code-empty{padding:14px;text-align:center;color:var(--ink-dim);font-size:.75rem}
+    .answerrow{display:grid!important}.codeinput{width:100%;min-height:48px;font-size:16px!important}
+    .feedback{padding:15px 12px!important}.feedback .chip,.ghost-badge{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
+  }
   .tierchip.t1.on .tc-label{color:var(--danger);}
   .tierchip.t2.on{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset;}
   .tierchip.t2.on .tc-label{color:var(--accent);}
@@ -630,7 +655,7 @@
 
   /* ---- progress ranking rooms ---- */
   .room-hero{align-items:end}.room-profile{min-width:220px;margin:0}.room-profile input{background:rgba(255,255,255,.58)}
-  .room-progress-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;border:1px solid var(--line);background:var(--line)}
+  .room-progress-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;border:1px solid var(--line);background:var(--line)}
   .room-progress-strip div{padding:14px 16px;background:var(--panel)}.room-progress-strip small{display:block;color:var(--ink-dim);font-size:.68rem}
   .room-progress-strip strong{font:800 1.05rem var(--font-mono);color:var(--accent)}
   .room-actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.room-action{padding:22px}

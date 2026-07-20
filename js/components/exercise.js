@@ -4,11 +4,11 @@
 */
 import { STAGES, DIFF_BATCH_LABEL, DIFF_WRONG_DMG, TIER_LABEL, TIER_DESC, questionTier } from '../data/questions.js';
 import {
-  state, progress, saveProgress, esc, shuffle, checkAnswer,
+  state, progress, saveProgress, esc, shuffle, checkAnswer, normalize,
   UNIT_LIST, unitAttemptInfo, recommendDifficulty, weakUnitIds,
   recordUnitAnswer, recordMissed, rebuildEndlessQueue, reshuffleEndlessQueue,
   currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity
-} from '../core/state.js?v=2026072036';
+} from '../core/state.js?v=2026072040';
 import { icon, stageIcon } from '../core/icons.js';
 import { render, renderTopbar, openLesson } from '../core/router.js';
 
@@ -176,7 +176,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       }).join('');
       actionHtml = '<div class="frame diffpick">'+
         '<div class="difftitle">'+icon('sword')+' 難易度を選んで'+esc(st.mon)+'に挑もう</div>'+
-        '<p class="ddesc" style="margin:0 0 14px;">選んだ難易度の設問からランダムに出題が始まり、勇者が生きているかぎり、そのグループを出し切るごとに1つ上の難易度へ自動でエスカレートしていく。高い難易度から始めるほど、序盤から手強い相手になる。</p>'+
+        '<p class="ddesc" style="margin:0 0 14px;">選んだ難易度の設問からランダムに出題が始まり、探偵が捜査を続けられるかぎり、そのグループを出し切るごとに1つ上の難易度へ自動でエスカレートしていく。高い難易度から始めるほど、序盤から手強い相手になる。</p>'+
         '<div class="diffrow">'+diffBtnsHtml+'</div>'+
       '</div>';
     }
@@ -219,7 +219,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
   /* その章の全設問(qs/qsHard/qsExtra/qsDrag/qsExpert、ボス戦は集約されたqsのみ)を
      設問自身が持つdiff(1〜4)でグループ化し、各グループの中だけシャッフルしたうえで
      難易度が低い順に連結する。startTier(1〜4)で選んだ難易度から出題が始まり、
-     勇者が生き残っている限り、そこから上の難易度へ自動でエスカレートし続ける。 */
+     探偵が捜査を続けられる限り、そこから上の難易度へ自動でエスカレートし続ける。 */
   export function stageEscalatingPool(st, startTier){
     var all = (st.qs||[]).concat(st.qsHard||[]).concat(st.qsExtra||[]).concat(st.qsDrag||[]).concat(st.qsExpert||[]);
     var byTier = {1:[], 2:[], 3:[], 4:[]};
@@ -436,6 +436,77 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     dragfill:'下のピースをドラッグ（またはタップで選んで配置）して、空欄をすべて埋めよう。'
   };
 
+  function mobileAnswerEnabled(q){
+    var type=q.type||'fill';
+    return (type==='fill'||type==='debug') && progress.settings.mobileAnswerMode &&
+      typeof window!=='undefined' && window.matchMedia('(max-width: 760px)').matches;
+  }
+
+  function mobileAnswerKind(answer){
+    var text=String(answer);
+    if(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text.trim())) return 'number';
+    if(/^[!<>=+\-*/%&|^~]+$/.test(text.trim())) return 'operator';
+    if(/^[A-Za-z_][\w:]*$/.test(text.trim())) return 'word';
+    if(/[{}();<>=]|\n/.test(text)) return 'code';
+    return 'text';
+  }
+
+  function mobileChoiceAnswers(q){
+    var correct=q.answers[0];
+    var kind=mobileAnswerKind(correct);
+    var candidates=[];
+    ENDLESS_POOL.forEach(function(entry){
+      var candidate=entry.q;
+      var type=candidate.type||'fill';
+      if(candidate.qid===q.qid || candidate.long || (type!=='fill'&&type!=='debug') || candidate.unit!==q.unit) return;
+      var answer=candidate.answers&&candidate.answers[0];
+      if(answer && mobileAnswerKind(answer)===kind && !checkAnswer(answer,q.answers)) candidates.push(answer);
+    });
+    var unique=[];
+    candidates.sort(function(a,b){ return Math.abs(String(a).length-String(correct).length)-Math.abs(String(b).length-String(correct).length); });
+    candidates.forEach(function(answer){ if(unique.indexOf(answer)===-1 && unique.length<3) unique.push(answer); });
+    var fallbacks=kind==='number'?['0','1','2','10']:
+      kind==='operator'?['==','!=','<','>','<=','>=']:
+      kind==='word'?['cout','cin','int','string','return','endl']:
+      ['エラー','できる','できない','正しい'];
+    fallbacks.forEach(function(answer){ if(unique.length<3 && !checkAnswer(answer,q.answers) && unique.indexOf(answer)===-1) unique.push(answer); });
+    var options=[correct].concat(unique.slice(0,3));
+    var offset=String(q.qid||'').split('').reduce(function(sum,ch){ return sum+ch.charCodeAt(0); },0)%options.length;
+    return options.slice(offset).concat(options.slice(0,offset));
+  }
+
+  function mobileLineBuilder(q){
+    var lines=String(q.answers[0]).split('\n').filter(function(line){ return line.trim()!==''; });
+    if(lines.length<2) return null;
+    if(state.mobileLineQid!==q.qid){
+      state.mobileLineQid=q.qid;
+      state.mobileLineOrder=new Array(lines.length).fill(null);
+      state.mobileLineSelected=null;
+    }
+    var used=state.mobileLineOrder;
+    var source=lines.map(function(line,index){ return {line:line,index:index}; })
+      .sort(function(a,b){
+        var ah=(String(q.qid)+a.index).split('').reduce(function(n,ch){ return n+ch.charCodeAt(0); },0)%17;
+        var bh=(String(q.qid)+b.index).split('').reduce(function(n,ch){ return n+ch.charCodeAt(0); },0)%17;
+        return ah-bh || b.index-a.index;
+      }).map(function(item){
+        var isUsed=used.indexOf(item.index)!==-1;
+        var isSelected=state.mobileLineSelected===item.index;
+        return '<button type="button" class="mobile-code-line'+(isUsed?' used':'')+(isSelected?' selected':'')+'" data-mobile-line="'+item.index+
+          '" draggable="'+(isUsed?'false':'true')+'"'+(isUsed?' disabled':'')+'>'+
+          '<code>'+esc(item.line)+'</code></button>';
+      }).join('');
+    var placed=used.map(function(index,position){
+      return '<div class="mobile-code-slot'+(index!==null?' filled':'')+'" data-mobile-slot="'+position+'"><span>'+(position+1)+'</span>'+
+        (index!==null?'<button type="button" class="mobile-code-placed" data-mobile-move="'+position+'" draggable="true"><code>'+esc(lines[index])+'</code></button>':
+          '<button type="button" class="mobile-code-placeholder">選択またはドラッグして配置</button>')+'</div>';
+    }).join('');
+    return '<div class="mobile-code-builder"><p>コード行を選び、番号欄へドラッグ（タップ配置も可）</p><div class="mobile-code-source">'+source+'</div>'+
+      '<div class="mobile-code-answer">'+placed+'</div>'+
+      '<div class="actionrow"><button class="ghost" id="btnMobileLineReset" type="button">リセット</button>'+
+      '<button class="primary" id="btnMobileLineSubmit" type="button"'+(used.every(function(index){ return index!==null; })?'':' disabled')+'>このコードで回答 →</button></div></div>';
+  }
+
 
   export function renderQuestionBody(q){
     var type = q.type || 'fill';
@@ -512,6 +583,12 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
           '<button class="ghost" id="btnDragReset" type="button">やり直す</button>'+
           '<button class="primary" id="btnSubmit"'+(allFilled?'':' disabled')+'>詠唱する →</button>'+
         '</div>';
+    } else if(mobileAnswerEnabled(q) && q.long && mobileLineBuilder(q)){
+      answerHtml=mobileLineBuilder(q);
+    } else if(mobileAnswerEnabled(q) && !q.long){
+      answerHtml='<div class="mobile-choicegrid">'+mobileChoiceAnswers(q).map(function(answer,index){
+        return '<button type="button" class="choicebtn mobile-answer-choice" data-mobile-answer="'+index+'">'+esc(answer)+'</button>';
+      }).join('')+'</div>';
     } else if(q.long){
       answerHtml = '<div class="answerrow long">'+
         '<textarea class="codeinput long" id="ansInput" rows="6" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="ここに複数行のコードを入力…(Enterで改行できます)"></textarea>'+
@@ -523,7 +600,11 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
         '<button class="primary" id="btnSubmit">詠唱する →</button>'+
       '</div>';
     }
-    return {qlead:qlead, bodyHtml:bodyHtml, answerHtml:answerHtml};
+    var mobileSwitch=(type==='fill'||type==='debug')
+      ? '<button type="button" class="mobile-answer-toggle" id="btnMobileAnswerToggle">'+
+        (progress.settings.mobileAnswerMode?'⌨ キーボード入力へ':'☝ タップ回答へ')+'</button>'
+      : '';
+    return {qlead:qlead, bodyHtml:bodyHtml, answerHtml:mobileSwitch+answerHtml};
   }
 
 
@@ -539,7 +620,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       '<button class="backbtn" id="btnReview">'+icon('book')+' 訓練場で例題を見直す</button>'+
     '</div>'+
     '<div class="combatants">'+
-      '<div class="frame fighter"><div class="who"><span class="emoji">'+icon('shield')+'</span><div class="name">受験の勇者<small>PLAYER UNIT</small></div></div>'+
+      '<div class="frame fighter"><div class="who"><span class="emoji">'+icon('shield')+'</span><div class="name">コード探偵<small>DETECTIVE UNIT</small></div></div>'+
         '<div class="hpbar hero"><i style="transform:scaleX('+(state.heroHP/100)+')"></i></div>'+
         '<div class="hpnum"><span>HP</span><span class="num">'+state.heroHP+' / 100</span></div></div>'+
       '<div class="vs">VS</div>'+
@@ -595,7 +676,21 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
 
   export function wireQuestionControls(app){
     var type = state.curQ.type||'fill';
-    if(type==='choice'){
+    var mobileToggle=document.getElementById('btnMobileAnswerToggle');
+    if(mobileToggle) mobileToggle.addEventListener('click',function(){
+      progress.settings.mobileAnswerMode=!progress.settings.mobileAnswerMode;
+      saveProgress(progress);
+      render();
+    });
+    var mobileChoices=app.querySelectorAll('.mobile-answer-choice');
+    if(mobileChoices.length){
+      var answers=mobileChoiceAnswers(state.curQ);
+      Array.prototype.forEach.call(mobileChoices,function(btn){
+        btn.addEventListener('click',function(){ resolveAnswer(answers[parseInt(btn.getAttribute('data-mobile-answer'),10)]); });
+      });
+    } else if(document.getElementById('btnMobileLineSubmit')){
+      wireMobileLineBuilder(app);
+    } else if(type==='choice'){
       Array.prototype.forEach.call(app.querySelectorAll('.choicebtn'), function(btn){
         btn.addEventListener('click', function(){ onChoice(parseInt(btn.getAttribute('data-opt'),10)); });
       });
@@ -614,6 +709,96 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       });
       input.focus();
     }
+  }
+
+  function wireMobileLineBuilder(app){
+    var pointerDragged=false;
+    function placeLine(lineIndex,slotIndex,fromSlot){
+      if(fromSlot!==null) state.mobileLineOrder[fromSlot]=null;
+      var oldSlot=state.mobileLineOrder.indexOf(lineIndex);
+      if(oldSlot!==-1) state.mobileLineOrder[oldSlot]=null;
+      var displaced=state.mobileLineOrder[slotIndex];
+      state.mobileLineOrder[slotIndex]=lineIndex;
+      if(displaced!==null&&fromSlot!==null) state.mobileLineOrder[fromSlot]=displaced;
+      state.mobileLineSelected=null;
+      render();
+    }
+    function installPointerDrag(element,lineIndex,fromSlot){
+      element.addEventListener('pointerdown',function(event){
+        if(event.pointerType==='mouse') return;
+        pointerDragged=false;
+        var startX=event.clientX,startY=event.clientY;
+        element.setPointerCapture(event.pointerId);
+        element.classList.add('touch-dragging');
+        function move(moveEvent){
+          if(Math.abs(moveEvent.clientX-startX)+Math.abs(moveEvent.clientY-startY)>8) pointerDragged=true;
+        }
+        function end(endEvent){
+          element.classList.remove('touch-dragging');
+          element.removeEventListener('pointermove',move);
+          element.removeEventListener('pointerup',end);
+          if(!pointerDragged) return;
+          var target=document.elementFromPoint(endEvent.clientX,endEvent.clientY);
+          var slot=target&&target.closest?target.closest('[data-mobile-slot]'):null;
+          if(slot) placeLine(lineIndex,parseInt(slot.getAttribute('data-mobile-slot'),10),fromSlot);
+        }
+        element.addEventListener('pointermove',move);
+        element.addEventListener('pointerup',end);
+      });
+    }
+    Array.prototype.forEach.call(app.querySelectorAll('[data-mobile-line]:not(:disabled)'),function(btn){
+      btn.addEventListener('click',function(){
+        if(pointerDragged){ pointerDragged=false; return; }
+        var index=parseInt(btn.getAttribute('data-mobile-line'),10);
+        state.mobileLineSelected=state.mobileLineSelected===index?null:index;
+        render();
+      });
+      btn.addEventListener('dragstart',function(event){
+        if(event.dataTransfer) event.dataTransfer.setData('text/plain','line:'+btn.getAttribute('data-mobile-line'));
+      });
+      installPointerDrag(btn,parseInt(btn.getAttribute('data-mobile-line'),10),null);
+    });
+    Array.prototype.forEach.call(app.querySelectorAll('[data-mobile-slot]'),function(slot){
+      var slotIndex=parseInt(slot.getAttribute('data-mobile-slot'),10);
+      slot.addEventListener('dragover',function(event){ event.preventDefault(); slot.classList.add('dragover'); });
+      slot.addEventListener('dragleave',function(){ slot.classList.remove('dragover'); });
+      slot.addEventListener('drop',function(event){
+        event.preventDefault();
+        var parts=(event.dataTransfer?event.dataTransfer.getData('text/plain'):'').split(':');
+        if(parts[0]==='line') placeLine(parseInt(parts[1],10),slotIndex,null);
+        if(parts[0]==='slot'){
+          var fromSlot=parseInt(parts[1],10);
+          placeLine(state.mobileLineOrder[fromSlot],slotIndex,fromSlot);
+        }
+      });
+      slot.addEventListener('click',function(event){
+        if(event.target.closest('[data-mobile-move]')) return;
+        if(state.mobileLineSelected!==null) placeLine(state.mobileLineSelected,slotIndex,null);
+      });
+    });
+    Array.prototype.forEach.call(app.querySelectorAll('[data-mobile-move]'),function(btn){
+      var fromSlot=parseInt(btn.getAttribute('data-mobile-move'),10);
+      var lineIndex=state.mobileLineOrder[fromSlot];
+      btn.addEventListener('click',function(){
+        if(pointerDragged){ pointerDragged=false; return; }
+        state.mobileLineOrder[fromSlot]=null;
+        state.mobileLineSelected=lineIndex;
+        render();
+      });
+      btn.addEventListener('dragstart',function(event){
+        if(event.dataTransfer) event.dataTransfer.setData('text/plain','slot:'+fromSlot);
+      });
+      installPointerDrag(btn,lineIndex,fromSlot);
+    });
+    document.getElementById('btnMobileLineReset').addEventListener('click',function(){
+      state.mobileLineOrder=new Array(state.mobileLineOrder.length).fill(null);
+      state.mobileLineSelected=null;
+      render();
+    });
+    document.getElementById('btnMobileLineSubmit').addEventListener('click',function(){
+      var lines=String(state.curQ.answers[0]).split('\n').filter(function(line){ return line.trim()!==''; });
+      resolveAnswer(state.mobileLineOrder.map(function(index){ return lines[index]; }).join('\n'));
+    });
   }
 
 

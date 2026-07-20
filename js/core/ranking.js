@@ -3,10 +3,11 @@
  現在はlocalStorage版。公開時は同じ関数をSupabase実装へ差し替える。
 */
 import { STAGES, TOTAL_STARS } from '../data/questions.js';
-import { progress, saveProgress, totalStarsEarned } from './state.js?v=2026072036';
+import { progress, saveProgress, totalStarsEarned, learningActivitySummary } from './state.js?v=2026072040';
 
 export const RANKING_METRICS = [
   {id:'overall', label:'総合進捗', unit:'pt'},
+  {id:'dailyStreak', label:'連続捜査日数', unit:'日'},
   {id:'stars', label:'獲得スター', unit:'個'},
   {id:'clears', label:'クリア章', unit:'章'},
   {id:'correct', label:'累計正解', unit:'問'},
@@ -84,11 +85,12 @@ export function captureProgress(){
     medals+=({gold:3,silver:2,bronze:1}[progress.studyMedal[id]]||0);
   });
   var streak=(progress.endless&&progress.endless.bestStreak)||0;
+  var dailyStreak=learningActivitySummary().streak||0;
   var overall=stars*100+clears*80+correct*4+accuracy*3+streak*20+study*70+medals*35;
-  return {overall:overall,stars:stars,clears:clears,correct:correct,accuracy:accuracy,streak:streak,study:study,medals:medals,updatedAt:new Date().toISOString()};
+  return {overall:overall,dailyStreak:dailyStreak,stars:stars,clears:clears,correct:correct,accuracy:accuracy,streak:streak,study:study,medals:medals,updatedAt:new Date().toISOString()};
 }
 
-var DEMO_NAMES=['NullHunter','Pointer侍','SegFault猫','ClassMaster','LoopRider','Bit探偵','Stack勇者','Lambda狐'];
+var DEMO_NAMES=['NullHunter','Pointer侍','SegFault猫','ClassMaster','LoopRider','Bit探偵','Stack探偵','Lambda狐'];
 
 function demoSnapshot(random, base, index){
   var strength=.35+random()*.9;
@@ -97,11 +99,12 @@ function demoSnapshot(random, base, index){
   var correct=Math.max(5,Math.round((base.correct||80)*strength+random()*120));
   var accuracy=Math.min(100,Math.max(42,Math.round((base.accuracy||72)+random()*24-10)));
   var streak=Math.max(1,Math.round((base.streak||5)*strength+random()*12));
+  var dailyStreak=Math.max(1,Math.round((base.dailyStreak||3)*strength+random()*7));
   var study=Math.min(STAGES.length,Math.max(0,Math.round((base.study||4)*strength+random()*5)));
   var medals=Math.min(STAGES.length*3,Math.max(0,Math.round((base.medals||5)*strength+random()*8)));
   return {
     overall:stars*100+clears*80+correct*4+accuracy*3+streak*20+study*70+medals*35,
-    stars:stars,clears:clears,correct:correct,accuracy:accuracy,streak:streak,study:study,medals:medals,
+    dailyStreak:dailyStreak,stars:stars,clears:clears,correct:correct,accuracy:accuracy,streak:streak,study:study,medals:medals,
     updatedAt:new Date(Date.now()-index*3600000).toISOString()
   };
 }

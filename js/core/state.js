@@ -73,6 +73,9 @@ export const STORE_KEY = 'oopExamQuest_v3';
   if(!('soloCollapsed' in progress.settings)){
     progress.settings.soloCollapsed = false;
   }
+  if(!('mobileAnswerMode' in progress.settings)){
+    progress.settings.mobileAnswerMode = true;
+  }
   /* 3段階だった旧重要度スキーマ(1=最重要/2=標準/3=深掘り)を5段階へ移行する。
      旧設定で絞り込み済みだった人が、アップデート後に急に0件になったり範囲が
      ズレたりしないよう、1→[1,2] 2→[3] 3→[4,5] へ機械的に対応づける。
@@ -295,7 +298,7 @@ export const STORE_KEY = 'oopExamQuest_v3';
   }
 
 
-  export const state = {curQ:null, screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, activeQs:[], pickerSelection:[], pickerDiffSelection:[1,2,3,4], pickerTierSelection:[1,2,3,4,5], pickerReturnScreen:'map', pickerReturnFocusId:null, reviewQueue:[], reviewPos:0, reviewStats:{correct:0, wrong:0}, dragPlacement:{}, dragSelected:null, dragQid:null, startTier:1, studyStep:0, studyPicked:null, studyCombo:0, studyBestCombo:0, studyWrongCount:0};
+  export const state = {curQ:null, screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, activeQs:[], pickerSelection:[], pickerDiffSelection:[1,2,3,4], pickerTierSelection:[1,2,3,4,5], pickerReturnScreen:'map', pickerReturnFocusId:null, reviewQueue:[], reviewPos:0, reviewStats:{correct:0, wrong:0}, dragPlacement:{}, dragSelected:null, dragQid:null, mobileLineOrder:[], mobileLineSelected:null, mobileLineQid:null, startTier:1, studyStep:0, studyPicked:null, studyCombo:0, studyBestCombo:0, studyWrongCount:0};
 
 
   export function shuffle(arr){

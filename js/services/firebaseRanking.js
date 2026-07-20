@@ -8,6 +8,7 @@ function memberPayload(name,snapshot,serverTimestamp,clientId){
     clientId:String(clientId||'').slice(0,64),
     nickname:String(name||'あなた').slice(0,16),
     overall:snapshot.overall||0,
+    dailyStreak:snapshot.dailyStreak||0,
     stars:snapshot.stars||0,
     clears:snapshot.clears||0,
     correct:snapshot.correct||0,

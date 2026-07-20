@@ -1,17 +1,17 @@
 /*
  ranking.js — ランキングルームの作成、招待コード参加、複数観点順位表を描画する。
 */
-import { state, progress, saveProgress, esc } from '../core/state.js?v=2026072036';
+import { state, progress, saveProgress, esc } from '../core/state.js?v=2026072040';
 import {
   RANKING_METRICS, playerIdentity, setPlayerName, captureProgress,
   createRoom, joinRoom, listRooms, getRoom, openRoom, syncCurrentPlayer,
   removeRoom, roomRanking, saveRemoteRoom
-} from '../core/ranking.js';
+} from '../core/ranking.js?v=2026072042';
 import { firebaseAvailable } from '../services/firebase.js';
 import {
   createFirebaseRoom, joinFirebaseRoom, syncFirebaseProgress, loadFirebaseRoom,
   subscribeFirebaseRoomMembers, kickFirebaseMember
-} from '../services/firebaseRanking.js';
+} from '../services/firebaseRanking.js?v=2026072042';
 import { render, renderTopbar } from '../core/router.js';
 import { icon } from '../core/icons.js';
 
@@ -102,6 +102,7 @@ export function renderRankingHome(){
       '</section>'+
       '<section class="room-progress-strip">'+
         '<div><small>総合進捗</small><strong>'+snapshot.overall.toLocaleString()+' pt</strong></div>'+
+        '<div><small>連続捜査</small><strong>'+snapshot.dailyStreak+'日</strong></div>'+
         '<div><small>スター</small><strong>'+snapshot.stars+'</strong></div>'+
         '<div><small>累計正解</small><strong>'+snapshot.correct+'</strong></div>'+
         '<div><small>正答率</small><strong>'+snapshot.accuracy+'%</strong></div>'+

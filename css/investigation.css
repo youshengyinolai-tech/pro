@@ -6,3 +6,58 @@
 /* Case-file treatment for study and question screens */
 body:not(:has(.case-office)) .stage{margin-top:28px;padding:30px 34px 44px;background:linear-gradient(100deg,#dcc8a7,#ecdcb9);border:11px solid #2a1d14;box-shadow:0 25px 55px #070403}.frame{background:rgba(249,238,210,.7);border:1px solid #876844;box-shadow:0 7px 16px rgba(45,27,14,.2);clip-path:none}.frame::before{display:none}.battlebar{margin-bottom:14px}.backbtn,.togglebtn,.ghost{display:inline-flex;align-items:center;gap:6px;background:#d5bc90;color:#302318;border:1px solid #80603d;clip-path:none}.backbtn:hover,.togglebtn:hover,.ghost:hover{background:#ead7b0;border-color:#74342d}.lessonintro,.storycard,.lessoncard,.qcard{padding:22px 25px}.lessonintro h2::before,.qcard::before{content:"CASE FILE / ";font:600 .58rem var(--font-body);letter-spacing:.15em;color:#853a32}.lessonintro p,.lessonexplain,.qlead,.sstory,.feedback .explain{color:#3d3227;font-size:.94rem}.qmeta{color:#5d4e3d;border-bottom:1px solid #9e805b;padding-bottom:10px}.codeblock{background:#181817;color:#eee1c5;border:1px solid #514535;border-left:4px solid #8f3d34;font-size:.94rem;line-height:1.75}.codeinput{background:#fff8e7;color:#241b14;border:2px solid #80623f;clip-path:none}.choicebtn,.dragpiece,.dragslot{background:#f4e2bd;color:#241b14;border:1px solid #896943;clip-path:none}.choicebtn:hover:not(:disabled),.dragpiece:hover:not(.used){background:#fff3d5;border-color:#74342d}.unitchip,.feedback .chip{background-color:#f4e2bd!important;color:#100c09!important;border:1px solid #725435!important}.unitchip{opacity:.8!important}.unitchip.on{opacity:1!important;border-color:#803831!important}.unitchip:hover{background-color:#fff3d5!important;border-color:#74342d!important}.unitchip .uc-rate{color:#6c5b47!important}.uc-case{display:block;font:600 .68rem var(--font-display);letter-spacing:.04em;color:#8d302b!important;margin-bottom:2px}.diffbtn{background-color:#f4e2bd!important;color:#241b14!important;border:1px solid #896943!important}.diffbtn .ddesc{color:#5d4e3d!important}.diffbtn:hover{background-color:#fff3d5!important;border-color:#74342d!important}.diffchip,.tierchip{background-color:#f4e2bd!important;color:#100c09!important;border:1px solid #725435!important;opacity:.8!important}.diffchip.on{opacity:1!important;background:linear-gradient(100deg,#7e342e,#5f2622)!important;color:#fff0d7!important;border-color:#a96357!important}.tierchip.on{opacity:1!important}.feedback .chip{font-size:1.05rem!important;padding:4px 10px!important;border-radius:4px!important}.ghost-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono)!important;font-size:1.05rem!important;background-color:#f4e2bd!important;color:#100c09!important;border:1px solid #725435!important;border-radius:4px!important;padding:4px 10px!important;margin:2px 6px 2px 0;cursor:pointer;transition:background-color .15s ease,transform .15s ease}.ghost-badge:hover{background-color:#fff3d5!important;transform:translateY(-1px)}.ghost-badge.alt small{opacity:.6;font-size:.72em;font-family:var(--font-body)}.ghost-badge.copied{background-color:#46664c!important;color:#fff0d7!important;border-color:#2f4633!important}.primary{background:#77332d;color:#fff1d8;clip-path:none}.feedback.good{border-left:5px solid #46664c}.feedback.bad{border-left:5px solid #99342e}.fighter{background:rgba(248,233,201,.72)}.hpbar{background:#bda47d}.result p{color:#45382b}.result .bigemoji{color:#79362e}.accordion{clip-path:none!important}.accordion summary{font-size:.9rem!important}.footer-note{text-align:center;color:#aa9880;font-size:.72rem}
 @media(max-width:1100px){.case-office{grid-template-columns:210px 1fr}.desk-evidence{display:none}.stagegrid{grid-template-columns:1fr 1fr}}@media(max-width:760px){body{padding:8px 7px 48px}.case-office{display:block;border-width:7px}.case-sidebar{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:10px;border:0}.office-plate{grid-column:1 / -1}.case-nav,.mode-file{margin:0}.case-stats{grid-column:1 / -1}.alt-file{grid-column:1 / -1}.evidence-board{padding:16px 10px}.board-head p{display:none}.case-scroll{max-height:none}.stagegrid{gap:12px}.stagecard{min-height:165px;padding:27px 12px 13px}body:not(:has(.case-office)) .stage{margin-top:8px;padding:16px 11px 30px;border-width:7px}.qcard,.storycard,.lessoncard,.lessonintro{padding:18px 14px}.codeblock{font-size:.82rem;padding:14px 12px}.combatants{grid-template-columns:1fr 28px 1fr}.fighter{padding:10px}.fighter .emoji{display:none}}@media(max-width:470px){.stagegrid{grid-template-columns:1fr}.stagecard{min-height:145px}.case-sidebar{grid-template-columns:1fr}.office-plate,.case-stats,.alt-file{grid-column:1}.board-head h2{font-size:1rem}}
+
+/* Phone layout: turn the filing cabinet into a compact horizontal tool rail. */
+@media(max-width:760px){
+  html,body{max-width:100%;overflow-x:hidden}
+  body.case-map-screen{height:auto;min-height:100dvh;overflow-y:auto;padding:6px 6px 28px}
+  body.case-map-screen .topbar{display:flex;align-items:center;min-height:64px;margin-bottom:7px;padding:10px 12px}
+  body.case-map-screen .brand{flex:1 1 auto;align-items:center;gap:8px;min-width:0}
+  body.case-map-screen .brand>div{min-width:0}
+  body.case-map-screen .brand .glyph{font-size:1.15rem}
+  body.case-map-screen .brand h1{font-size:1rem;white-space:nowrap}
+  body.case-map-screen .brand small{max-width:230px;overflow:hidden;text-overflow:ellipsis;font-size:.48rem;letter-spacing:.08em;white-space:nowrap}
+  body.case-map-screen .tally{flex:0 0 auto;margin-left:auto;padding:4px 0 4px 9px;font-size:0;white-space:nowrap}
+  body.case-map-screen .tally .stars{font-size:.68rem}
+  body.case-map-screen .case-office{display:flex;flex-direction:column;min-height:0;border-width:5px;overflow:visible}
+  body.case-map-screen .case-sidebar{order:0;display:flex;align-items:stretch;gap:6px;padding:7px;overflow-x:auto;overflow-y:hidden;border:0;scroll-snap-type:x proximity;scrollbar-width:thin}
+  body.case-map-screen .office-plate,
+  body.case-map-screen .case-stats{display:none}
+  body.case-map-screen .case-nav,
+  body.case-map-screen .mode-file,
+  body.case-map-screen .alt-file{flex:0 0 122px;width:122px;min-height:54px;margin:0;padding:7px 7px 7px 35px;scroll-snap-align:start;box-shadow:1px 2px 4px #100a06}
+  body.case-map-screen .case-nav::after{display:none}
+  body.case-map-screen .case-nav>span,
+  body.case-map-screen .mode-file>span{left:9px;top:17px}
+  body.case-map-screen .case-nav b,
+  body.case-map-screen .mode-file b{font-size:.74rem}
+  body.case-map-screen .case-nav small,
+  body.case-map-screen .mode-file small{font-size:.55rem;white-space:nowrap}
+  body.case-map-screen .case-nav:hover,
+  body.case-map-screen .mode-file:hover{transform:none}
+  body.case-map-screen .alt-file{flex-basis:112px;width:112px;padding:7px!important;font-size:.65rem!important}
+  body.case-map-screen .alt-switch{display:none}
+  body.case-map-screen .evidence-board{order:1;display:block;min-height:0;padding:11px 8px 24px;overflow:visible}
+  body.case-map-screen .board-head{align-items:center;margin-bottom:10px;padding:8px 10px;transform:none}
+  body.case-map-screen .board-head small{font-size:.5rem}
+  body.case-map-screen .board-head h2{font-size:1rem}
+  body.case-map-screen .board-head p{display:none}
+  body.case-map-screen .case-scroll{height:auto;max-height:none;overflow:visible;padding:3px 2px 20px}
+  body.case-map-screen .solo-momentum{padding:10px;margin-bottom:10px}
+  body.case-map-screen .solo-missions{display:flex;gap:7px;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:5px}
+  body.case-map-screen .solo-missions li{flex:0 0 210px;scroll-snap-align:start}
+  body.case-map-screen .groupheading{margin:15px 0 9px}
+  body.case-map-screen .stagegrid{grid-template-columns:1fr;gap:10px}
+  body.case-map-screen .stagecard{min-height:132px;padding:25px 12px 12px;transform:none}
+  body.case-map-screen .stagecard:nth-child(even){transform:none}
+  body.case-map-screen .stagecard:hover:not(.locked){transform:none!important}
+  .codex-overlay{padding:5px}
+  .codex-sheet{width:100%;max-height:96dvh;padding:17px 10px 20px}
+  .codex-showcase__identity{align-items:stretch;flex-direction:column}
+  .codex-showcase__identity input{width:100%;text-align:left}
+  .room-index,.room-board,.room-action,.league-mission,.league-board,.league-hero{padding:14px 11px}
+  .room-ranking-table{overflow-x:auto}
+  .room-ranking-table .league-row{min-width:344px}
+  button,input,select,textarea{max-width:100%}
+  .codeblock,pre{max-width:100%;overflow-x:auto}
+}

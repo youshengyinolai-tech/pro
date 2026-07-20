@@ -10,7 +10,7 @@ import {
   recommendDifficulty, starString, UNIT_LIST, ENDLESS_POOL,
   shuffle, POOL_INDEX_BY_QID, ensureEndlessQueue,
   learningActivitySummary, investigatorRank
-} from './state.js?v=2026072036';
+} from './state.js?v=2026072040';
 import { renderStudy, startStudy, wireStudy } from '../components/study.js';
 import { icon, stageIcon } from './icons.js';
 import {
@@ -18,11 +18,11 @@ import {
   closeUnitPicker,
   renderBattle, renderEndless, renderQuestionBody, wireQuestionControls,
   startStage, installExerciseKeyboardShortcuts
-} from '../components/exercise.js?v=2026072037';
+} from '../components/exercise.js?v=2026072040';
 import {
   renderRankingHome, renderRankingRoom, wireRankingHome, wireRankingRoom
-} from '../components/ranking.js';
-import { setPlayerName } from './ranking.js';
+} from '../components/ranking.js?v=2026072042';
+import { setPlayerName } from './ranking.js?v=2026072042';
 
   var globalKeyboardReady = false;
   var caseScrollCleanup = null;
@@ -1108,7 +1108,12 @@ import { setPlayerName } from './ranking.js';
       document.getElementById('btnAltToggle').addEventListener('click', function(){
         progress.settings.allowAlt = !progress.settings.allowAlt;
         saveProgress(progress);
-        render();
+        this.classList.toggle('on', progress.settings.allowAlt);
+        this.setAttribute('aria-pressed', String(progress.settings.allowAlt));
+        this.innerHTML =
+          '<span class="alt-file-label">'+icon(progress.settings.allowAlt?'unlock':'lock')+
+          ' 別解 '+(progress.settings.allowAlt?'採用':'不採用')+'</span>'+
+          '<span class="alt-switch" aria-hidden="true"><span class="alt-switch-knob"></span></span>';
       });
       document.getElementById('btnUnitPicker').addEventListener('click', function(){
         openUnitPicker();
