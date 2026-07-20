@@ -16,7 +16,7 @@ import {
   renderLesson, wireLesson, openUnitPicker, renderUnitPicker, wireUnitPicker,
   closeUnitPicker,
   renderBattle, renderEndless, renderQuestionBody, wireQuestionControls,
-  startStage
+  startStage, installExerciseKeyboardShortcuts
 } from '../components/exercise.js';
 
   var globalKeyboardReady = false;
@@ -764,5 +764,6 @@ import {
   }
 export function boot(){
   installGlobalKeyboard();
+  installExerciseKeyboardShortcuts();
   render();
 }

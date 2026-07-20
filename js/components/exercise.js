@@ -12,6 +12,119 @@ import {
 import { icon, stageIcon } from '../core/icons.js';
 import { render, renderTopbar, openLesson } from '../core/router.js';
 
+  var exerciseKeyboardInstalled = false;
+
+  function isEditableTarget(target){
+    if(!target || target.nodeType!==1) return false;
+    var tag = target.tagName;
+    return tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || target.isContentEditable;
+  }
+
+  function isInsideEscapeSurface(target){
+    return !!(target && target.closest && target.closest('dialog[open], [data-escape-surface]'));
+  }
+
+  function closeTopmostEscapeSurface(){
+    var overlay = document.querySelector('.codex-overlay');
+    if(overlay){ overlay.remove(); return true; }
+
+    var dialogs = document.querySelectorAll('dialog[open]');
+    if(dialogs.length){
+      var dialog = dialogs[dialogs.length-1];
+      var cancelEvent = new Event('cancel', {cancelable:true});
+      if(dialog.dispatchEvent(cancelEvent)) dialog.close();
+      return true;
+    }
+
+    var dismissers = document.querySelectorAll('[data-escape-dismiss]:not([hidden])');
+    if(dismissers.length){
+      dismissers[dismissers.length-1].click();
+      return true;
+    }
+
+    var openDetails = document.querySelectorAll('details[open]');
+    if(openDetails.length){
+      var details = openDetails[openDetails.length-1];
+      details.open = false;
+      var summary = details.querySelector('summary');
+      if(summary) summary.focus();
+      return true;
+    }
+
+    if(state.screen==='unitPicker'){
+      closeUnitPicker();
+      return true;
+    }
+
+    var homeBtn = document.getElementById('btnHome');
+    if(homeBtn && homeBtn.offsetParent !== null){
+      homeBtn.click();
+      return true;
+    }
+
+    var mapBtn = document.getElementById('btnMap');
+    if(mapBtn && mapBtn.offsetParent !== null){
+      mapBtn.click();
+      return true;
+    }
+    return false;
+  }
+
+  function tryAdvanceWithEnter(){
+    var continueBtn = document.getElementById('btnContinue');
+    if(continueBtn && !continueBtn.disabled){
+      continueBtn.click();
+      return true;
+    }
+    var nextBtn = document.getElementById('btnNext');
+    if(nextBtn && !nextBtn.disabled){
+      nextBtn.click();
+      return true;
+    }
+    var reviewAgainBtn = document.getElementById('btnReviewAgain');
+    if(reviewAgainBtn && !reviewAgainBtn.disabled){
+      reviewAgainBtn.click();
+      return true;
+    }
+    var submitBtn = document.getElementById('btnSubmit');
+    if(submitBtn && !submitBtn.disabled && !state.locked){
+      submitBtn.click();
+      return true;
+    }
+    return false;
+  }
+
+  function handleExerciseKeyboard(event){
+    if(event.key==='Enter'){
+      if(event.isComposing || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if(isEditableTarget(event.target)) return;
+      if(tryAdvanceWithEnter()){
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      return;
+    }
+
+    if(event.key!=='Escape' && event.key!=='Esc') return;
+    if(event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey) return;
+
+    if(isEditableTarget(event.target) && isInsideEscapeSurface(event.target)){
+      event.target.blur();
+      event.preventDefault();
+      return;
+    }
+
+    if(closeTopmostEscapeSurface()){
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
+  export function installExerciseKeyboardShortcuts(){
+    if(exerciseKeyboardInstalled || typeof document==='undefined') return;
+    document.addEventListener('keydown', handleExerciseKeyboard);
+    exerciseKeyboardInstalled = true;
+  }
 
   export function renderLesson(){
     var st = STAGES[state.stageIndex];
