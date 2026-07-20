@@ -7,7 +7,7 @@ import {
   state, progress, saveProgress, esc, shuffle, checkAnswer,
   UNIT_LIST, unitAttemptInfo, recommendDifficulty, weakUnitIds,
   recordUnitAnswer, recordMissed, rebuildEndlessQueue, reshuffleEndlessQueue,
-  currentEndlessPoolIndices, ENDLESS_POOL
+  currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity
 } from '../core/state.js';
 import { icon, stageIcon } from '../core/icons.js';
 import { render, renderTopbar, openLesson } from '../core/router.js';
@@ -676,6 +676,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     } else if(isReview){
       if(correct){
         state.reviewStats.correct++;
+        recordLearningActivity('reviewsCleared',1);
         qcard.classList.add('pulse');
       } else {
         state.reviewStats.wrong++;

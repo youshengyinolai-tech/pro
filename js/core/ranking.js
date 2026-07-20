@@ -161,6 +161,11 @@ export function syncCurrentPlayer(roomId){
   if(!room) return;
   var identity=playerIdentity();
   var member=room.members.filter(function(m){ return m.id===identity.id; })[0];
+  /* Firebase上のメンバーIDは匿名認証UID、端末内のplayerIdとは異なる。
+     オンライン部屋ではisPlayerで既存の自分を見つけ、二重追加を防ぐ。 */
+  if(!member && room.isFirebase){
+    member=room.members.filter(function(m){ return !!m.isPlayer; })[0];
+  }
   if(!member){
     member={id:identity.id,name:identity.name,isPlayer:true,snapshot:{}};
     room.members.push(member);

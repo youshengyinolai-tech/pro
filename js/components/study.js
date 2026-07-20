@@ -6,7 +6,7 @@
 */
 import { STAGES } from '../data/questions.js';
 import { resolveStudyBeats } from '../data/studyBeats.js';
-import { state, progress, saveProgress, esc, MEDAL_RANK } from '../core/state.js';
+import { state, progress, saveProgress, esc, MEDAL_RANK, recordLearningActivity } from '../core/state.js';
 import { render, renderTopbar, openLesson } from '../core/router.js';
 import { icon, stageIcon } from '../core/icons.js';
 
@@ -226,6 +226,7 @@ import { icon, stageIcon } from '../core/icons.js';
         var beat = beats[state.studyStep];
         var picked = parseInt(btn.getAttribute('data-opt'),10);
         state.studyPicked = picked;
+        recordLearningActivity('studySteps',1);
         if(picked === beat.quiz.correct){
           state.studyCombo++;
           if(state.studyCombo > state.studyBestCombo) state.studyBestCombo = state.studyCombo;
@@ -233,6 +234,7 @@ import { icon, stageIcon } from '../core/icons.js';
           state.studyCombo = 0;
           state.studyWrongCount++;
         }
+        saveProgress(progress);
         render();
       });
     });

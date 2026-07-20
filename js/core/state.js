@@ -105,7 +105,79 @@ export const STORE_KEY = 'oopExamQuest_v3';
   if(!progress.ranking.nickname){
     progress.ranking.nickname = 'あなた';
   }
+  if(!progress.activity || typeof progress.activity !== 'object'){
+    progress.activity = {days:{}, bestDayCorrect:0};
+  }
+  if(!progress.activity.days || typeof progress.activity.days !== 'object'){
+    progress.activity.days = {};
+  }
+  if(typeof progress.activity.bestDayCorrect !== 'number'){
+    progress.activity.bestDayCorrect = 0;
+  }
+  if(!progress.showcase || typeof progress.showcase !== 'object'){
+    progress.showcase = {achievementLabels:null};
+  }
   saveProgress(progress);
+
+  function activityDateKey(date){
+    var d=date||new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function shiftedDateKey(daysAgo){
+    var d=new Date();
+    d.setHours(12,0,0,0);
+    d.setDate(d.getDate()-daysAgo);
+    return activityDateKey(d);
+  }
+
+  export function recordLearningActivity(kind, amount){
+    var key=activityDateKey();
+    var days=progress.activity.days;
+    if(!days[key]) days[key]={answers:0,correct:0,studySteps:0,reviewsCleared:0};
+    var field=kind||'answers';
+    days[key][field]=(days[key][field]||0)+(typeof amount==='number'?amount:1);
+    if((days[key].correct||0)>progress.activity.bestDayCorrect){
+      progress.activity.bestDayCorrect=days[key].correct;
+    }
+  }
+
+  export function learningActivitySummary(){
+    var todayKey=activityDateKey();
+    var today=progress.activity.days[todayKey]||{answers:0,correct:0,studySteps:0,reviewsCleared:0};
+    var streak=0;
+    var startOffset=((today.answers||0)+(today.studySteps||0)+(today.reviewsCleared||0))>0?0:1;
+    for(var i=startOffset;i<370;i++){
+      var day=progress.activity.days[shiftedDateKey(i)];
+      if(!day||((day.answers||0)+(day.studySteps||0)+(day.reviewsCleared||0))===0) break;
+      streak++;
+    }
+    var missions=[
+      {id:'correct',label:'既存問題で5問正解',value:today.correct||0,target:5},
+      {id:'study',label:'学習パートを3ステップ',value:today.studySteps||0,target:3},
+      {id:'review',label:'間違いノートを1問解決',value:today.reviewsCleared||0,target:1}
+    ];
+    var completed=missions.filter(function(m){ return m.value>=m.target; }).length;
+    return {today:today,streak:streak,missions:missions,completed:completed,bestDayCorrect:progress.activity.bestDayCorrect||0};
+  }
+
+  export function investigatorRank(){
+    var correct=0;
+    Object.keys(progress.unitStats||{}).forEach(function(unit){ correct+=(progress.unitStats[unit].correct||0); });
+    var study=Object.keys(progress.studyCompleted||{}).filter(function(id){ return !!progress.studyCompleted[id]; }).length;
+    var points=totalStarsEarned()*10+correct+study*20;
+    var ranks=[
+      {name:'見習い捜査員',min:0},
+      {name:'コード巡査',min:100},
+      {name:'事件解析官',min:300},
+      {name:'上級デバッガー',min:700},
+      {name:'首席コード探偵',min:1400}
+    ];
+    var current=ranks[0],next=null;
+    ranks.forEach(function(rank,index){ if(points>=rank.min){ current=rank; next=ranks[index+1]||null; } });
+    var pct=next?Math.max(0,Math.min(100,Math.round((points-current.min)/(next.min-current.min)*100))):100;
+    return {name:current.name,points:points,next:next,percent:pct};
+  }
 
 
   export function recordUnitAnswer(unit, correct){
@@ -113,6 +185,8 @@ export const STORE_KEY = 'oopExamQuest_v3';
     if(!progress.unitStats[unit]) progress.unitStats[unit] = {correct:0, wrong:0};
     if(correct) progress.unitStats[unit].correct++;
     else progress.unitStats[unit].wrong++;
+    recordLearningActivity('answers',1);
+    if(correct) recordLearningActivity('correct',1);
   }
 
   /* 間違えた問題を「間違いノート」(progress.missed)に記録する。
