@@ -1,7 +1,7 @@
 /*
  ranking.js — ランキングルームの作成、招待コード参加、複数観点順位表を描画する。
 */
-import { state, progress, saveProgress, esc } from '../core/state.js?v=2026072102';
+import { state, progress, saveProgress, esc } from '../core/state.js?v=2026072103';
 import {
   RANKING_METRICS, playerIdentity, setPlayerName, captureProgress,
   createRoom, joinRoom, listRooms, getRoom, openRoom, syncCurrentPlayer,
@@ -12,7 +12,7 @@ import {
   createFirebaseRoom, joinFirebaseRoom, syncFirebaseProgress, loadFirebaseRoom,
   subscribeFirebaseRoomMembers, kickFirebaseMember
 } from '../services/firebaseRanking.js?v=2026072042';
-import { render, renderTopbar } from '../core/router.js?v=2026072102';
+import { render, renderTopbar } from '../core/router.js?v=2026072103';
 import { icon } from '../core/icons.js';
 
 var realtimeRoomId=null;

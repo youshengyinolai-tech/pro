@@ -7,10 +7,11 @@ import {
   state, progress, saveProgress, esc, shuffle, checkAnswer, normalize,
   UNIT_LIST, unitAttemptInfo, recommendDifficulty, weakUnitIds,
   recordUnitAnswer, recordMissed, rebuildEndlessQueue, reshuffleEndlessQueue,
-  currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity
-} from '../core/state.js?v=2026072102';
+  currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity,
+  questionDifficultyRating, unitDifficultyTarget
+} from '../core/state.js?v=2026072103';
 import { icon, stageIcon } from '../core/icons.js';
-import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072102';
+import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072103';
 
   var exerciseKeyboardInstalled = false;
 
@@ -216,17 +217,19 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072102
 
 
 
-  /* その章の全設問(qs/qsHard/qsExtra/qsDrag/qsExpert、ボス戦は集約されたqsのみ)を
-     設問自身が持つdiff(1〜4)でグループ化し、各グループの中だけシャッフルしたうえで
-     難易度が低い順に連結する。startTier(1〜4)で選んだ難易度から出題が始まり、
-     探偵が捜査を続けられる限り、そこから上の難易度へ自動でエスカレートし続ける。 */
+  /* CASEでも100〜1000の内部レートを使う。開始難易度は必ず下限として守り、
+     各問題の出題元単元の習熟度に近い問題から先に並べる。 */
   export function stageEscalatingPool(st, startTier){
     var all = (st.qs||[]).concat(st.qsHard||[]).concat(st.qsExtra||[]).concat(st.qsDrag||[]).concat(st.qsExpert||[]);
-    var byTier = {1:[], 2:[], 3:[], 4:[]};
-    all.forEach(function(q){ (byTier[q.diff]||byTier[1]).push(q); });
     var from = startTier || 1;
-    return [1,2,3,4].filter(function(lv){ return lv >= from; })
-      .reduce(function(acc, lv){ return acc.concat(shuffle(byTier[lv])); }, []);
+    return all.filter(function(q){ return (q.diff||1)>=from; })
+      .map(function(q){
+        var targetLevel=Math.max(from,unitDifficultyTarget(q.unit||st.id));
+        var targetRating=100+(targetLevel-1)*300;
+        return {q:q,distance:Math.abs(questionDifficultyRating(q)-targetRating),tie:Math.random()};
+      })
+      .sort(function(a,b){ return a.distance-b.distance || a.tie-b.tie; })
+      .map(function(item){ return item.q; });
   }
 
 

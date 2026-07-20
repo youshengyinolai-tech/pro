@@ -3,7 +3,7 @@
  現在はlocalStorage版。公開時は同じ関数をSupabase実装へ差し替える。
 */
 import { STAGES, TOTAL_STARS } from '../data/questions.js';
-import { progress, saveProgress, totalStarsEarned, learningActivitySummary } from './state.js?v=2026072102';
+import { progress, saveProgress, totalStarsEarned, learningActivitySummary } from './state.js?v=2026072103';
 
 export const RANKING_METRICS = [
   {id:'overall', label:'総合進捗', unit:'pt'},
