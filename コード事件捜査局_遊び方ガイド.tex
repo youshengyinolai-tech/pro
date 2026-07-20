@@ -1,0 +1,264 @@
+\documentclass[11pt,a4paper]{ltjsarticle}
+\usepackage[margin=18mm]{geometry}
+\usepackage{luatexja-fontspec}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{tcolorbox}
+\usepackage{tikz}
+\usepackage{fancyhdr}
+\usepackage{fontawesome5}
+\usepackage{array}
+
+\definecolor{ink}{HTML}{2B2119}
+\definecolor{paper}{HTML}{FFF8E8}
+\definecolor{wine}{HTML}{762F28}
+\definecolor{gold}{HTML}{A8782C}
+\definecolor{forest}{HTML}{315C42}
+\definecolor{navy}{HTML}{31546B}
+\definecolor{purple}{HTML}{653568}
+\definecolor{muted}{HTML}{6B5B49}
+\definecolor{line}{HTML}{C6A978}
+\hypersetup{colorlinks=true,urlcolor=navy,linkcolor=wine}
+\pagecolor{paper}
+\color{ink}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlist{nosep,leftmargin=2em}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small コード事件捜査局}
+\rhead{\small PLAY GUIDE}
+\cfoot{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setmainjfont{Hiragino Sans}
+\setsansjfont{Hiragino Sans}
+\setmonojfont{Menlo}
+\newfontfamily\titlejp{Hiragino Mincho ProN}
+
+\newtcolorbox{casebox}[2][]{
+  colback=white,colframe=#2,boxrule=0.8pt,arc=1mm,
+  left=3mm,right=3mm,top=2.5mm,bottom=2.5mm,
+  title={#1},fonttitle=\bfseries,coltitle=white,colbacktitle=#2
+}
+\newcommand{\taglabel}[2]{\tikz[baseline=(x.base)]\node[rounded corners=1pt,fill=#1,
+text=white,font=\bfseries\small,inner xsep=6pt,inner ysep=2.5pt](x){#2};}
+\newcommand{\key}[1]{\fcolorbox{line}{white}{\texttt{\strut #1}}}
+\newcommand{\stepcircle}[1]{\tikz[baseline=(x.base)]\node[circle,fill=wine,text=white,
+font=\bfseries,inner sep=2.2pt](x){#1};}
+
+\begin{document}
+
+\begin{titlepage}
+\pagecolor{ink}
+\color{white}
+\vspace*{18mm}
+{\color{gold}\rule{\linewidth}{1.2pt}}\par
+\vspace{9mm}
+{\titlejp\fontsize{28}{38}\selectfont コード事件捜査局\par}
+\vspace{3mm}
+{\fontsize{15}{22}\selectfont 機能紹介・遊び方・おすすめ攻略順\par}
+\vspace{9mm}
+{\color{gold}\rule{\linewidth}{1.2pt}}\par
+\vfill
+\begin{tcolorbox}[colback=white!7!ink,colframe=gold,coltext=white,arc=1mm,
+boxrule=.8pt,left=5mm,right=5mm,top=5mm,bottom=5mm]
+\large
+プログラミングの勉強を「事件捜査」に変える学習ゲームです。\\
+証拠を読み、問題を解き、未解決事件を片づけ、仲間と進捗を競いましょう。
+\end{tcolorbox}
+\vfill
+{\large 最短ルートはこれ！\par}
+\vspace{4mm}
+\begin{center}
+\taglabel{forest}{証拠を読む}
+\quad$\rightarrow$\quad
+\taglabel{wine}{推理に挑む}
+\quad$\rightarrow$\quad
+\taglabel{navy}{未解決を復習}
+\quad$\rightarrow$\quad
+\taglabel{purple}{ランキング}
+\end{center}
+\vfill
+\small
+Web版：\href{https://code-case-bureau-2026.web.app/}{https://code-case-bureau-2026.web.app/}\\
+このガイドは2026年7月時点の公開版に対応しています。
+\end{titlepage}
+\pagecolor{paper}
+\color{ink}
+
+\section*{まず知っておきたいこと}
+
+\begin{casebox}[このゲームの目的]{wine}
+たくさんある既存の事件（学習章・問題）を進めながら、理解度、正答数、連続正解、
+学習完了数などを伸ばします。ランキング専用の問題を毎日解く方式ではありません。
+\textbf{普段の勉強が、そのままランキングの成績になります。}
+\end{casebox}
+
+\begin{tabularx}{\linewidth}{>{\bfseries}p{28mm}X}
+事件一覧 & 章ごとの学習・問題へ入るメイン画面。進行度に応じて次の事件が開きます。\\
+今日の一歩 & その日に取り組みやすい小さな目標。右上の「－／＋」で最小化できます。\\
+捜査記録 & 総合評価、連続正解、正答率を確認できます。\\
+自動保存 & 学習記録は端末に自動保存。ランキング部屋の記録はFirebaseで同期します。\\
+\end{tabularx}
+
+\section*{おすすめの使う順番}
+
+\begin{casebox}[王道ルート：迷ったらこの順番]{forest}
+\stepcircle{1}\ \textbf{「証拠を読む」に切り替える}\\
+左下の章選択モードを「証拠を読む」にして、最初の事件を開きます。
+
+\stepcircle{2}\ \textbf{学習パートを最後まで読む}\\
+物語、完成コード、要点、テストの罠を確認します。途中の確認問題にも答えます。
+
+\stepcircle{3}\ \textbf{「問題パートに切替」}\\
+同じ事件の訓練場を開き、最初は低い難易度から挑戦します。
+
+\stepcircle{4}\ \textbf{間違えた問題を「未解決」で回収}\\
+間違いは復習ノートへ集まります。正解できるまで短く繰り返します。
+
+\stepcircle{5}\ \textbf{次の事件へ進む}\\
+理解してから次へ進むと、後半の複合問題で迷いにくくなります。
+
+\stepcircle{6}\ \textbf{数章終えたら「総合捜査」}\\
+1000本ノックで複数単元を混ぜ、本当に思い出せるか確認します。
+
+\stepcircle{7}\ \textbf{ランキング部屋で継続}\\
+友達と部屋を作り、普段の進捗を複数の観点から競います。
+\end{casebox}
+
+\begin{casebox}[試験直前ルート：時間がないとき]{gold}
+\textbf{捜査条件}を開き、\textbf{一夜漬けモード（鉄板・頻出のみ）}を選びます。\\
+まず \taglabel{wine}{鉄板}、次に \taglabel{gold}{頻出}。
+間違えた問題だけを「未解決」で解き直してください。余裕ができたら標準以上へ進みます。
+\end{casebox}
+
+\section*{事件一覧と章攻略}
+
+\begin{casebox}[2つの章選択モード]{navy}
+\textbf{証拠を読む：} 解説中心。初見の章、苦手な章、久しぶりの章におすすめ。\\
+\textbf{推理に挑む：} 問題中心。理解できているか試したいときにおすすめ。\\
+左下のボタンでいつでも切り替えられます。
+\end{casebox}
+
+事件カードには章名、内容、評価の星が表示されます。BOSS NODEは複数の知識を組み合わせる
+重要事件です。先に通常事件を進めてから挑みましょう。
+
+\subsection*{訓練場の流れ}
+
+\begin{enumerate}
+\item 完成コードと解説を確認する。
+\item 開始する難易度を選ぶ。
+\item 選択式、コード入力、ドラッグ配置などの問題に答える。
+\item 正誤と解説を読み、「つづける」で次へ進む。
+\item クリア後は復習、再挑戦、次の事件を選ぶ。
+\end{enumerate}
+
+\begin{casebox}[便利なキー操作]{wine}
+\key{Enter} 回答・次へ進む \qquad
+\key{Esc} 前の画面／地図へ戻る\\
+複数行コードでは \key{Enter} で送信、\key{Shift + Enter} で改行します。
+\end{casebox}
+
+\section*{難易度と重要度タグ}
+
+\begin{tabularx}{\linewidth}{p{25mm}p{28mm}X}
+\textbf{タグ} & \textbf{おすすめ時期} & \textbf{使い方}\\ \hline
+\taglabel{wine}{鉄板} & 最初・直前 & 最重要の基礎。ここを落とさない状態を作る。\\
+\taglabel{gold}{頻出} & 鉄板の次 & 定番問題。試験前の得点源にする。\\
+\taglabel{forest}{標準} & 基礎完成後 & 普通の出題に対応できるか確認する。\\
+\taglabel{navy}{深掘り} & 余裕がある時 & 差がつく発展問題に挑戦する。\\
+\taglabel{purple}{完全制覇} & 仕上げ & 総復習・高難度。最後の腕試し。\\
+\end{tabularx}
+
+\textbf{コツ：} 高難度を無理に選ぶより、鉄板・頻出を高い正答率で終えてから上げるほうが
+効率的です。章攻略では、選んだ難易度から上へ自動的にエスカレートします。
+
+\section*{総合捜査（1000本ノック）}
+
+章を横断して問題を解くモードです。「単元」「難易度」「重要度」を組み合わせて出題範囲を
+作れます。
+
+\begin{casebox}[おすすめ設定]{forest}
+\textbf{初回：} 苦手分野＋おすすめ難易度に自動設定\\
+\textbf{試験直前：} 全単元＋鉄板・頻出\\
+\textbf{弱点補強：} 苦手な単元だけ＋鉄板から標準\\
+\textbf{仕上げ：} 全単元＋深掘り・完全制覇
+\end{casebox}
+
+途中で「捜査を中断」しても、ホーム右側から残り問題を再開できます。連続正解、最高記録、
+通算正答率を目安にしましょう。
+
+\section*{未解決（復習ノート）}
+
+間違えた問題は自動で集まり、解説画面から手動で復習ノートへ入れることもできます。
+「未解決」を開くと、登録された問題だけを集中して解けます。
+
+\begin{casebox}[復習の小ルール]{gold}
+一度に全部覚えようとせず、\textbf{間違えた当日 → 翌日 → 数日後}の3回に分けて解き直すと
+定着しやすくなります。空になったら、その日の捜査は大成功です。
+\end{casebox}
+
+\section*{ランキングルーム}
+
+\begin{enumerate}
+\item 「ランキング」を開き、表示名を入力する。
+\item 誰か一人が部屋名を決めて「部屋を作成」する。
+\item 表示された6文字の招待コードを仲間へ送る。
+\item 仲間は「招待コードで参加」から同じ部屋へ入る。
+\item 普段どおり学習し、部屋を開いて順位を確認する。
+\end{enumerate}
+
+順位は1種類ではなく、総合評価、解決済み事件、学習完了、演習実績など複数の観点で
+切り替えられます。進捗はオンラインで自動更新され、「現在の進捗を反映」でも同期できます。
+
+\begin{casebox}[部屋主だけができること]{wine}
+部屋を作ったユーザーには「部屋主」と表示されます。部屋主は自分以外のメンバーを
+\textbf{キック}できます。「この端末から部屋を削除」は表示から外す操作なので、
+使う前に対象の部屋を確認してください。
+\end{casebox}
+
+\section*{進捗・実績・共有}
+
+右側の「観測を開く」から、進捗と実績を確認できます。
+
+\begin{itemize}
+\item 実績バッジを押すと、取得方法と現在の進み具合を表示。
+\item バッジ一覧はページ式。後ろほど高難度の実績。
+\item 取得済み実績から5つを進捗状況へドラッグして選択。
+\item ユーザー名は進捗状況の中でも変更可能。
+\item 進捗状況を画像に保存、テキストをコピー、共有できます。
+\item 全取得デモはURL末尾に \texttt{?demo=all} を付けて確認できます。
+\end{itemize}
+
+\section*{続けやすくする3つのコツ}
+
+\begin{casebox}[1日5分でも捜査は進む]{forest}
+\textbf{1. 今日の一歩だけ終える}\\
+大きな目標より、ホームに出る3つの小目標を優先します。
+
+\textbf{2. 連続正解より「戻ってくる」}\\
+間違いは未解決リストが覚えてくれます。失敗しても記録が教材になります。
+
+\textbf{3. ランキングは速さではなく継続のきっかけ}\\
+得意分野が違っても、ランキングの観点を切り替えれば別の活躍が見えます。
+\end{casebox}
+
+\section*{困ったとき}
+
+\begin{tabularx}{\linewidth}{>{\bfseries}p{42mm}X}
+表示が古い & ページを再読み込み。改善しない場合はブラウザのキャッシュを更新します。\\
+別端末で部屋に入りたい & 同じ招待コードを入力。表示名を確認してから参加します。\\
+何から解けばよいか不明 & 「苦手分野＋おすすめ難易度に自動設定」を使います。\\
+時間がない & 一夜漬けモードで鉄板・頻出に絞ります。\\
+問題を忘れた & 学習パートまたは訓練場の例題へ戻ります。\\
+\end{tabularx}
+
+\vfill
+\begin{center}
+{\titlejp\Large 捜査は、一問から始まる。}\\[2mm]
+{\color{muted}今日の一歩を終えたら、それで十分前進です。}
+\end{center}
+
+\end{document}

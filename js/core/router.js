@@ -10,7 +10,7 @@ import {
   recommendDifficulty, starString, UNIT_LIST, ENDLESS_POOL,
   shuffle, POOL_INDEX_BY_QID, ensureEndlessQueue,
   learningActivitySummary, investigatorRank
-} from './state.js';
+} from './state.js?v=2026072036';
 import { renderStudy, startStudy, wireStudy } from '../components/study.js';
 import { icon, stageIcon } from './icons.js';
 import {
@@ -18,7 +18,7 @@ import {
   closeUnitPicker,
   renderBattle, renderEndless, renderQuestionBody, wireQuestionControls,
   startStage, installExerciseKeyboardShortcuts
-} from '../components/exercise.js?v=2026072033';
+} from '../components/exercise.js?v=2026072037';
 import {
   renderRankingHome, renderRankingRoom, wireRankingHome, wireRankingRoom
 } from '../components/ranking.js';

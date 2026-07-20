@@ -8,7 +8,7 @@ import {
   UNIT_LIST, unitAttemptInfo, recommendDifficulty, weakUnitIds,
   recordUnitAnswer, recordMissed, rebuildEndlessQueue, reshuffleEndlessQueue,
   currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity
-} from '../core/state.js';
+} from '../core/state.js?v=2026072036';
 import { icon, stageIcon } from '../core/icons.js';
 import { render, renderTopbar, openLesson } from '../core/router.js';
 
@@ -432,16 +432,20 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     fill:'空欄(<span style="color:var(--accent);font-weight:700;">______</span>)に入るコードや単語を実際に入力して、呪文のように唱えよう。',
     debug:'🐛 このコードには誤りが1箇所ある。正しく直した内容を入力して唱えよう。',
     choice:'次のうち正しいものを選んで唱えよう。',
-    order:'正しい順番になるように、記号をカンマ区切りで入力して唱えよう(例: B,A,C)。',
+    order:'A〜Dなどのカードをドラッグして、正しい順番に並べよう。',
     dragfill:'下のピースをドラッグ（またはタップで選んで配置）して、空欄をすべて埋めよう。'
   };
 
 
   export function renderQuestionBody(q){
     var type = q.type || 'fill';
-    var qlead = q.lead ? esc(q.lead) : QLEAD_DEFAULT[type];
+    var leadText = q.lead;
+    if(type==='order' && leadText){
+      leadText=leadText.replace(/正しい順番を記号で答えなさい。?/,'カードを正しい順番に並べなさい。');
+    }
+    var qlead = leadText ? esc(leadText) : QLEAD_DEFAULT[type];
 
-    if(type==='dragfill' && state.dragQid !== q.qid){
+    if((type==='dragfill'||type==='order') && state.dragQid !== q.qid){
       state.dragPlacement = {};
       state.dragSelected = null;
       state.dragQid = q.qid;
@@ -449,8 +453,25 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
 
     var bodyHtml;
     if(type==='order'){
-      var linesText = q.lines.map(function(ln){ return ln.label+' : '+ln.code; }).join('\n');
-      bodyHtml = '<pre class="codeblock">'+esc(linesText)+'</pre>';
+      var orderUsed=Object.keys(state.dragPlacement).map(function(key){ return state.dragPlacement[key]; }).filter(Boolean);
+      var orderCards=q.lines.map(function(ln){
+        var used=orderUsed.indexOf(ln.label)!==-1;
+        var selected=state.dragSelected===ln.label;
+        return '<button type="button" class="dragpiece orderpiece'+(used?' used':'')+(selected?' selected':'')+
+          '" data-piece="'+esc(ln.label)+'" draggable="'+(used?'false':'true')+'"'+(used?' disabled':'')+'>'+
+          '<b>'+esc(ln.label)+'</b><code>'+esc(ln.code)+'</code></button>';
+      }).join('');
+      var orderSlots=q.lines.map(function(ln,index){
+        var key='order-'+index;
+        var placedLabel=state.dragPlacement[key];
+        var placed=q.lines.filter(function(candidate){ return candidate.label===placedLabel; })[0];
+        return '<div class="orderrow"><span class="ordernum">'+(index+1)+'</span>'+
+          '<button type="button" class="dragslot orderslot'+(placed?' filled':'')+'" data-blank="'+key+'">'+
+          (placed?'<b>'+esc(placed.label)+'</b><code>'+esc(placed.code)+'</code>':'ここへカードを置く')+
+          '</button></div>';
+      }).join('');
+      bodyHtml='<div class="orderbuilder"><div class="ordertray">'+orderCards+'</div>'+
+        '<div class="orderanswer" aria-label="並び替えた回答">'+orderSlots+'</div></div>';
     } else if(type==='choice'){
       bodyHtml = q.code ? '<pre class="codeblock">'+esc(q.code)+'</pre>' : '';
     } else if(type==='dragfill'){
@@ -473,6 +494,10 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
           return '<button class="choicebtn" data-opt="'+i+'">'+esc(opt)+'</button>';
         }).join('')+
       '</div>';
+    } else if(type==='order'){
+      var orderComplete=q.lines.every(function(ln,index){ return !!state.dragPlacement['order-'+index]; });
+      answerHtml='<div class="actionrow"><button class="ghost" id="btnDragReset" type="button">並び順をリセット</button>'+
+        '<button class="primary" id="btnSubmit"'+(orderComplete?'':' disabled')+'>この順番で回答 →</button></div>';
     } else if(type==='dragfill'){
       var usedIds = Object.keys(state.dragPlacement).map(function(b){ return state.dragPlacement[b]; }).filter(Boolean);
       var trayHtml = q.pieces.map(function(p){
@@ -574,7 +599,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       Array.prototype.forEach.call(app.querySelectorAll('.choicebtn'), function(btn){
         btn.addEventListener('click', function(){ onChoice(parseInt(btn.getAttribute('data-opt'),10)); });
       });
-    } else if(type==='dragfill'){
+    } else if(type==='dragfill'||type==='order'){
       wireDragfillControls(app);
     } else {
       var input = document.getElementById('ansInput');
@@ -596,6 +621,9 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
      ピースをタップ→空欄をタップで配置(タッチ・キーボード操作でも完結)でき、
      さらにデスクトップではdraggable属性によるネイティブのドラッグ&ドロップにも対応する。 */
   export function dragfillValue(q){
+    if((q.type||'fill')==='order'){
+      return q.lines.map(function(ln,index){ return state.dragPlacement['order-'+index]||''; }).join(',');
+    }
     var blankIds = q.lines.filter(function(ln){ return ln.blank!==undefined; }).map(function(ln){ return ln.blank; });
     return blankIds.map(function(b){ return b+'='+(state.dragPlacement[b]||''); }).join('|');
   }
@@ -717,7 +745,14 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
     } else {
       yourAnsChip = '<div class="yourans"><span class="label">あなたの回答</span><span class="chip">'+esc(val)+'</span></div>';
       if(correct){
-        correctAnsChip = '';
+        var exactMatch=answerPool.some(function(answer){ return String(val).trim()===String(answer).trim(); });
+        if(exactMatch){
+          correctAnsChip = '';
+        } else {
+          var canonicalAnswer=state.curQ.answers[0];
+          correctAnsChip='<div class="correctans accepted-variant"><span class="label">教材の模範表記（どちらも正解）</span>'+
+            '<button type="button" class="ghost-badge copyable" data-copy="'+esc(canonicalAnswer)+'">'+esc(canonicalAnswer)+'</button></div>';
+        }
       } else {
         var altList = (state.curQ.altAnswers && state.curQ.altAnswers.length) ? state.curQ.altAnswers : [];
         var primaryBadges = state.curQ.answers.map(function(a){

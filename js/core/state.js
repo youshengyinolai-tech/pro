@@ -328,23 +328,33 @@ export const STORE_KEY = 'oopExamQuest_v3';
   export const FULLWIDTH_MAP = {
     '＊':'*','＋':'+','－':'-','＜':'<','＞':'>','／':'/','＆':'&','（':'(','）':')',
     '：':':','；':';','＿':'_','．':'.','，':',','　':' ','％':'%','＝':'=','！':'!',
-    '”':'"','“':'"','’':"'",'‘':"'",'〜':'~','～':'~'
+    '”':'"','“':'"','’':"'",'‘':"'",'〜':'~','～':'~','｛':'{','｝':'}','［':'[',
+    '］':']','＃':'#','｜':'|','？':'?','＠':'@','＾':'^','￥':'\\','−':'-'
   };
   export function toHalfWidth(s){
-    return String(s).replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(c){
+    var source=String(s);
+    if(typeof source.normalize==='function') source=source.normalize('NFKC');
+    return source.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(c){
       return String.fromCharCode(c.charCodeAt(0)-0xFEE0);
-    }).replace(/[＊＋－＜＞／＆（）：；＿．，　％＝！”“’‘〜～]/g, function(c){
+    }).replace(/[＊＋－＜＞／＆（）：；＿．，　％＝！”“’‘〜～｛｝［］＃｜？＠＾￥−]/g, function(c){
       return FULLWIDTH_MAP[c];
     });
   }
+  export function unwrapCodeFence(s){
+    return String(s).trim().replace(/^```[a-zA-Z0-9_+-]*\s*/,'').replace(/\s*```$/,'');
+  }
   export function normalize(s){
-    return toHalfWidth(String(s)).trim().toLowerCase().replace(/\s+/g,'');
+    return toHalfWidth(unwrapCodeFence(s)).replace(/[\u200B-\u200D\uFEFF]/g,'').trim().toLowerCase().replace(/\s+/g,'');
   }
   export function stripSemi(s){
-    return s.replace(/[;。、]+$/,'');
+    return s.replace(/[;。、.]+$/,'');
   }
   export function stripStd(s){
-    return s.replace(/^std::/,'');
+    return s.replace(/std::/g,'');
+  }
+  export function sameNumericValue(a,b){
+    if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(a) || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(b)) return false;
+    return Number(a)===Number(b);
   }
   export function checkAnswer(input, answers){
     var n = normalize(input);
@@ -354,7 +364,7 @@ export const STORE_KEY = 'oopExamQuest_v3';
       var an = normalize(a);
       var an2 = stripSemi(an);
       var an3 = stripStd(an2);
-      return n===an || n2===an2 || n3===an3;
+      return n===an || n2===an2 || n3===an3 || sameNumericValue(n2,an2);
     });
   }
 
