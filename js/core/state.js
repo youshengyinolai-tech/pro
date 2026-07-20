@@ -99,6 +99,12 @@ export const STORE_KEY = 'oopExamQuest_v3';
   if(!progress.studyMedal){
     progress.studyMedal = {};
   }
+  if(!progress.ranking){
+    progress.ranking = {nickname:'あなた', rooms:[], activeMetric:'overall'};
+  }
+  if(!progress.ranking.nickname){
+    progress.ranking.nickname = 'あなた';
+  }
   saveProgress(progress);
 
 
@@ -237,7 +243,9 @@ export const STORE_KEY = 'oopExamQuest_v3';
   }
 
   export function esc(s){
-    return String(s).replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
   }
 
   export const FULLWIDTH_MAP = {

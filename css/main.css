@@ -525,3 +525,68 @@
   .codex-showcase__achievement--epic{background:rgba(122,74,138,.22); border-color:var(--tier-legend); color:var(--tier-legend);} 
   .codex-showcase__achievement--legendary{background:rgba(163,63,45,.22); border-color:var(--danger); color:var(--danger);} 
   @media (max-width: 700px){.codex-sheet{padding:20px 16px 24px;}.codex-share__actions{flex-direction:column;}.codex-sheet__grid{grid-template-columns:1fr;}}
+
+  /* ---- shared ranking foundation ---- */
+  .league-nav{border-color:#78947d!important;background:linear-gradient(100deg,#3f674f,#294536)!important;color:#fff5df!important}
+  .league-nav>span,.league-nav small{color:#e9dcbf!important}.league-nav::after{background:#56765e!important;border-color:#263d30!important}
+  .league-nav:hover{filter:brightness(1.15)!important}
+  .league-shell{display:grid;gap:18px}
+  .league-hero{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:24px 28px;background:linear-gradient(120deg,color-mix(in srgb,var(--panel) 86%,#d99a32),var(--panel))}
+  .league-hero h2{margin:3px 0 5px;font-size:1.65rem}.league-hero p{margin:0;color:var(--ink-dim)}
+  .league-eyebrow{font:700 .68rem var(--font-mono);letter-spacing:.14em;color:#98641d}
+  .league-badge{min-width:142px;padding:15px 18px;text-align:center;border:1px solid #9b6d2d;background:rgba(255,255,255,.3)}
+  .league-badge small{display:block;font:.58rem var(--font-mono);letter-spacing:.08em;color:var(--ink-dim)}
+  .league-badge strong{display:block;margin-top:4px;font:800 1.18rem var(--font-display);letter-spacing:.08em}
+  .league-badge.silver{border-color:#8b969e}.league-badge.gold{border-color:#c58a20;color:#895b0b}.league-badge.platinum{border-color:#578796;color:#315f6c}.league-badge.legend{border-color:#8d3f85;color:#7b2f72}
+  .league-grid{display:grid;grid-template-columns:minmax(290px,.8fr) minmax(380px,1.2fr);gap:18px}
+  .league-mission,.league-board{padding:23px}.league-mission h3,.league-board h3{margin:4px 0 15px}
+  .league-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .league-metrics div,.league-result-stats div{padding:11px;background:rgba(255,255,255,.27);border:1px solid var(--line)}
+  .league-metrics small,.league-result-stats small,.league-runbar small{display:block;font:.62rem var(--font-mono);color:var(--ink-dim);letter-spacing:.07em}
+  .league-metrics strong,.league-result-stats strong,.league-runbar strong{font:800 1rem var(--font-mono);color:var(--accent)}
+  .league-next{padding:10px 12px;border-left:3px solid #aa7525;background:rgba(184,124,34,.1);font-weight:700}
+  .league-start{width:100%;font-size:1rem}.league-rule,.league-local-note{font-size:.74rem;color:var(--ink-dim);line-height:1.6}
+  .league-nickname{display:grid;gap:5px;margin-top:14px;font-size:.76rem;color:var(--ink-dim)}
+  .league-nickname input{width:100%;padding:9px 11px;border:1px solid var(--line);background:rgba(255,255,255,.46);color:var(--ink);font:600 .9rem var(--font-body)}
+  .league-board-head{display:flex;align-items:end;justify-content:space-between}.league-board-head small{color:var(--ink-dim)}
+  .league-table{display:grid;border-top:1px solid var(--line)}
+  .league-row{display:grid;grid-template-columns:38px minmax(120px,1fr) 100px 45px;align-items:center;gap:8px;padding:10px 8px;border-bottom:1px solid var(--line);font-size:.86rem}
+  .league-row.player{background:rgba(174,114,28,.16);border-left:3px solid #a46c1f}
+  .league-rank{font:800 .9rem var(--font-mono);color:var(--ink-dim)}.league-name small{font:.55rem var(--font-mono);color:#9b651d}
+  .league-row strong{text-align:right;font-family:var(--font-mono);color:var(--accent)}.league-acc{text-align:right;color:var(--ink-dim);font-family:var(--font-mono)}
+  .league-runbar{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:18px 22px 22px;margin-bottom:14px;overflow:hidden}
+  .league-progress{position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--bg-2)}.league-progress i{display:block;height:100%;background:linear-gradient(90deg,#9c651c,#d19b3b);transition:width .3s ease}
+  .league-qcard{border-top:3px solid #a97124}.league-result{max-width:720px;margin:0 auto}
+  .league-gain{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0;padding:10px 12px;background:rgba(169,107,27,.12);border:1px solid rgba(169,107,27,.35)}
+  .league-gain strong{font:800 1.1rem var(--font-mono);color:#986019}.league-gain span{font-size:.74rem;color:var(--ink-dim)}
+  .league-result-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:18px auto 24px;max-width:610px}
+  @media(max-width:800px){.league-grid{grid-template-columns:1fr}.league-hero{align-items:flex-start}.league-metrics{grid-template-columns:1fr}.league-result-stats{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.league-hero{display:grid}.league-badge{width:100%}.league-row{grid-template-columns:30px minmax(90px,1fr) 82px 38px;font-size:.76rem}.league-runbar{grid-template-columns:repeat(2,1fr)}}
+
+  /* ---- progress ranking rooms ---- */
+  .room-hero{align-items:end}.room-profile{min-width:220px;margin:0}.room-profile input{background:rgba(255,255,255,.58)}
+  .room-progress-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;border:1px solid var(--line);background:var(--line)}
+  .room-progress-strip div{padding:14px 16px;background:var(--panel)}.room-progress-strip small{display:block;color:var(--ink-dim);font-size:.68rem}
+  .room-progress-strip strong{font:800 1.05rem var(--font-mono);color:var(--accent)}
+  .room-actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.room-action{padding:22px}
+  .room-action h3{margin:4px 0 6px}.room-action p{margin:0 0 14px;color:var(--ink-dim);font-size:.84rem}
+  .room-action form{display:flex;gap:8px}.room-action input{min-width:0;flex:1;padding:10px 12px;border:1px solid var(--line);background:rgba(255,255,255,.5);color:var(--ink);font:600 .9rem var(--font-body);text-transform:none}
+  .room-action #roomCode{text-transform:uppercase;font-family:var(--font-mono);letter-spacing:.14em}.room-action .primary{white-space:nowrap}
+  .room-action .room-error{min-height:1.1em;margin:8px 0 0;color:var(--danger);font-weight:700}
+  .room-index,.room-board{padding:22px}.room-section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:14px}
+  .room-section-head h3{margin:3px 0 0}.room-section-head>small{color:var(--ink-dim);font-family:var(--font-mono)}
+  .room-list{display:grid;gap:8px}.room-card{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;padding:13px 14px;text-align:left;border:1px solid var(--line);background:rgba(255,255,255,.26);color:var(--ink);cursor:pointer}
+  .room-card:hover{border-color:#9d6a22;background:rgba(172,111,30,.1);transform:translateY(-1px)}.room-card-icon{font-size:1.25rem}
+  .room-card strong{display:block}.room-card small{display:block;margin-top:3px;color:var(--ink-dim);font-size:.7rem;font-family:var(--font-mono)}
+  .room-card>b{font-family:var(--font-mono);color:var(--accent)}.room-empty{text-align:center;padding:26px;color:var(--ink-dim)}.room-empty>span{font-size:1.8rem}
+  .room-empty h3{margin:8px 0 4px;color:var(--ink)}.room-empty p{margin:0}
+  .room-demo-note{margin:0;padding:10px 12px;border-left:3px solid #9e6c25;background:rgba(165,106,25,.08)}
+  .room-detail-hero{align-items:center}.room-code{min-width:170px;padding:12px 14px;text-align:center;border:1px dashed #9f6c27;background:rgba(255,255,255,.25)}
+  .room-code small{display:block;color:var(--ink-dim)}.room-code strong{display:block;margin:4px 0;font:900 1.4rem var(--font-mono);letter-spacing:.16em;color:#8b5917}
+  .room-code button{border:0;background:none;color:var(--accent);font-weight:700;cursor:pointer}.your-room-rank{text-align:right}
+  .your-room-rank small{display:block;color:var(--ink-dim)}.your-room-rank strong{font:900 1.35rem var(--font-mono);color:var(--accent)}
+  .metric-tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 0 12px}.metric-tab{flex:0 0 auto;padding:8px 11px;border:1px solid var(--line);background:rgba(255,255,255,.25);color:var(--ink-dim);font:700 .76rem var(--font-body);cursor:pointer}
+  .metric-tab.active{background:#784128;color:#fff3da;border-color:#784128}.room-ranking-table .league-row{grid-template-columns:42px minmax(120px,1fr) 130px 65px}
+  .member-kind{text-align:right;font:.58rem var(--font-mono);color:var(--ink-dim)}.room-detail-actions{display:flex;justify-content:space-between;gap:10px}
+  .danger-room{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 50%,var(--line))}
+  @media(max-width:760px){.room-progress-strip{grid-template-columns:repeat(2,1fr)}.room-actions-grid{grid-template-columns:1fr}.room-hero,.room-detail-hero{display:grid}.room-profile,.room-code{width:100%}.room-action form{display:grid}.room-detail-actions{display:grid}.room-ranking-table .league-row{grid-template-columns:32px minmax(90px,1fr) 100px 45px}}

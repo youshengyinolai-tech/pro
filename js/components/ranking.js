@@ -1,0 +1,187 @@
+/*
+ ranking.js — ランキングルームの作成、招待コード参加、複数観点順位表を描画する。
+*/
+import { state, progress, esc } from '../core/state.js';
+import {
+  RANKING_METRICS, playerIdentity, setPlayerName, captureProgress,
+  createRoom, joinRoom, listRooms, getRoom, openRoom, syncCurrentPlayer,
+  removeRoom, roomRanking, saveRemoteRoom
+} from '../core/ranking.js';
+import { firebaseAvailable } from '../services/firebase.js';
+import {
+  createFirebaseRoom, joinFirebaseRoom, syncFirebaseProgress, loadFirebaseRoom
+} from '../services/firebaseRanking.js';
+import { render, renderTopbar } from '../core/router.js';
+import { icon } from '../core/icons.js';
+
+function metricLabel(metricId){
+  return RANKING_METRICS.filter(function(m){ return m.id===metricId; })[0]||RANKING_METRICS[0];
+}
+
+function roomCards(){
+  var rooms=listRooms();
+  if(!rooms.length) return '<div class="room-empty"><span>'+icon('archive')+'</span><h3>まだ参加中の部屋はありません</h3><p>部屋を作成して、既存コンテンツの進捗を競ってみよう。</p></div>';
+  return '<div class="room-list">'+rooms.map(function(room){
+    var own=room.members.filter(function(member){ return member.isPlayer; })[0];
+    return '<button class="room-card" data-room-id="'+esc(room.id)+'">'+
+      '<span class="room-card-icon">'+icon('trophy')+'</span><span><strong>'+esc(room.name)+'</strong>'+
+      '<small>'+room.members.length+'人 ・ 招待コード '+esc(room.code)+'</small></span>'+
+      '<b>'+(own?Math.round((own.snapshot||{}).overall||0).toLocaleString():'0')+' pt</b>'+
+    '</button>';
+  }).join('')+'</div>';
+}
+
+export function renderRankingHome(){
+  var identity=playerIdentity();
+  var snapshot=captureProgress();
+  return ''+renderTopbar()+
+    '<div class="battlebar"><button class="backbtn" id="btnHome">← 地図へ戻る</button></div>'+
+    '<main class="league-shell">'+
+      '<section class="frame league-hero room-hero"><div><span class="league-eyebrow">PROGRESS RANKING ROOMS</span>'+
+        '<h2>'+icon('trophy')+' ランキングルーム</h2>'+
+        '<p>新しい専用問題ではなく、これまでの章攻略・学習・演習の実績をみんなで競います。</p></div>'+
+        '<label class="league-nickname room-profile">ランキング表示名<input id="rankingNickname" maxlength="16" value="'+esc(identity.name)+'"></label>'+
+      '</section>'+
+      '<section class="room-progress-strip">'+
+        '<div><small>総合進捗</small><strong>'+snapshot.overall.toLocaleString()+' pt</strong></div>'+
+        '<div><small>スター</small><strong>'+snapshot.stars+'</strong></div>'+
+        '<div><small>累計正解</small><strong>'+snapshot.correct+'</strong></div>'+
+        '<div><small>正答率</small><strong>'+snapshot.accuracy+'%</strong></div>'+
+        '<div><small>学習完了</small><strong>'+snapshot.study+'章</strong></div>'+
+      '</section>'+
+      '<div class="room-actions-grid">'+
+        '<section class="frame room-action"><span class="league-eyebrow">CREATE ROOM</span><h3>新しい部屋を作る</h3>'+
+          '<p>名前を決めると6文字の招待コードが発行されます。</p>'+
+          '<form id="createRoomForm"><input id="roomName" maxlength="30" placeholder="例：期末試験ガチ勢"><button class="primary" type="submit">部屋を作成</button></form>'+
+        '</section>'+
+        '<section class="frame room-action"><span class="league-eyebrow">JOIN ROOM</span><h3>招待コードで参加</h3>'+
+          '<p>友達から受け取った6文字のコードを入力します。</p>'+
+          '<form id="joinRoomForm"><input id="roomCode" maxlength="6" placeholder="ABC234"><button class="primary" type="submit">部屋に参加</button></form>'+
+          '<p class="room-error" id="roomError" aria-live="polite"></p>'+
+        '</section>'+
+      '</div>'+
+      '<section class="frame room-index"><div class="room-section-head"><div><span class="league-eyebrow">YOUR ROOMS</span><h3>参加中の部屋</h3></div><small>'+listRooms().length+'部屋</small></div>'+roomCards()+'</section>'+
+      '<p class="league-local-note room-demo-note">'+
+        (firebaseAvailable()
+          ? 'Firebaseオンライン同期が有効です。部屋コードを使って別端末から参加できます。'
+          : 'ローカル動作確認モードです。Firebase設定を入力すると、同じ画面のまま別端末同期へ切り替わります。')+
+      '</p>'+
+    '</main>';
+}
+
+function metricTabs(active){
+  return '<div class="metric-tabs" role="tablist">'+RANKING_METRICS.map(function(metric){
+    return '<button role="tab" class="metric-tab'+(metric.id===active?' active':'')+'" data-metric="'+metric.id+'">'+esc(metric.label)+'</button>';
+  }).join('')+'</div>';
+}
+
+function rankingTable(room,active){
+  var metric=metricLabel(active);
+  return '<div class="league-table room-ranking-table" role="table">'+roomRanking(room,active).map(function(row){
+    return '<div class="league-row'+(row.isPlayer?' player':'')+'" role="row">'+
+      '<span class="league-rank">'+row.rank+'</span>'+
+      '<span class="league-name">'+esc(row.name)+(row.isPlayer?' <small>YOU</small>':'')+'</span>'+
+      '<strong>'+row.value.toLocaleString()+' '+metric.unit+'</strong>'+
+      '<span class="member-kind">'+(row.isDemo?'DEMO':'MEMBER')+'</span>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+
+export function renderRankingRoom(){
+  var room=getRoom();
+  if(!room){ state.screen='ranking'; return renderRankingHome(); }
+  syncCurrentPlayer(room.id);
+  var active=progress.ranking.activeMetric||'overall';
+  var rows=roomRanking(room,active);
+  var player=rows.filter(function(row){ return row.isPlayer; })[0];
+  return ''+renderTopbar()+
+    '<div class="battlebar"><button class="backbtn" id="btnRankingBack">← 部屋一覧</button><button class="backbtn" id="btnMap">地図へ戻る</button></div>'+
+    '<main class="league-shell">'+
+      '<section class="frame league-hero room-detail-hero"><div><span class="league-eyebrow">RANKING ROOM // '+esc(room.code)+'</span>'+
+        '<h2>'+icon('trophy')+' '+esc(room.name)+'</h2><p>'+room.members.length+'人が参加中。通常の学習を進めると、次に部屋を開いた時に順位へ反映されます。</p></div>'+
+        '<div class="room-code"><small>招待コード</small><strong>'+esc(room.code)+'</strong><button id="btnCopyCode">コピー</button></div>'+
+      '</section>'+
+      '<section class="frame room-board">'+
+        '<div class="room-section-head"><div><span class="league-eyebrow">MULTI VIEW RANKING</span><h3>'+esc(metricLabel(active).label)+'ランキング</h3></div>'+
+          '<div class="your-room-rank"><small>あなたの順位</small><strong>'+(player?player.rank:'-')+'位</strong></div></div>'+
+        metricTabs(active)+rankingTable(room,active)+
+      '</section>'+
+      '<div class="room-detail-actions"><button class="ghost" id="btnSyncProgress">'+icon('review')+' 現在の進捗を反映</button>'+
+        '<button class="ghost danger-room" id="btnRemoveRoom">この端末から部屋を削除</button></div>'+
+      '<p class="league-local-note room-demo-note">'+
+        (firebaseAvailable()?'Firebaseと同期するオンラインルームです。':'現在は動作確認用ローカルルームです。')+
+      '</p>'+
+    '</main>';
+}
+
+export function wireRankingHome(){
+  document.getElementById('btnHome').addEventListener('click',function(){ state.screen='map'; render(); });
+  document.getElementById('rankingNickname').addEventListener('change',function(event){ setPlayerName(event.target.value); render(); });
+  document.getElementById('createRoomForm').addEventListener('submit',async function(event){
+    event.preventDefault();
+    var room=createRoom(document.getElementById('roomName').value);
+    if(firebaseAvailable()){
+      try{
+        await createFirebaseRoom(room);
+        var remote=await loadFirebaseRoom(room.id);
+        if(remote) saveRemoteRoom(remote);
+      }catch(error){
+        document.getElementById('roomError').textContent='Firebase: '+error.message;
+        return;
+      }
+    }
+    state.screen='ranking-room'; render();
+  });
+  document.getElementById('joinRoomForm').addEventListener('submit',async function(event){
+    event.preventDefault();
+    var code=document.getElementById('roomCode').value;
+    if(firebaseAvailable()){
+      try{
+        var roomId=await joinFirebaseRoom(code,playerIdentity().name,captureProgress());
+        var remote=await loadFirebaseRoom(roomId);
+        if(remote) saveRemoteRoom(remote);
+        state.screen='ranking-room'; render();
+      }catch(error){
+        document.getElementById('roomError').textContent='Firebase: '+error.message;
+      }
+    }else{
+      var result=joinRoom(code);
+      if(result.ok){ state.screen='ranking-room'; render(); }
+      else document.getElementById('roomError').textContent=result.error;
+    }
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.room-card'),function(button){
+    button.addEventListener('click',function(){ if(openRoom(button.getAttribute('data-room-id'))){ state.screen='ranking-room'; render(); } });
+  });
+}
+
+export function wireRankingRoom(){
+  document.getElementById('btnRankingBack').addEventListener('click',function(){ state.screen='ranking'; render(); });
+  document.getElementById('btnMap').addEventListener('click',function(){ state.screen='map'; render(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.metric-tab'),function(button){
+    button.addEventListener('click',function(){ progress.ranking.activeMetric=button.getAttribute('data-metric'); render(); });
+  });
+  document.getElementById('btnSyncProgress').addEventListener('click',async function(){
+    var room=getRoom();
+    syncCurrentPlayer();
+    if(firebaseAvailable()&&room){
+      try{
+        await syncFirebaseProgress(room.id,playerIdentity().name,captureProgress());
+        var remote=await loadFirebaseRoom(room.id);
+        if(remote) saveRemoteRoom(remote);
+      }catch(error){
+        window.alert('Firebase同期に失敗しました: '+error.message);
+      }
+    }
+    render();
+  });
+  document.getElementById('btnCopyCode').addEventListener('click',function(){
+    var button=this,room=getRoom();
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(room.code);
+    button.textContent='コピー済み'; setTimeout(function(){ button.textContent='コピー'; },1000);
+  });
+  document.getElementById('btnRemoveRoom').addEventListener('click',function(){
+    var room=getRoom();
+    if(room&&window.confirm('「'+room.name+'」をこの端末から削除しますか？')){ removeRoom(room.id); state.screen='ranking'; render(); }
+  });
+}

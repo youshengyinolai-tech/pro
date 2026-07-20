@@ -1,0 +1,31 @@
+{
+  "name": "pro",
+  "version": "1.0.0",
+  "description": "コード事件捜査局 — 学習進捗ランキングルーム",
+  "scripts": {
+    "firebase:login": "XDG_CONFIG_HOME=.firebase-config firebase login",
+    "firebase:use": "XDG_CONFIG_HOME=.firebase-config firebase use --add",
+    "firebase:emulators": "XDG_CONFIG_HOME=.firebase-config firebase emulators:start",
+    "firebase:deploy": "XDG_CONFIG_HOME=.firebase-config firebase deploy",
+    "firebase:deploy:hosting": "XDG_CONFIG_HOME=.firebase-config firebase deploy --only hosting",
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/youshengyinolai-tech/pro.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/youshengyinolai-tech/pro/issues"
+  },
+  "homepage": "https://github.com/youshengyinolai-tech/pro#readme",
+  "dependencies": {
+    "firebase": "^12.16.0"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.24.0"
+  }
+}

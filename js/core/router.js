@@ -18,6 +18,9 @@ import {
   renderBattle, renderEndless, renderQuestionBody, wireQuestionControls,
   startStage, installExerciseKeyboardShortcuts
 } from '../components/exercise.js';
+import {
+  renderRankingHome, renderRankingRoom, wireRankingHome, wireRankingRoom
+} from '../components/ranking.js';
 
   var globalKeyboardReady = false;
 
@@ -144,7 +147,7 @@ import {
   export function renderTopbar(){
     return ''+
     '<div class="topbar">'+
-      '<div class="brand"><span class="glyph">⬡</span><div><h1>コード転生記</h1><small>CODE BATTLE // EXAM SURVIVAL</small></div></div>'+
+      '<div class="brand"><span class="glyph">⬡</span><div><h1>コード事件捜査局</h1><small>CODE CASE BUREAU // EXAM INVESTIGATION</small></div></div>'+
       '<div class="tally">MISSION SCORE <span class="stars num">'+totalStarsEarned()+' / '+TOTAL_STARS+'</span></div>'+
     '</div>';
   }
@@ -232,7 +235,7 @@ import {
   function buildCodexShareText(){
     var clearedCases = Object.keys(progress.stars).filter(function(stId){ return (progress.stars[stId]||0) > 0; }).length;
     var achievements = getCodexAchievements().map(function(item){ return item.label; }).join(' / ');
-    return 'コード転生記 進捗共有\n総合評価: '+totalStarsEarned()+' / '+TOTAL_STARS+'\n解決済みケース: '+clearedCases+' / '+STAGES.length+'\n実績: '+achievements;
+    return 'コード事件捜査局 進捗共有\n総合評価: '+totalStarsEarned()+' / '+TOTAL_STARS+'\n解決済みケース: '+clearedCases+' / '+STAGES.length+'\n実績: '+achievements;
   }
 
   function buildCodexShowcaseHtml(){
@@ -316,7 +319,7 @@ import {
 
     ctx.fillStyle = '#8d302b';
     ctx.font = 'bold 34px "Hiragino Mincho ProN", serif';
-    ctx.fillText('コード転生記', 110, 220);
+    ctx.fillText('コード事件捜査局', 110, 220);
 
     ctx.fillStyle = '#2b2318';
     ctx.font = '700 56px "Hiragino Mincho ProN", serif';
@@ -347,7 +350,7 @@ import {
     ctx.fillText('この記録を写真にして、友達に見せよう。', 110, 1450);
 
     var link = document.createElement('a');
-    link.download = 'コード転生記_進捗.png';
+    link.download = 'コード事件捜査局_進捗.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   }
@@ -431,7 +434,7 @@ import {
     var shareBtn = app.querySelector('#btnShareCodex');
     if(shareBtn){ shareBtn.addEventListener('click', function(){
       if(navigator.share){
-        navigator.share({title:'コード転生記 進捗', text:shareText}).catch(function(){});
+        navigator.share({title:'コード事件捜査局 進捗', text:shareText}).catch(function(){});
       } else if(navigator.clipboard && navigator.clipboard.writeText){
         navigator.clipboard.writeText(shareText).then(function(){ shareBtn.textContent = '共有文をコピー'; });
       }
@@ -506,6 +509,7 @@ import {
       '<aside class="case-sidebar">'+
         '<div class="office-plate"><span>'+icon('target')+'</span><div><small>BUG INVESTIGATION UNIT</small><h2>事件管理簿</h2></div></div>'+
         '<button class="case-nav active"><span>'+icon('archive')+'</span><b>事件一覧</b><small>'+STAGES.length+'件</small></button>'+
+        '<button class="case-nav league-nav" id="btnRanking"><span>'+icon('trophy')+'</span><b>ランキング</b><small>ルームで競う</small></button>'+
         '<button class="case-nav" id="btnEndless"><span>'+icon('terminal')+'</span><b>総合捜査</b><small>1000本ノック</small></button>'+
         '<button class="case-nav" id="btnReview2"><span>'+icon('review')+'</span><b>未解決</b><small>'+missedN+'件</small></button>'+
         '<button class="case-nav" id="btnUnitPicker"><span>'+icon('target')+'</span><b>捜査条件</b><small>'+esc(DIFF_BATCH_LABEL[overallReco])+'</small></button>'+
@@ -670,6 +674,9 @@ import {
       document.getElementById('btnEndless').addEventListener('click', function(){
         openEndless();
       });
+      document.getElementById('btnRanking').addEventListener('click', function(){
+        state.curQ=null; state.screen='ranking'; render();
+      });
       document.getElementById('btnEndlessDesk').addEventListener('click', function(){
         openEndless();
       });
@@ -688,6 +695,12 @@ import {
       document.getElementById('btnReview2').addEventListener('click', function(){
         openReview();
       });
+    } else if(state.screen==='ranking'){
+      app.innerHTML = renderRankingHome();
+      wireRankingHome(app);
+    } else if(state.screen==='ranking-room'){
+      app.innerHTML = renderRankingRoom();
+      wireRankingRoom(app);
     } else if(state.screen==='unitPicker'){
       app.innerHTML = renderUnitPicker();
       wireUnitPicker(app);
