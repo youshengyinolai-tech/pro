@@ -17,7 +17,10 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
   function isEditableTarget(target){
     if(!target || target.nodeType!==1) return false;
     var tag = target.tagName;
-    return tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || target.isContentEditable;
+    if(tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT'){
+      return !target.disabled && !target.readOnly;
+    }
+    return !!target.isContentEditable;
   }
 
   function isInsideEscapeSurface(target){
@@ -25,8 +28,16 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
   }
 
   function closeTopmostEscapeSurface(){
-    var overlay = document.querySelector('.codex-overlay');
-    if(overlay){ overlay.remove(); return true; }
+    var activePopups = Array.prototype.slice.call(document.querySelectorAll('.codex-overlay, .modal, .popup, .overlay, dialog[open]'));
+    if(activePopups.length){
+      var popup = activePopups[activePopups.length - 1];
+      if(popup && popup.tagName === 'DIALOG' && popup.hasAttribute('open')){
+        if(typeof popup.close === 'function') popup.close();
+      } else if(popup){
+        popup.remove();
+      }
+      return true;
+    }
 
     var dialogs = document.querySelectorAll('dialog[open]');
     if(dialogs.length){
@@ -95,7 +106,9 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
   }
 
   function handleExerciseKeyboard(event){
-    if(event.key==='Enter'){
+    var key = event.key || '';
+    var keyCode = event.keyCode || event.which || 0;
+    if(key==='Enter' || keyCode===13){
       if(event.isComposing || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
       if(isEditableTarget(event.target)) return;
       if(tryAdvanceWithEnter()){
@@ -105,7 +118,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       return;
     }
 
-    if(event.key!=='Escape' && event.key!=='Esc') return;
+    if(key!=='Escape' && key!=='Esc' && keyCode!==27) return;
     if(event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey) return;
 
     if(isEditableTarget(event.target) && isInsideEscapeSurface(event.target)){
@@ -122,8 +135,12 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
 
   export function installExerciseKeyboardShortcuts(){
     if(exerciseKeyboardInstalled || typeof document==='undefined') return;
-    document.addEventListener('keydown', handleExerciseKeyboard);
+    document.addEventListener('keydown', handleExerciseKeyboard, true);
     exerciseKeyboardInstalled = true;
+  }
+
+  if(typeof document !== 'undefined'){
+    installExerciseKeyboardShortcuts();
   }
 
   export function renderLesson(){

@@ -136,7 +136,7 @@ import {
 
   function installGlobalKeyboard(){
     if(globalKeyboardReady) return;
-    document.addEventListener('keydown', onGlobalKeydown);
+    installExerciseKeyboardShortcuts();
     globalKeyboardReady = true;
   }
 
