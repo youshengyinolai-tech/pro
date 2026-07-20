@@ -167,6 +167,7 @@ import { setPlayerName } from './ranking.js';
         '<ul>'+
           '<li>未解決事件: '+missedCount()+' 件</li>'+
           '<li>総合評価: '+totalStarsEarned()+' / '+TOTAL_STARS+'</li>'+
+          '<li>獲得バッジ: '+getCodexAchievements().filter(function(item){ return item.earned; }).length+' / '+getCodexAchievements().length+' 個</li>'+
           '<li>推奨難易度: '+esc(recoLabel)+'</li>'+
         '</ul>'+
         '<button class="codex-panel__cta" id="btnCodexOpen" type="button">観測を開く</button>'+
@@ -376,6 +377,7 @@ import { setPlayerName } from './ranking.js';
     var clearedCases = Object.keys(progress.stars).filter(function(stId){ return (progress.stars[stId]||0) > 0; }).length;
     var userName = progress.ranking.nickname || 'あなた';
     var allAchievements=getCodexAchievements();
+    var earnedAchievementCount=allAchievements.filter(function(item){ return item.earned; }).length;
     var showcaseSettings=ensureShowcaseSettings();
     if(!Array.isArray(showcaseSettings.achievementLabels) || showcaseSettings.achievementLabels.length!==5){
       var defaults=allAchievements.filter(function(item){ return item.earned; }).slice(0,5).map(function(item){ return item.label; });
@@ -414,6 +416,7 @@ import { setPlayerName } from './ranking.js';
             '<div class="codex-showcase__metric"><span>解決済みケース</span><strong>'+clearedCases+' / '+STAGES.length+'</strong></div>'+ 
             '<div class="codex-showcase__metric"><span>未解決イベント</span><strong>'+missedCount()+' 件</strong></div>'+ 
             '<div class="codex-showcase__metric"><span>推奨難易度</span><strong>'+esc(DIFF_BATCH_LABEL[recommendDifficulty(progress.settings.endlessUnits)] || '標準')+'</strong></div>'+ 
+            '<div class="codex-showcase__metric"><span>獲得バッジ</span><strong>'+earnedAchievementCount+' / '+allAchievements.length+'</strong></div>'+
           '</div>'+ 
           '<div class="codex-showcase__achievement-head"><span>表示する実績</span><small>下の実績から5枠へドラッグ</small></div>'+
           '<div class="codex-showcase__tray" aria-label="取得済み実績">'+earnedTray+'</div>'+
@@ -486,6 +489,8 @@ import { setPlayerName } from './ranking.js';
     ctx.fillText('解決済み案件  ' + Object.keys(progress.stars).filter(function(stId){ return (progress.stars[stId]||0) > 0; }).length + ' / ' + STAGES.length, 80, 320);
     ctx.fillText('未解決イベント  ' + missedCount() + ' 件', 80, 370);
     ctx.fillText('推奨難易度  ' + (DIFF_BATCH_LABEL[recommendDifficulty(progress.settings.endlessUnits)] || '標準'), 80, 420);
+    var imageAchievements=getCodexAchievements();
+    ctx.fillText('獲得バッジ  ' + imageAchievements.filter(function(item){ return item.earned; }).length + ' / ' + imageAchievements.length, 80, 470);
 
     ctx.fillStyle = '#4f3b24';
     ctx.font = '700 25px "Hiragino Kaku Gothic ProN", sans-serif';
@@ -575,6 +580,7 @@ import { setPlayerName } from './ranking.js';
                 '<li><span>解決済みケース</span><strong>'+clearedCases+' / '+STAGES.length+'</strong></li>'+
                 '<li><span>未解決イベント</span><strong>'+missedCount()+' 件</strong></li>'+
                 '<li><span>推奨難易度</span><strong>'+esc(DIFF_BATCH_LABEL[recommendDifficulty(progress.settings.endlessUnits)] || '標準')+'</strong></li>'+
+                '<li><span>獲得バッジ</span><strong>'+achievementItems.filter(function(item){ return item.earned; }).length+' / '+achievementItems.length+' 個</strong></li>'+
               '</ul>'+
             '</section>'+
             '<section class="codex-card">'+
