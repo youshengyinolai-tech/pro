@@ -32,6 +32,12 @@ import {
   }
 
   function closeTopmostEscapeSurface(){
+    var overlay = document.querySelector('.codex-overlay');
+    if(overlay){
+      overlay.remove();
+      return true;
+    }
+
     var dialogs = document.querySelectorAll('dialog[open]');
     if(dialogs.length){
       var dialog = dialogs[dialogs.length-1];
@@ -59,16 +65,52 @@ import {
       closeUnitPicker();
       return true;
     }
+
+    var homeBtn = document.getElementById('btnHome');
+    if(homeBtn && homeBtn.offsetParent !== null){
+      homeBtn.click();
+      return true;
+    }
+
+    var mapBtn = document.getElementById('btnMap');
+    if(mapBtn && mapBtn.offsetParent !== null){
+      mapBtn.click();
+      return true;
+    }
+    return false;
+  }
+
+  function tryAdvanceWithEnter(){
+    var continueBtn = document.getElementById('btnContinue');
+    if(continueBtn && !continueBtn.disabled){
+      continueBtn.click();
+      return true;
+    }
+    var nextBtn = document.getElementById('btnNext');
+    if(nextBtn && !nextBtn.disabled){
+      nextBtn.click();
+      return true;
+    }
+    var reviewAgainBtn = document.getElementById('btnReviewAgain');
+    if(reviewAgainBtn && !reviewAgainBtn.disabled){
+      reviewAgainBtn.click();
+      return true;
+    }
+    var submitBtn = document.getElementById('btnSubmit');
+    if(submitBtn && !submitBtn.disabled && !state.locked){
+      submitBtn.click();
+      return true;
+    }
     return false;
   }
 
   function onGlobalKeydown(event){
     if(event.key==='Enter'){
       if(event.isComposing || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-      var continueBtn = document.getElementById('btnContinue');
-      if(continueBtn){
+      if(isEditableTarget(event.target)) return;
+      if(tryAdvanceWithEnter()){
         event.preventDefault();
-        continueBtn.click();
+        event.stopPropagation();
       }
       return;
     }
