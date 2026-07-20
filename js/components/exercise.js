@@ -447,7 +447,10 @@ import { render, renderTopbar, openLesson } from '../core/router.js';
       submitBtn.addEventListener('click', onSubmit);
       if(input.tagName !== 'TEXTAREA'){
         input.addEventListener('keydown', function(e){
-          if(e.key==='Enter'){ e.preventDefault(); onSubmit(); }
+          if(e.key!=='Enter' || state.locked) return;
+          e.preventDefault();
+          e.stopPropagation();
+          onSubmit();
         });
       }
       input.focus();

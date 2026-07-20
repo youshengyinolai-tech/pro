@@ -63,6 +63,16 @@ import {
   }
 
   function onGlobalKeydown(event){
+    if(event.key==='Enter'){
+      if(event.isComposing || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      var continueBtn = document.getElementById('btnContinue');
+      if(continueBtn){
+        event.preventDefault();
+        continueBtn.click();
+      }
+      return;
+    }
+
     if(event.key!=='Escape' && event.key!=='Esc') return;
     if(event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey) return;
 
@@ -164,7 +174,10 @@ import {
         '<button class="case-nav" id="btnUnitPicker"><span>'+icon('target')+'</span><b>捜査条件</b><small>'+esc(DIFF_BATCH_LABEL[overallReco])+'</small></button>'+
         '<div class="case-stats"><h3>捜査記録</h3><dl><div><dt>解決評価</dt><dd class="num">'+totalStarsEarned()+' / '+TOTAL_STARS+'</dd></div><div><dt>連続正解</dt><dd class="num">'+e.streak+'</dd></div><div><dt>正答率</dt><dd class="num">'+acc+'%</dd></div></dl></div>'+
         '<button class="mode-file '+(studyMode?'study':'quest')+'" id="btnModeToggle" aria-pressed="'+(studyMode?'true':'false')+'"><span>'+icon(studyMode?'book':'sword')+'</span><b>'+(studyMode?'証拠を読む':'推理に挑む')+'</b><small>章選択時の動作</small></button>'+
-        '<button class="alt-file" id="btnAltToggle" aria-pressed="'+(progress.settings.allowAlt?'true':'false')+'">'+icon(progress.settings.allowAlt?'unlock':'lock')+' 別解 '+(progress.settings.allowAlt?'採用':'不採用')+'</button>'+
+        '<button class="alt-file'+(progress.settings.allowAlt?' on':'')+'" id="btnAltToggle" aria-pressed="'+(progress.settings.allowAlt?'true':'false')+'">'+
+          '<span class="alt-file-label">'+icon(progress.settings.allowAlt?'unlock':'lock')+' 別解 '+(progress.settings.allowAlt?'採用':'不採用')+'</span>'+
+          '<span class="alt-switch" aria-hidden="true"><span class="alt-switch-knob"></span></span>'+
+        '</button>'+
       '</aside>'+
       '<section class="evidence-board"><header class="board-head"><div><small>ACTIVE CASE FILES</small><h2>プログラム事件一覧</h2></div><p>不具合の証拠を読み、すべての事件を解決せよ。</p></header><div class="case-scroll">'+sectionsHtml+'</div></section>'+
       '<aside class="desk-evidence"><div class="desk-lamp">'+icon('search')+'</div><h3>本日の捜査</h3><p>'+esc(endlessFilterLabel)+'</p><dl><div><dt>連続解決</dt><dd>'+e.streak+'</dd></div><div><dt>最高記録</dt><dd>'+e.bestStreak+'</dd></div></dl>'+
