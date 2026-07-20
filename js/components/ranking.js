@@ -137,11 +137,12 @@ function rankingTable(room,active){
   var metric=metricLabel(active);
   var isOwner=room.members.some(function(member){ return member.isPlayer&&member.id===room.ownerId; });
   return '<div class="league-table room-ranking-table" role="table">'+roomRanking(room,active).map(function(row){
+    var rowIsOwner=row.id===room.ownerId;
     return '<div class="league-row'+(row.isPlayer?' player':'')+'" role="row">'+
       '<span class="league-rank">'+row.rank+'</span>'+
-      '<span class="league-name">'+esc(row.name)+(row.isPlayer?' <small>YOU</small>':'')+'</span>'+
+      '<span class="league-name">'+esc(row.name)+(rowIsOwner?' <small class="room-owner-badge">部屋主</small>':'')+(row.isPlayer?' <small>YOU</small>':'')+'</span>'+
       '<strong>'+row.value.toLocaleString()+' '+metric.unit+'</strong>'+
-      '<span class="member-kind">'+(row.isDemo?'DEMO':'MEMBER')+'</span>'+
+      '<span class="member-kind">'+(rowIsOwner?'OWNER':(row.isDemo?'DEMO':'MEMBER'))+'</span>'+
       '<span class="member-action">'+(isOwner&&!row.isPlayer?'<button type="button" data-kick-member="'+esc(row.id)+'" data-kick-name="'+esc(row.name)+'">キック</button>':'')+'</span>'+
     '</div>';
   }).join('')+'</div>';
