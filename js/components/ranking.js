@@ -22,23 +22,30 @@ var realtimeRoomId=null;
 var stopRealtimeRoom=null;
 var REMOTE_SYNC_INTERVAL=60*1000;
 var MAX_AUTO_SYNCS_PER_DAY=100;
-var MAX_PROGRESS_SYNCS_PER_DAY=250;
+var MAX_PROGRESS_SYNCS_PER_DAY=100;
 var MAX_REALTIME_STARTS_PER_DAY=20;
 var progressSyncTimer=null,progressSyncStop=null,progressSyncRevision=0,applyingRemoteProgress=false,lastProgressPayloadKey='';
 var rankingSyncTimer=null;
 var roomReconcilePromise=null;
 
 function syncPayload(){
-  var payload=JSON.parse(JSON.stringify(progress));
+  /* ranking.roomsには他ユーザーのスナップショットも入る。先に全progressを複製すると
+     学習のたびに不要な大容量JSON変換が走るため、同期対象だけを先に抽出する。 */
+  var payload={};
+  Object.keys(progress).forEach(function(key){
+    if(key!=='ranking') payload[key]=progress[key];
+  });
+  var ranking=progress.ranking||{};
   payload.rankingLinks={
-    nickname:playerIdentity().name,
-    rooms:listRooms().filter(function(room){ return room.isFirebase&&room.code; }).map(function(room){
+    nickname:ranking.nickname||'あなた',
+    rooms:(Array.isArray(ranking.rooms)?ranking.rooms:[]).filter(function(room){ return room.isFirebase&&room.code; }).map(function(room){
       return {id:room.id,code:room.code,name:room.name};
     })
   };
-  delete payload.ranking;
-  if(payload.endless){ payload.endless.queue=[];payload.endless.pos=0; }
-  return payload;
+  if(payload.endless){
+    payload.endless=Object.assign({},payload.endless,{queue:[],pos:0});
+  }
+  return JSON.parse(JSON.stringify(payload));
 }
 
 async function reconcileSyncedRooms(rankingLinks){
@@ -63,20 +70,21 @@ async function reconcileSyncedRooms(rankingLinks){
 function scheduleProgressCloudSync(){
   var link=progress.settings&&progress.settings.progressSync;
   if(!firebaseAvailable()||!link||applyingRemoteProgress) return;
-  var payloadKey=JSON.stringify(syncPayload());
-  if(payloadKey===lastProgressPayloadKey) return;
+  /* 保存イベントではタイマーの予約だけ行う。大きなJSONの作成はデバウンス後に1回だけ行う。 */
   clearTimeout(progressSyncTimer);
   progressSyncTimer=setTimeout(async function(){
     var budget=dailyBudget('progressSyncs');
     if(budget.count>=MAX_PROGRESS_SYNCS_PER_DAY) return;
     try{
       var payload=syncPayload();
+      var payloadKey=JSON.stringify(payload);
+      if(payloadKey===lastProgressPayloadKey) return;
       await pushProgressLink(link.syncId,payload,progressSyncRevision);
-      lastProgressPayloadKey=JSON.stringify(payload);
+      lastProgressPayloadKey=payloadKey;
       budget.count++;saveProgress(progress);
     }
     catch(error){ console.warn('進捗同期に失敗しました',error); }
-  },2500);
+  },4000);
 }
 
 async function startProgressCloudSync(){
@@ -107,9 +115,10 @@ function rankingSnapshotKey(){
 
 function scheduleRankingCloudSync(delay){
   if(!firebaseAvailable()) return;
+  var onlineRooms=listRooms().filter(function(room){ return room.isFirebase; });
+  if(!onlineRooms.length) return;
   var key=rankingSnapshotKey();
   if(!progress.ranking.remoteSnapshotKeys) progress.ranking.remoteSnapshotKeys={};
-  var onlineRooms=listRooms().filter(function(room){ return room.isFirebase; });
   if(!onlineRooms.some(function(room){ return progress.ranking.remoteSnapshotKeys[room.id]!==key; })) return;
   clearTimeout(rankingSyncTimer);
   rankingSyncTimer=setTimeout(function(){
