@@ -4,25 +4,25 @@
  それぞれの画面のHTML生成と、その画面固有の配線(wireStudy/wireLesson/wireUnitPicker/
  wireQuestionControls)だけを担当し、render()から呼び出される。
 */
-import { BASE_STAGES, BOSS_GROUPS, STAGES, TOTAL_STARS, DIFF_BATCH_LABEL, TIER_LABEL } from '../data/questions.js?v=2026072114';
+import { BASE_STAGES, BOSS_GROUPS, STAGES, TOTAL_STARS, DIFF_BATCH_LABEL, TIER_LABEL } from '../data/questions.js?v=2026072115';
 import {
   state, progress, saveProgress, esc, totalStarsEarned, missedCount,
   recommendDifficulty, starString, UNIT_LIST, ENDLESS_POOL,
   shuffle, POOL_INDEX_BY_QID, ensureEndlessQueue, reshuffleEndlessQueue,
   learningActivitySummary, investigatorRank
-} from './state.js?v=2026072114';
-import { renderStudy, startStudy, wireStudy } from '../components/study.js?v=2026072114';
+} from './state.js?v=2026072115';
+import { renderStudy, renderStudyLoading, startStudy, wireStudy } from '../components/study.js?v=2026072115';
 import { icon, stageIcon } from './icons.js';
 import {
   renderLesson, wireLesson, openUnitPicker, renderUnitPicker, wireUnitPicker,
   closeUnitPicker,
   renderBattle, renderEndless, renderEndlessResult, renderQuestionBody, wireQuestionControls,
   startStage, installExerciseKeyboardShortcuts
-} from '../components/exercise.js?v=2026072114';
+} from '../components/exercise.js?v=2026072115';
 import {
   renderRankingHome, renderRankingRoom, wireRankingHome, wireRankingRoom
-} from '../components/ranking.js?v=2026072114';
-import { setPlayerName } from './ranking.js?v=2026072114';
+} from '../components/ranking.js?v=2026072115';
+import { setPlayerName } from './ranking.js?v=2026072115';
 
   var globalKeyboardReady = false;
   var caseScrollCleanup = null;
@@ -1130,6 +1130,8 @@ import { setPlayerName } from './ranking.js?v=2026072114';
     } else if(state.screen==='unitPicker'){
       app.innerHTML = renderUnitPicker();
       wireUnitPicker(app);
+    } else if(state.screen==='studyLoading'){
+      app.innerHTML = renderStudyLoading();
     } else if(state.screen==='study'){
       app.innerHTML = renderStudy();
       wireStudy(app);

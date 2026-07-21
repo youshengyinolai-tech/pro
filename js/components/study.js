@@ -4,11 +4,24 @@
  自体はここでは一切生成せず、questions.js/studyBeats.jsにある確認済みの文面をそのまま
  表示するだけに徹する(演出はUI側だけに閉じ込め、内容の正確性はデータ側に委ねる)。
 */
-import { STAGES } from '../data/questions.js?v=2026072114';
-import { resolveStudyBeats } from '../data/studyBeats.js';
-import { state, progress, saveProgress, esc, MEDAL_RANK, recordLearningActivity } from '../core/state.js?v=2026072114';
-import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072114';
+import { STAGES } from '../data/questions.js?v=2026072115';
+import { state, progress, saveProgress, esc, MEDAL_RANK, recordLearningActivity } from '../core/state.js?v=2026072115';
+import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115';
 import { icon, stageIcon } from '../core/icons.js';
+
+  var resolveStudyBeats = null;
+  var studyBeatsPromise = null;
+
+  function loadStudyBeats(){
+    if(resolveStudyBeats) return Promise.resolve(resolveStudyBeats);
+    if(!studyBeatsPromise){
+      studyBeatsPromise=import('../data/studyBeats.js?v=2026072115').then(function(module){
+        resolveStudyBeats=module.resolveStudyBeats;
+        return resolveStudyBeats;
+      });
+    }
+    return studyBeatsPromise;
+  }
 
 
   /* 地図の「学習モード」トグルがONの状態で章をクリックすると、この章に入る。
@@ -82,15 +95,33 @@ import { icon, stageIcon } from '../core/icons.js';
     return escaped;
   }
 
-  export function startStudy(idx){
+  export async function startStudy(idx){
     state.stageIndex = idx;
     state.studyStep = 0;
     state.studyPicked = null;
     state.studyCombo = 0;
     state.studyBestCombo = 0;
     state.studyWrongCount = 0;
-    state.screen = 'study';
+    state.screen = 'studyLoading';
     render();
+    try{
+      await loadStudyBeats();
+      if(state.screen!=='studyLoading') return;
+      state.screen = 'study';
+      render();
+    }catch(error){
+      console.error('学習データを読み込めませんでした',error);
+      if(state.screen!=='studyLoading') return;
+      state.screen = 'map';
+      render();
+      window.alert('学習データを読み込めませんでした。通信を確認して、もう一度お試しください。');
+    }
+  }
+
+  export function renderStudyLoading(){
+    return ''+renderTopbar()+
+      '<div class="frame lessonintro"><h2>'+icon('book')+' 学習資料を読み込んでいます…</h2>'+
+      '<p>事件一覧の表示を軽くするため、詳しい解説は必要になった時だけ読み込みます。</p></div>';
   }
 
   export function renderStudyFallback(st){

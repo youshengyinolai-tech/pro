@@ -5,7 +5,7 @@
 import {
   STAGES, DIFF_BATCH_LABEL, DIFF_WRONG_DMG, DIFF_CORRECT_DMG,
   TIER_LABEL, TIER_DESC, questionTier, questionIsRedundant, questionSimilarityTag
-} from '../data/questions.js?v=2026072114';
+} from '../data/questions.js?v=2026072115';
 import {
   state, progress, saveProgress, esc, shuffle, checkAnswer, normalize,
   UNIT_LIST, unitAttemptInfo, recommendDifficulty, weakUnitIds,
@@ -13,9 +13,9 @@ import {
   refreshUnlimitedEndlessQueue, refreshRemainingEndlessQueue,
   currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity, recordEndlessSimilarity,
   questionDifficultyRating, unitDifficultyTarget
-} from '../core/state.js?v=2026072114';
+} from '../core/state.js?v=2026072115';
 import { icon, stageIcon } from '../core/icons.js';
-import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072114';
+import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115';
 
   var exerciseKeyboardInstalled = false;
 

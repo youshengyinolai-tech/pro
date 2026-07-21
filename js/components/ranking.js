@@ -1,21 +1,21 @@
 /*
  ranking.js — ランキングルームの作成、招待コード参加、複数観点順位表を描画する。
 */
-import { state, progress, saveProgress, applySyncedProgress, esc } from '../core/state.js?v=2026072114';
+import { state, progress, saveProgress, applySyncedProgress, esc } from '../core/state.js?v=2026072115';
 import {
   RANKING_METRICS, playerIdentity, setPlayerName, captureProgress,
   createRoom, joinRoom, listRooms, getRoom, openRoom, syncCurrentPlayer,
   removeRoom, roomRanking, saveRemoteRoom
-} from '../core/ranking.js?v=2026072114';
+} from '../core/ranking.js?v=2026072115';
 import { firebaseAvailable } from '../services/firebase.js';
 import {
   createFirebaseRoom, joinFirebaseRoom, syncFirebaseProgress, loadFirebaseRoom,
   subscribeFirebaseRoomMembers, kickFirebaseMember
-} from '../services/firebaseRanking.js?v=2026072114';
+} from '../services/firebaseRanking.js?v=2026072115';
 import {
   createProgressLink, joinProgressLink, pushProgressLink, subscribeProgressLink
-} from '../services/firebaseProgress.js?v=2026072114';
-import { render, renderTopbar } from '../core/router.js?v=2026072114';
+} from '../services/firebaseProgress.js?v=2026072115';
+import { render, renderTopbar } from '../core/router.js?v=2026072115';
 import { icon } from '../core/icons.js';
 
 var realtimeRoomId=null;
