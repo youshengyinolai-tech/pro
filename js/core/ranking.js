@@ -61,6 +61,13 @@ export function playerIdentity(){
   return {id:ranking.playerId,name:ranking.nickname};
 }
 
+/* 同期コードで接続した端末は、Firebase匿名UIDが違っても同じ人物として扱う。
+   最初に同期コードを作った端末のplayerIdを共通IDにすることで、既存メンバーも即時統合できる。 */
+export function rankingIdentityId(){
+  var ranking=ensureRanking();
+  return ranking.sharedIdentityId||ranking.playerId;
+}
+
 export function setPlayerName(name){
   var ranking=ensureRanking();
   ranking.nickname=String(name||'').trim().slice(0,16)||'あなた';

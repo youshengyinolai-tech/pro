@@ -20,7 +20,7 @@ function memberPayload(name,snapshot,serverTimestamp,clientId){
   };
 }
 
-export async function createFirebaseRoom(room){
+export async function createFirebaseRoom(room,clientId){
   var ctx=await getFirebaseContext();
   if(!ctx) return null;
   var f=ctx.firestore,uid=ctx.auth.currentUser.uid;
@@ -30,7 +30,7 @@ export async function createFirebaseRoom(room){
   var memberRef=f.doc(ctx.db,'rooms',room.id,'members',uid);
   batch.set(roomRef,{name:room.name,ownerId:uid,code:room.code,createdAt:f.serverTimestamp()});
   batch.set(inviteRef,{roomId:room.id,ownerId:uid,createdAt:f.serverTimestamp()});
-  batch.set(memberRef,memberPayload(room.members[0].name,room.members[0].snapshot,f.serverTimestamp,room.members[0].id));
+  batch.set(memberRef,memberPayload(room.members[0].name,room.members[0].snapshot,f.serverTimestamp,clientId||room.members[0].id));
   await batch.commit();
   return room.id;
 }

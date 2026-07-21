@@ -3,7 +3,7 @@
 */
 import { state, progress, saveProgress, applySyncedProgress, esc } from '../core/state.js?v=2026072115';
 import {
-  RANKING_METRICS, playerIdentity, setPlayerName, captureProgress,
+  RANKING_METRICS, playerIdentity, rankingIdentityId, setPlayerName, captureProgress,
   createRoom, joinRoom, listRooms, getRoom, openRoom, syncCurrentPlayer,
   removeRoom, roomRanking, saveRemoteRoom
 } from '../core/ranking.js?v=2026072115';
@@ -38,6 +38,7 @@ function syncPayload(){
   var ranking=progress.ranking||{};
   payload.rankingLinks={
     nickname:ranking.nickname||'あなた',
+    identityId:ranking.sharedIdentityId||ranking.playerId||'',
     rooms:(Array.isArray(ranking.rooms)?ranking.rooms:[]).filter(function(room){ return room.isFirebase&&room.code; }).map(function(room){
       return {id:room.id,code:room.code,name:room.name};
     })
@@ -52,13 +53,14 @@ async function reconcileSyncedRooms(rankingLinks){
   if(!firebaseAvailable()||!rankingLinks||!Array.isArray(rankingLinks.rooms)) return;
   if(roomReconcilePromise) return roomReconcilePromise;
   roomReconcilePromise=(async function(){
+    if(rankingLinks.identityId) progress.ranking.sharedIdentityId=String(rankingLinks.identityId).slice(0,64);
     if(rankingLinks.nickname) setPlayerName(rankingLinks.nickname);
     for(var i=0;i<rankingLinks.rooms.length;i++){
       var linked=rankingLinks.rooms[i];
       var exists=listRooms().some(function(room){ return room.code===linked.code; });
       if(exists) continue;
       try{
-        var roomId=await joinFirebaseRoom(linked.code,playerIdentity().name,captureProgress(),playerIdentity().id);
+        var roomId=await joinFirebaseRoom(linked.code,playerIdentity().name,captureProgress(),rankingIdentityId());
         var remote=await loadFirebaseRoom(roomId);
         if(remote) saveRemoteRoom(remote);
       }catch(error){ console.warn('同期済みランキング部屋への参加に失敗しました',linked.code,error); }
@@ -110,6 +112,7 @@ async function startProgressCloudSync(){
 function rankingSnapshotKey(){
   var snapshot=captureProgress();
   delete snapshot.updatedAt;
+  snapshot.identityId=rankingIdentityId();
   return JSON.stringify(snapshot);
 }
 
@@ -164,7 +167,7 @@ async function syncProgressIfDue(room,force){
   }
   var budget=dailyBudget('syncs');
   if(budget.count>=MAX_AUTO_SYNCS_PER_DAY) return false;
-  await syncFirebaseProgress(room.id,playerIdentity().name,captureProgress(),playerIdentity().id);
+  await syncFirebaseProgress(room.id,playerIdentity().name,captureProgress(),rankingIdentityId());
   progress.ranking.remoteSyncAt[room.id]=Date.now();
   progress.ranking.remoteSnapshotKeys[room.id]=snapshotKey;
   budget.count++;
@@ -337,7 +340,7 @@ export function wireRankingHome(){
     var room=createRoom(document.getElementById('roomName').value);
     if(firebaseAvailable()){
       try{
-        await createFirebaseRoom(room);
+        await createFirebaseRoom(room,rankingIdentityId());
         var remote=await loadFirebaseRoom(room.id);
         if(remote) saveRemoteRoom(remote);
       }catch(error){
@@ -352,7 +355,7 @@ export function wireRankingHome(){
     var code=document.getElementById('roomCode').value;
     if(firebaseAvailable()){
       try{
-        var roomId=await joinFirebaseRoom(code,playerIdentity().name,captureProgress(),playerIdentity().id);
+        var roomId=await joinFirebaseRoom(code,playerIdentity().name,captureProgress(),rankingIdentityId());
         var remote=await loadFirebaseRoom(roomId);
         if(remote) saveRemoteRoom(remote);
         state.screen='ranking-room'; render();
