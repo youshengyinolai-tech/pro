@@ -2,17 +2,20 @@
  exercise.js — 訓練場(訓練カード+難易度選択)・1000本ノックの単元/難易度/重要度ピッカー・
  戦闘/エンドレス/復習で共通利用する設問レンダリング&採点ロジックをまとめる。
 */
-import { STAGES, DIFF_BATCH_LABEL, DIFF_WRONG_DMG, DIFF_CORRECT_DMG, TIER_LABEL, TIER_DESC, questionTier } from '../data/questions.js?v=2026072109';
+import {
+  STAGES, DIFF_BATCH_LABEL, DIFF_WRONG_DMG, DIFF_CORRECT_DMG,
+  TIER_LABEL, TIER_DESC, questionTier, questionIsRedundant, questionSimilarityTag
+} from '../data/questions.js?v=2026072110';
 import {
   state, progress, saveProgress, esc, shuffle, checkAnswer, normalize,
   UNIT_LIST, unitAttemptInfo, recommendDifficulty, weakUnitIds,
   recordUnitAnswer, recordMissed, rebuildEndlessQueue, reshuffleEndlessQueue,
   refreshUnlimitedEndlessQueue, refreshRemainingEndlessQueue,
-  currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity,
+  currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity, recordEndlessSimilarity,
   questionDifficultyRating, unitDifficultyTarget
-} from '../core/state.js?v=2026072109';
+} from '../core/state.js?v=2026072110';
 import { icon, stageIcon } from '../core/icons.js';
-import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072109';
+import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072110';
 
   var exerciseKeyboardInstalled = false;
 
@@ -221,16 +224,27 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072109
   /* CASEでも100〜1000の内部レートを使う。開始難易度は必ず下限として守り、
      各問題の出題元単元の習熟度に近い問題から先に並べる。 */
   export function stageEscalatingPool(st, startTier){
-    var all = (st.qs||[]).concat(st.qsHard||[]).concat(st.qsExtra||[]).concat(st.qsDrag||[]).concat(st.qsExpert||[]);
+    var all = (st.qs||[]).concat(st.qsHard||[]).concat(st.qsExtra||[]).concat(st.qsDrag||[]).concat(st.qsExpert||[])
+      .filter(function(q){ return !questionIsRedundant(q); });
     var from = startTier || 1;
-    return all.filter(function(q){ return (q.diff||1)>=from; })
+    var ranked=all.filter(function(q){ return (q.diff||1)>=from; })
       .map(function(q){
         var targetLevel=Math.max(from,unitDifficultyTarget(q.unit||st.id));
         var targetRating=100+(targetLevel-1)*300;
         return {q:q,distance:Math.abs(questionDifficultyRating(q)-targetRating),tie:Math.random()};
       })
-      .sort(function(a,b){ return a.distance-b.distance || a.tie-b.tie; })
-      .map(function(item){ return item.q; });
+      .sort(function(a,b){ return a.distance-b.distance || a.tie-b.tie; });
+    var result=[];
+    while(ranked.length){
+      var recent=result.slice(-6).map(questionSimilarityTag);
+      var pick=ranked.findIndex(function(item){
+        var tag=questionSimilarityTag(item.q);
+        return !tag||recent.indexOf(tag)===-1;
+      });
+      if(pick<0) pick=0;
+      result.push(ranked.splice(pick,1)[0].q);
+    }
+    return result;
   }
 
 
@@ -941,6 +955,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072109
     recordMissed(state.curQ.qid, correct);
 
     if(isEndless){
+      recordEndlessSimilarity(state.curQ);
       if(correct){
         progress.endless.correct++;
         progress.endless.sessionCorrect=(progress.endless.sessionCorrect||0)+1;

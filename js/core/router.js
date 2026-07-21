@@ -4,25 +4,25 @@
  それぞれの画面のHTML生成と、その画面固有の配線(wireStudy/wireLesson/wireUnitPicker/
  wireQuestionControls)だけを担当し、render()から呼び出される。
 */
-import { BASE_STAGES, BOSS_GROUPS, STAGES, TOTAL_STARS, DIFF_BATCH_LABEL, TIER_LABEL } from '../data/questions.js?v=2026072109';
+import { BASE_STAGES, BOSS_GROUPS, STAGES, TOTAL_STARS, DIFF_BATCH_LABEL, TIER_LABEL } from '../data/questions.js?v=2026072110';
 import {
   state, progress, saveProgress, esc, totalStarsEarned, missedCount,
   recommendDifficulty, starString, UNIT_LIST, ENDLESS_POOL,
   shuffle, POOL_INDEX_BY_QID, ensureEndlessQueue, reshuffleEndlessQueue,
   learningActivitySummary, investigatorRank
-} from './state.js?v=2026072109';
-import { renderStudy, startStudy, wireStudy } from '../components/study.js?v=2026072109';
+} from './state.js?v=2026072110';
+import { renderStudy, startStudy, wireStudy } from '../components/study.js?v=2026072110';
 import { icon, stageIcon } from './icons.js';
 import {
   renderLesson, wireLesson, openUnitPicker, renderUnitPicker, wireUnitPicker,
   closeUnitPicker,
   renderBattle, renderEndless, renderEndlessResult, renderQuestionBody, wireQuestionControls,
   startStage, installExerciseKeyboardShortcuts
-} from '../components/exercise.js?v=2026072109';
+} from '../components/exercise.js?v=2026072110';
 import {
   renderRankingHome, renderRankingRoom, wireRankingHome, wireRankingRoom
-} from '../components/ranking.js?v=2026072109';
-import { setPlayerName } from './ranking.js?v=2026072109';
+} from '../components/ranking.js?v=2026072110';
+import { setPlayerName } from './ranking.js?v=2026072110';
 
   var globalKeyboardReady = false;
   var caseScrollCleanup = null;

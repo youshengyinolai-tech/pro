@@ -6892,6 +6892,54 @@
     BOSS_LONG_QS[bossId].forEach(function(q, qi){ q.unit = 'boss:'+bossId; q.diff = 4; q.qid = 'boss:'+bossId+':'+qi; });
   });
 
+  /* 暗記効果を増やさず、同じ操作を繰り返すだけだった設問は出題対象から外す。 */
+  export const REDUNDANT_QIDS = new Set([
+    'w4:qs:11','w7:qsHard:8','w8:qsHard:8','w8:qsHard:14','w9:qsExtra:32',
+    'w2:qsExtra:51','wb:qsExtra:28','wb:qsExtra:33','py:qsExpert:12','w7:qsExtra:36'
+  ]);
+  export function questionIsRedundant(q){ return !!q&&REDUNDANT_QIDS.has(q.qid); }
+
+  /* 数値・変数名・空白だけが違う同型問題へ共通タグを付ける。タグは画面には出さず、
+     類題同士の出題間隔を空けるためだけに使う。 */
+  function similaritySignature(q){
+    var text=[q.lead||'',q.before||'',q.code||'',q.after||'']
+      .concat((q.lines||[]).map(function(line){ return line.code||''; }))
+      .concat(q.answers||[]).join('\n').toLowerCase().normalize('NFKC')
+      .replace(/\s+/g,'').replace(/[0-9]+/g,'#')
+      .replace(/[a-z_][a-z0-9_]*/g,'v').replace(/[^\p{L}\p{N}#]/gu,'');
+    return (q.type||'fill')+'|'+text;
+  }
+  function similarityHash(text){
+    var h=2166136261;
+    for(var i=0;i<text.length;i++){ h^=text.charCodeAt(i);h=Math.imul(h,16777619); }
+    return 'sim-'+(h>>>0).toString(36);
+  }
+  const SIMILARITY_TAG_BY_QID={};
+  const similarityGroups={};
+  BASE_STAGES.forEach(function(st){
+    DIFF_BATCH_KEYS.concat(['qsDrag']).forEach(function(key){
+      (st[key]||[]).forEach(function(q){
+        var signature=similaritySignature(q);
+        if(!similarityGroups[signature]) similarityGroups[signature]=[];
+        similarityGroups[signature].push(q);
+      });
+    });
+  });
+  Object.keys(BOSS_LONG_QS).forEach(function(id){
+    BOSS_LONG_QS[id].forEach(function(q){
+      var signature=similaritySignature(q);
+      if(!similarityGroups[signature]) similarityGroups[signature]=[];
+      similarityGroups[signature].push(q);
+    });
+  });
+  Object.keys(similarityGroups).forEach(function(signature){
+    var group=similarityGroups[signature];
+    if(group.length<2) return;
+    var tag=similarityHash(signature);
+    group.forEach(function(q){ q.similarityTag=tag;SIMILARITY_TAG_BY_QID[q.qid]=tag; });
+  });
+  export function questionSimilarityTag(q){ return q&&q.similarityTag||null; }
+
 
   function buildBossStage(group){
     var srcStages = group.ids.map(function(i){ return BASE_STAGES[i]; });

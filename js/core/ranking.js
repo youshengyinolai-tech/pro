@@ -2,8 +2,8 @@
  ranking.js — 既存の学習進捗を複数の観点で比較するランキングルームのデータ層。
  現在はlocalStorage版。公開時は同じ関数をSupabase実装へ差し替える。
 */
-import { STAGES, TOTAL_STARS } from '../data/questions.js?v=2026072109';
-import { progress, saveProgress, totalStarsEarned, learningActivitySummary } from './state.js?v=2026072109';
+import { STAGES, TOTAL_STARS } from '../data/questions.js?v=2026072110';
+import { progress, saveProgress, totalStarsEarned, learningActivitySummary } from './state.js?v=2026072110';
 
 export const RANKING_METRICS = [
   {id:'overall', label:'総合進捗', unit:'pt'},

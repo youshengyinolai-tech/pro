@@ -4,7 +4,10 @@
  画面のHTMLを直接組み立てることはせず、router/study/exerciseがここを介して
  データを読み書きする。
 */
-import { BASE_STAGES, STAGES, BOSS_GROUPS, BOSS_LONG_QS, questionTier } from '../data/questions.js?v=2026072109';
+import {
+  BASE_STAGES, STAGES, BOSS_GROUPS, BOSS_LONG_QS, questionTier,
+  questionIsRedundant, questionSimilarityTag
+} from '../data/questions.js?v=2026072110';
 
 export const STORE_KEY = 'oopExamQuest_v3';
 
@@ -14,16 +17,17 @@ export const STORE_KEY = 'oopExamQuest_v3';
      再利用しているだけなので、重複を避けるためBASE_STAGESから直接集める。
      ボス専用の長文コード問題(BOSS_LONG_QS)だけはボス以外に存在しないので別途追加する。 */
   export const ENDLESS_POOL = [];
+  function addEndlessQuestion(entry){ if(!questionIsRedundant(entry.q)) ENDLESS_POOL.push(entry); }
   BASE_STAGES.forEach(function(st){
-    st.qs.forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'qs'), srcTitle:st.title, srcSub:st.sub}); });
-    (st.qsHard||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'qsHard'), srcTitle:st.title, srcSub:st.sub+' ・ 難問'}); });
-    (st.qsExtra||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'qsExtra'), srcTitle:st.title, srcSub:st.sub+' ・ 総復習演習'}); });
-    (st.qsExpert||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'qsExpert'), srcTitle:st.title, srcSub:st.sub+' ・ 発展演習'}); });
-    (st.qsDrag||[]).forEach(function(q){ ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'qsDrag'), srcTitle:st.title, srcSub:st.sub+' ・ ドラッグ問題'}); });
+    st.qs.forEach(function(q){ addEndlessQuestion({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'qs'), srcTitle:st.title, srcSub:st.sub}); });
+    (st.qsHard||[]).forEach(function(q){ addEndlessQuestion({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'qsHard'), srcTitle:st.title, srcSub:st.sub+' ・ 難問'}); });
+    (st.qsExtra||[]).forEach(function(q){ addEndlessQuestion({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'qsExtra'), srcTitle:st.title, srcSub:st.sub+' ・ 総復習演習'}); });
+    (st.qsExpert||[]).forEach(function(q){ addEndlessQuestion({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'qsExpert'), srcTitle:st.title, srcSub:st.sub+' ・ 発展演習'}); });
+    (st.qsDrag||[]).forEach(function(q){ addEndlessQuestion({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'qsDrag'), srcTitle:st.title, srcSub:st.sub+' ・ ドラッグ問題'}); });
   });
   BOSS_GROUPS.forEach(function(group){
     (BOSS_LONG_QS[group.id] || []).forEach(function(q){
-      ENDLESS_POOL.push({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'boss'), srcTitle:group.title, srcSub:group.sub+' ・ 総復習'});
+      addEndlessQuestion({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'boss'), srcTitle:group.title, srcSub:group.sub+' ・ 総復習'});
     });
   });
 
@@ -347,20 +351,36 @@ export const STORE_KEY = 'oopExamQuest_v3';
     return unitWeight(entry.unit) * (0.025 + Math.exp(-0.5*distance*distance));
   }
 
+  function spaceSimilarIndices(indices,seedTags){
+    var remaining=indices.slice(),result=[],recent=(seedTags||[]).slice(-6);
+    while(remaining.length){
+      var pick=remaining.findIndex(function(i){
+        var tag=questionSimilarityTag(ENDLESS_POOL[i].q);
+        return !tag||recent.indexOf(tag)===-1;
+      });
+      if(pick<0) pick=0;
+      var chosen=remaining.splice(pick,1)[0],tag=questionSimilarityTag(ENDLESS_POOL[chosen].q);
+      result.push(chosen);
+      if(tag){ recent.push(tag);recent=recent.slice(-6); }
+    }
+    return result;
+  }
+
   /* 全難易度が選ばれている（endlessDiffs=null）場合だけ使う適応出題。
      プールと同じ問数を保ちながら、単元ごとの目標難易度に近い問題を高確率で抽選する。 */
   export function adaptiveEndlessQueue(indices, requestedCount){
     var count=requestedCount||indices.length;
+    var recentTags=(progress.endless.recentSimilarityTags||[]).slice(-6);
     if(progress.settings.endlessDiffs && progress.settings.endlessDiffs.length){
       var explicitQueue=[];
       while(explicitQueue.length<count && indices.length){
-        var batch=weightedShuffle(indices);
+        var batch=spaceSimilarIndices(weightedShuffle(indices),recentTags);
         if(explicitQueue.length && batch.length>1 && explicitQueue[explicitQueue.length-1]===batch[0]){
           var swap=batch[0];batch[0]=batch[1];batch[1]=swap;
         }
         explicitQueue=explicitQueue.concat(batch);
       }
-      return explicitQueue.slice(0,count);
+      return spaceSimilarIndices(explicitQueue.slice(0,count),recentTags);
     }
     if(indices.length < 2) return indices.slice();
     var queue=[];
@@ -369,6 +389,8 @@ export const STORE_KEY = 'oopExamQuest_v3';
       var weighted=indices.map(function(i){
         var weight=adaptiveDifficultyWeight(ENDLESS_POOL[i]);
         if(queue.length && i===queue[queue.length-1]) weight*=0.08;
+        var similarityTag=questionSimilarityTag(ENDLESS_POOL[i].q);
+        if(similarityTag&&recentTags.indexOf(similarityTag)!==-1) weight*=0.025;
         totalWeight+=weight;
         return {i:i, ceiling:totalWeight};
       });
@@ -378,8 +400,18 @@ export const STORE_KEY = 'oopExamQuest_v3';
         if(pick<weighted[j].ceiling){ chosen=weighted[j].i; break; }
       }
       queue.push(chosen);
+      var chosenTag=questionSimilarityTag(ENDLESS_POOL[chosen].q);
+      if(chosenTag){ recentTags.push(chosenTag);recentTags=recentTags.slice(-6); }
     }
     return queue;
+  }
+
+  export function recordEndlessSimilarity(q){
+    var tag=questionSimilarityTag(q);
+    if(!tag) return;
+    if(!progress.endless.recentSimilarityTags) progress.endless.recentSimilarityTags=[];
+    progress.endless.recentSimilarityTags.push(tag);
+    progress.endless.recentSimilarityTags=progress.endless.recentSimilarityTags.slice(-6);
   }
 
   export function currentEndlessPoolIndices(){
