@@ -2,7 +2,7 @@
  exercise.js — 訓練場(訓練カード+難易度選択)・1000本ノックの単元/難易度/重要度ピッカー・
  戦闘/エンドレス/復習で共通利用する設問レンダリング&採点ロジックをまとめる。
 */
-import { STAGES, DIFF_BATCH_LABEL, DIFF_WRONG_DMG, DIFF_CORRECT_DMG, TIER_LABEL, TIER_DESC, questionTier } from '../data/questions.js?v=2026072108';
+import { STAGES, DIFF_BATCH_LABEL, DIFF_WRONG_DMG, DIFF_CORRECT_DMG, TIER_LABEL, TIER_DESC, questionTier } from '../data/questions.js?v=2026072109';
 import {
   state, progress, saveProgress, esc, shuffle, checkAnswer, normalize,
   UNIT_LIST, unitAttemptInfo, recommendDifficulty, weakUnitIds,
@@ -10,9 +10,9 @@ import {
   refreshUnlimitedEndlessQueue, refreshRemainingEndlessQueue,
   currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity,
   questionDifficultyRating, unitDifficultyTarget
-} from '../core/state.js?v=2026072108';
+} from '../core/state.js?v=2026072109';
 import { icon, stageIcon } from '../core/icons.js';
-import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072108';
+import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072109';
 
   var exerciseKeyboardInstalled = false;
 

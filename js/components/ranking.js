@@ -1,25 +1,101 @@
 /*
  ranking.js — ランキングルームの作成、招待コード参加、複数観点順位表を描画する。
 */
-import { state, progress, saveProgress, esc } from '../core/state.js?v=2026072108';
+import { state, progress, saveProgress, applySyncedProgress, esc } from '../core/state.js?v=2026072109';
 import {
   RANKING_METRICS, playerIdentity, setPlayerName, captureProgress,
   createRoom, joinRoom, listRooms, getRoom, openRoom, syncCurrentPlayer,
   removeRoom, roomRanking, saveRemoteRoom
-} from '../core/ranking.js?v=2026072042';
+} from '../core/ranking.js?v=2026072109';
 import { firebaseAvailable } from '../services/firebase.js';
 import {
   createFirebaseRoom, joinFirebaseRoom, syncFirebaseProgress, loadFirebaseRoom,
   subscribeFirebaseRoomMembers, kickFirebaseMember
-} from '../services/firebaseRanking.js?v=2026072042';
-import { render, renderTopbar } from '../core/router.js?v=2026072108';
+} from '../services/firebaseRanking.js?v=2026072109';
+import {
+  createProgressLink, joinProgressLink, pushProgressLink, subscribeProgressLink
+} from '../services/firebaseProgress.js?v=2026072101';
+import { render, renderTopbar } from '../core/router.js?v=2026072109';
 import { icon } from '../core/icons.js';
 
 var realtimeRoomId=null;
 var stopRealtimeRoom=null;
-var REMOTE_SYNC_INTERVAL=4*60*60*1000;
-var MAX_AUTO_SYNCS_PER_DAY=6;
-var MAX_REALTIME_STARTS_PER_DAY=5;
+var REMOTE_SYNC_INTERVAL=60*1000;
+var MAX_AUTO_SYNCS_PER_DAY=100;
+var MAX_PROGRESS_SYNCS_PER_DAY=250;
+var MAX_REALTIME_STARTS_PER_DAY=20;
+var progressSyncTimer=null,progressSyncStop=null,progressSyncRevision=0,applyingRemoteProgress=false,lastProgressPayloadKey='';
+var rankingSyncTimer=null;
+
+function syncPayload(){
+  var payload=JSON.parse(JSON.stringify(progress));
+  delete payload.ranking;
+  if(payload.endless){ payload.endless.queue=[];payload.endless.pos=0; }
+  return payload;
+}
+
+function scheduleProgressCloudSync(){
+  var link=progress.settings&&progress.settings.progressSync;
+  if(!firebaseAvailable()||!link||applyingRemoteProgress) return;
+  var payloadKey=JSON.stringify(syncPayload());
+  if(payloadKey===lastProgressPayloadKey) return;
+  clearTimeout(progressSyncTimer);
+  progressSyncTimer=setTimeout(async function(){
+    var budget=dailyBudget('progressSyncs');
+    if(budget.count>=MAX_PROGRESS_SYNCS_PER_DAY) return;
+    try{
+      var payload=syncPayload();
+      await pushProgressLink(link.syncId,payload,progressSyncRevision);
+      lastProgressPayloadKey=JSON.stringify(payload);
+      budget.count++;saveProgress(progress);
+    }
+    catch(error){ console.warn('進捗同期に失敗しました',error); }
+  },2500);
+}
+
+async function startProgressCloudSync(){
+  var link=progress.settings&&progress.settings.progressSync;
+  if(!firebaseAvailable()||!link||progressSyncStop) return;
+  progressSyncStop=await subscribeProgressLink(link.syncId,function(remote){
+    progressSyncRevision=remote.revision||0;
+    if(!remote.payload) return;
+    var remoteKey=JSON.stringify(remote.payload);
+    if(remoteKey===JSON.stringify(syncPayload())){ lastProgressPayloadKey=remoteKey;return; }
+    applyingRemoteProgress=true;
+    applySyncedProgress(remote.payload);
+    lastProgressPayloadKey=remoteKey;
+    applyingRemoteProgress=false;
+    if(state.screen==='map'||state.screen==='ranking'||state.screen==='ranking-room') render();
+  },function(error){ console.warn('進捗リアルタイム同期を停止しました',error); });
+}
+
+function rankingSnapshotKey(){
+  var snapshot=captureProgress();
+  delete snapshot.updatedAt;
+  return JSON.stringify(snapshot);
+}
+
+function scheduleRankingCloudSync(delay){
+  if(!firebaseAvailable()) return;
+  var key=rankingSnapshotKey();
+  if(!progress.ranking.remoteSnapshotKeys) progress.ranking.remoteSnapshotKeys={};
+  var onlineRooms=listRooms().filter(function(room){ return room.isFirebase; });
+  if(!onlineRooms.some(function(room){ return progress.ranking.remoteSnapshotKeys[room.id]!==key; })) return;
+  clearTimeout(rankingSyncTimer);
+  rankingSyncTimer=setTimeout(function(){
+    listRooms().filter(function(room){ return room.isFirebase; }).forEach(function(room){
+      syncProgressIfDue(room).catch(function(error){ console.warn('ランキング同期に失敗しました',error); });
+    });
+  },typeof delay==='number'?delay:3000);
+}
+
+if(typeof window!=='undefined'){
+  window.addEventListener('codecase:progress-saved',function(){
+    scheduleProgressCloudSync();
+    scheduleRankingCloudSync();
+  });
+  setTimeout(startProgressCloudSync,0);
+}
 
 function dailyBudget(name){
   if(!progress.ranking.autoUpdateBudget) progress.ranking.autoUpdateBudget={};
@@ -38,13 +114,20 @@ function stopRealtimeRanking(){
 
 async function syncProgressIfDue(room){
   if(!firebaseAvailable()||!room) return false;
+  var snapshotKey=rankingSnapshotKey();
+  if(!progress.ranking.remoteSnapshotKeys) progress.ranking.remoteSnapshotKeys={};
+  if(progress.ranking.remoteSnapshotKeys[room.id]===snapshotKey) return false;
   if(!progress.ranking.remoteSyncAt) progress.ranking.remoteSyncAt={};
   var last=progress.ranking.remoteSyncAt[room.id]||0;
-  if(Date.now()-last<REMOTE_SYNC_INTERVAL) return false;
+  if(Date.now()-last<REMOTE_SYNC_INTERVAL){
+    scheduleRankingCloudSync(REMOTE_SYNC_INTERVAL-(Date.now()-last)+100);
+    return false;
+  }
   var budget=dailyBudget('syncs');
   if(budget.count>=MAX_AUTO_SYNCS_PER_DAY) return false;
   await syncFirebaseProgress(room.id,playerIdentity().name,captureProgress(),playerIdentity().id);
   progress.ranking.remoteSyncAt[room.id]=Date.now();
+  progress.ranking.remoteSnapshotKeys[room.id]=snapshotKey;
   budget.count++;
   saveProgress(progress);
   return true;
@@ -119,6 +202,13 @@ export function renderRankingHome(){
           '<p class="room-error" id="roomError" aria-live="polite"></p>'+
         '</section>'+
       '</div>'+
+      '<section class="frame room-index"><div class="room-section-head"><div><span class="league-eyebrow">DEVICE SYNC</span><h3>スマホ・PCの進捗同期</h3></div></div>'+
+        ((progress.settings&&progress.settings.progressSync)
+          ? '<p>同期中のコード：<strong class="sync-code-value">'+esc(progress.settings.progressSync.code)+'</strong></p>'
+          : '<p>片方の端末でコードを発行し、もう片方へ入力すると同じ進捗を共有できます。</p><div class="room-actions-grid">'+
+            '<button class="primary" id="btnCreateProgressSync" type="button">同期コードを発行</button>'+
+            '<form id="joinProgressSyncForm"><input id="progressSyncCode" maxlength="10" placeholder="10文字のコード"><button class="ghost" type="submit">この端末を同期</button></form></div>')+
+        '<p class="room-error" id="progressSyncError" aria-live="polite"></p></section>'+
       '<section class="frame room-index"><div class="room-section-head"><div><span class="league-eyebrow">YOUR ROOMS</span><h3>参加中の部屋</h3></div><small>'+listRooms().length+'部屋</small></div>'+roomCards()+'</section>'+
       '<p class="league-local-note room-demo-note">'+
         (firebaseAvailable()
@@ -160,7 +250,7 @@ export function renderRankingRoom(){
     '<div class="battlebar"><button class="backbtn" id="btnRankingBack">← 部屋一覧</button><button class="backbtn" id="btnMap">地図へ戻る</button></div>'+
     '<main class="league-shell">'+
       '<section class="frame league-hero room-detail-hero"><div><span class="league-eyebrow">RANKING ROOM // '+esc(room.code)+'</span>'+
-        '<h2>'+icon('trophy')+' '+esc(room.name)+'</h2><p>'+room.members.length+'人が参加中。通常の学習を進めると、次に部屋を開いた時に順位へ反映されます。</p></div>'+
+        '<h2>'+icon('trophy')+' '+esc(room.name)+'</h2><p>'+room.members.length+'人が参加中。学習中の進捗は短い間隔でまとめてランキングへ自動反映されます。</p></div>'+
         '<div class="room-code"><small>招待コード</small><strong>'+esc(room.code)+'</strong><button id="btnCopyCode">コピー</button></div>'+
       '</section>'+
       '<section class="frame room-board">'+
@@ -179,6 +269,26 @@ export function renderRankingRoom(){
 export function wireRankingHome(){
   document.getElementById('btnHome').addEventListener('click',function(){ state.screen='map'; render(); });
   document.getElementById('rankingNickname').addEventListener('change',function(event){ setPlayerName(event.target.value); render(); });
+  var createSync=document.getElementById('btnCreateProgressSync');
+  if(createSync) createSync.addEventListener('click',async function(){
+    this.disabled=true;
+    try{
+      var link=await createProgressLink(syncPayload());
+      progress.settings.progressSync=link;saveProgress(progress);
+      await startProgressCloudSync();render();
+    }catch(error){ document.getElementById('progressSyncError').textContent=error.message;this.disabled=false; }
+  });
+  var joinSync=document.getElementById('joinProgressSyncForm');
+  if(joinSync) joinSync.addEventListener('submit',async function(event){
+    event.preventDefault();
+    try{
+      var joined=await joinProgressLink(document.getElementById('progressSyncCode').value);
+      progress.settings.progressSync={syncId:joined.syncId,code:joined.code};
+      applyingRemoteProgress=true;applySyncedProgress(joined.payload);applyingRemoteProgress=false;
+      progressSyncRevision=joined.revision||0;saveProgress(progress);
+      await startProgressCloudSync();render();
+    }catch(error){ document.getElementById('progressSyncError').textContent=error.message; }
+  });
   document.getElementById('createRoomForm').addEventListener('submit',async function(event){
     event.preventDefault();
     var room=createRoom(document.getElementById('roomName').value);

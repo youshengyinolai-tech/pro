@@ -4,7 +4,7 @@
  画面のHTMLを直接組み立てることはせず、router/study/exerciseがここを介して
  データを読み書きする。
 */
-import { BASE_STAGES, STAGES, BOSS_GROUPS, BOSS_LONG_QS, questionTier } from '../data/questions.js?v=2026072108';
+import { BASE_STAGES, STAGES, BOSS_GROUPS, BOSS_LONG_QS, questionTier } from '../data/questions.js?v=2026072109';
 
 export const STORE_KEY = 'oopExamQuest_v3';
 
@@ -93,6 +93,21 @@ export const STORE_KEY = 'oopExamQuest_v3';
   }
   export function saveProgress(p){
     try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){}
+    if(typeof window!=='undefined'&&window.dispatchEvent){
+      window.dispatchEvent(new CustomEvent('codecase:progress-saved'));
+    }
+  }
+
+  export function applySyncedProgress(remote){
+    if(!remote||typeof remote!=='object') return;
+    var localLink=progress.settings&&progress.settings.progressSync;
+    var localRanking=progress.ranking;
+    Object.keys(progress).forEach(function(key){ delete progress[key]; });
+    Object.keys(remote).forEach(function(key){ progress[key]=remote[key]; });
+    if(!progress.settings) progress.settings={};
+    if(localLink) progress.settings.progressSync=localLink;
+    if(localRanking) progress.ranking=localRanking;
+    saveProgress(progress);
   }
 
   export const progress = loadProgress();

@@ -64,5 +64,43 @@ service cloud.firestore {
         && request.resource.data.roomId is string;
       allow update, delete: if signedIn() && resource.data.ownerId == request.auth.uid;
     }
+
+    match /syncCodes/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.syncId is string;
+      allow update, delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    match /syncProfiles/{syncId} {
+      function linkedDevice() {
+        return signedIn()
+          && exists(/databases/$(database)/documents/syncProfiles/$(syncId)/devices/$(request.auth.uid));
+      }
+      allow create: if signedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['ownerId', 'payload', 'revision', 'updatedAt'])
+        && request.resource.data.payload is map
+        && request.resource.data.revision is int;
+      allow read: if linkedDevice();
+      allow update: if linkedDevice()
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.keys().hasOnly(['ownerId', 'payload', 'revision', 'updatedAt'])
+        && request.resource.data.payload is map
+        && request.resource.data.revision is int;
+      allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+
+      match /devices/{userId} {
+        allow read: if linkedDevice();
+        allow create: if signedIn() && userId == request.auth.uid
+          && request.resource.data.code is string
+          && getAfter(/databases/$(database)/documents/syncCodes/$(request.resource.data.code)).data.syncId == syncId;
+        allow delete: if signedIn() && userId == request.auth.uid;
+        allow update: if signedIn() && userId == request.auth.uid
+          && request.resource.data.code == resource.data.code;
+      }
+    }
   }
 }
