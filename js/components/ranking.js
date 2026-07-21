@@ -1,21 +1,21 @@
 /*
  ranking.js — ランキングルームの作成、招待コード参加、複数観点順位表を描画する。
 */
-import { state, progress, saveProgress, applySyncedProgress, esc } from '../core/state.js?v=2026072110';
+import { state, progress, saveProgress, applySyncedProgress, esc } from '../core/state.js?v=2026072112';
 import {
   RANKING_METRICS, playerIdentity, setPlayerName, captureProgress,
   createRoom, joinRoom, listRooms, getRoom, openRoom, syncCurrentPlayer,
   removeRoom, roomRanking, saveRemoteRoom
-} from '../core/ranking.js?v=2026072110';
+} from '../core/ranking.js?v=2026072112';
 import { firebaseAvailable } from '../services/firebase.js';
 import {
   createFirebaseRoom, joinFirebaseRoom, syncFirebaseProgress, loadFirebaseRoom,
   subscribeFirebaseRoomMembers, kickFirebaseMember
-} from '../services/firebaseRanking.js?v=2026072110';
+} from '../services/firebaseRanking.js?v=2026072112';
 import {
   createProgressLink, joinProgressLink, pushProgressLink, subscribeProgressLink
 } from '../services/firebaseProgress.js?v=2026072101';
-import { render, renderTopbar } from '../core/router.js?v=2026072110';
+import { render, renderTopbar } from '../core/router.js?v=2026072112';
 import { icon } from '../core/icons.js';
 
 var realtimeRoomId=null;
@@ -26,12 +26,38 @@ var MAX_PROGRESS_SYNCS_PER_DAY=250;
 var MAX_REALTIME_STARTS_PER_DAY=20;
 var progressSyncTimer=null,progressSyncStop=null,progressSyncRevision=0,applyingRemoteProgress=false,lastProgressPayloadKey='';
 var rankingSyncTimer=null;
+var roomReconcilePromise=null;
 
 function syncPayload(){
   var payload=JSON.parse(JSON.stringify(progress));
+  payload.rankingLinks={
+    nickname:playerIdentity().name,
+    rooms:listRooms().filter(function(room){ return room.isFirebase&&room.code; }).map(function(room){
+      return {id:room.id,code:room.code,name:room.name};
+    })
+  };
   delete payload.ranking;
   if(payload.endless){ payload.endless.queue=[];payload.endless.pos=0; }
   return payload;
+}
+
+async function reconcileSyncedRooms(rankingLinks){
+  if(!firebaseAvailable()||!rankingLinks||!Array.isArray(rankingLinks.rooms)) return;
+  if(roomReconcilePromise) return roomReconcilePromise;
+  roomReconcilePromise=(async function(){
+    if(rankingLinks.nickname) setPlayerName(rankingLinks.nickname);
+    for(var i=0;i<rankingLinks.rooms.length;i++){
+      var linked=rankingLinks.rooms[i];
+      var exists=listRooms().some(function(room){ return room.code===linked.code; });
+      if(exists) continue;
+      try{
+        var roomId=await joinFirebaseRoom(linked.code,playerIdentity().name,captureProgress(),playerIdentity().id);
+        var remote=await loadFirebaseRoom(roomId);
+        if(remote) saveRemoteRoom(remote);
+      }catch(error){ console.warn('同期済みランキング部屋への参加に失敗しました',linked.code,error); }
+    }
+  })().finally(function(){ roomReconcilePromise=null; });
+  return roomReconcilePromise;
 }
 
 function scheduleProgressCloudSync(){
@@ -56,13 +82,17 @@ function scheduleProgressCloudSync(){
 async function startProgressCloudSync(){
   var link=progress.settings&&progress.settings.progressSync;
   if(!firebaseAvailable()||!link||progressSyncStop) return;
-  progressSyncStop=await subscribeProgressLink(link.syncId,function(remote){
+  progressSyncStop=await subscribeProgressLink(link.syncId,async function(remote){
     progressSyncRevision=remote.revision||0;
     if(!remote.payload) return;
     var remoteKey=JSON.stringify(remote.payload);
     if(remoteKey===JSON.stringify(syncPayload())){ lastProgressPayloadKey=remoteKey;return; }
+    var rankingLinks=remote.payload.rankingLinks;
+    var remoteProgress=JSON.parse(JSON.stringify(remote.payload));
+    delete remoteProgress.rankingLinks;
     applyingRemoteProgress=true;
-    applySyncedProgress(remote.payload);
+    applySyncedProgress(remoteProgress);
+    await reconcileSyncedRooms(rankingLinks);
     lastProgressPayloadKey=remoteKey;
     applyingRemoteProgress=false;
     if(state.screen==='map'||state.screen==='ranking'||state.screen==='ranking-room') render();
@@ -94,7 +124,7 @@ if(typeof window!=='undefined'){
     scheduleProgressCloudSync();
     scheduleRankingCloudSync();
   });
-  setTimeout(startProgressCloudSync,0);
+  setTimeout(function(){ startProgressCloudSync();scheduleProgressCloudSync(); },0);
 }
 
 function dailyBudget(name){
@@ -112,14 +142,14 @@ function stopRealtimeRanking(){
   realtimeRoomId=null;
 }
 
-async function syncProgressIfDue(room){
+async function syncProgressIfDue(room,force){
   if(!firebaseAvailable()||!room) return false;
   var snapshotKey=rankingSnapshotKey();
   if(!progress.ranking.remoteSnapshotKeys) progress.ranking.remoteSnapshotKeys={};
-  if(progress.ranking.remoteSnapshotKeys[room.id]===snapshotKey) return false;
+  if(!force&&progress.ranking.remoteSnapshotKeys[room.id]===snapshotKey) return false;
   if(!progress.ranking.remoteSyncAt) progress.ranking.remoteSyncAt={};
   var last=progress.ranking.remoteSyncAt[room.id]||0;
-  if(Date.now()-last<REMOTE_SYNC_INTERVAL){
+  if(!force&&Date.now()-last<REMOTE_SYNC_INTERVAL){
     scheduleRankingCloudSync(REMOTE_SYNC_INTERVAL-(Date.now()-last)+100);
     return false;
   }
@@ -284,7 +314,11 @@ export function wireRankingHome(){
     try{
       var joined=await joinProgressLink(document.getElementById('progressSyncCode').value);
       progress.settings.progressSync={syncId:joined.syncId,code:joined.code};
-      applyingRemoteProgress=true;applySyncedProgress(joined.payload);applyingRemoteProgress=false;
+      var rankingLinks=joined.payload&&joined.payload.rankingLinks;
+      var remoteProgress=JSON.parse(JSON.stringify(joined.payload||{}));
+      delete remoteProgress.rankingLinks;
+      applyingRemoteProgress=true;applySyncedProgress(remoteProgress);
+      await reconcileSyncedRooms(rankingLinks);applyingRemoteProgress=false;
       progressSyncRevision=joined.revision||0;saveProgress(progress);
       await startProgressCloudSync();render();
     }catch(error){ document.getElementById('progressSyncError').textContent=error.message; }
@@ -354,9 +388,9 @@ export function wireRankingRoom(){
     syncCurrentPlayer();
     if(firebaseAvailable()&&room){
       try{
-        var synced=await syncProgressIfDue(room);
+        var synced=await syncProgressIfDue(room,true);
         if(!synced){
-          this.textContent='自動同期済み';
+          this.textContent='本日の同期上限です';
           setTimeout(function(){ var button=document.getElementById('btnSyncProgress'); if(button) button.textContent='進捗を同期'; },1200);
         }
       }catch(error){

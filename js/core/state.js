@@ -7,7 +7,7 @@
 import {
   BASE_STAGES, STAGES, BOSS_GROUPS, BOSS_LONG_QS, questionTier,
   questionIsRedundant, questionSimilarityTag
-} from '../data/questions.js?v=2026072110';
+} from '../data/questions.js?v=2026072112';
 
 export const STORE_KEY = 'oopExamQuest_v3';
 
@@ -131,6 +131,9 @@ export const STORE_KEY = 'oopExamQuest_v3';
   }
   if(!('endlessDiffs' in progress.settings)){
     progress.settings.endlessDiffs = null;
+  }
+  if(!('endlessFastMode' in progress.settings)){
+    progress.settings.endlessFastMode = true;
   }
   if([0,10,20,50,100].indexOf(progress.settings.endlessBatchSize)===-1){
     progress.settings.endlessBatchSize = 0;
@@ -366,15 +369,33 @@ export const STORE_KEY = 'oopExamQuest_v3';
     return result;
   }
 
+  function prioritizeNewSimilarity(indices,usedTags){
+    var remaining=indices.slice(),result=[];
+    while(remaining.length){
+      var pick=remaining.findIndex(function(i){
+        var tag=questionSimilarityTag(ENDLESS_POOL[i].q);
+        return !tag||!usedTags.has(tag);
+      });
+      if(pick<0) pick=0;
+      var chosen=remaining.splice(pick,1)[0];
+      var tag=questionSimilarityTag(ENDLESS_POOL[chosen].q);
+      result.push(chosen);
+      if(tag) usedTags.add(tag);
+    }
+    return result;
+  }
+
   /* 全難易度が選ばれている（endlessDiffs=null）場合だけ使う適応出題。
      プールと同じ問数を保ちながら、単元ごとの目標難易度に近い問題を高確率で抽選する。 */
   export function adaptiveEndlessQueue(indices, requestedCount){
     var count=requestedCount||indices.length;
     var recentTags=(progress.endless.recentSimilarityTags||[]).slice(-6);
+    var usedFastTags=new Set(progress.settings.endlessFastMode?(progress.endless.fastSeenSimilarityTags||[]):[]);
     if(progress.settings.endlessDiffs && progress.settings.endlessDiffs.length){
       var explicitQueue=[];
       while(explicitQueue.length<count && indices.length){
         var batch=spaceSimilarIndices(weightedShuffle(indices),recentTags);
+        if(progress.settings.endlessFastMode) batch=prioritizeNewSimilarity(batch,usedFastTags);
         if(explicitQueue.length && batch.length>1 && explicitQueue[explicitQueue.length-1]===batch[0]){
           var swap=batch[0];batch[0]=batch[1];batch[1]=swap;
         }
@@ -391,6 +412,7 @@ export const STORE_KEY = 'oopExamQuest_v3';
         if(queue.length && i===queue[queue.length-1]) weight*=0.08;
         var similarityTag=questionSimilarityTag(ENDLESS_POOL[i].q);
         if(similarityTag&&recentTags.indexOf(similarityTag)!==-1) weight*=0.025;
+        if(progress.settings.endlessFastMode&&similarityTag&&usedFastTags.has(similarityTag)) weight*=0.002;
         totalWeight+=weight;
         return {i:i, ceiling:totalWeight};
       });
@@ -401,7 +423,7 @@ export const STORE_KEY = 'oopExamQuest_v3';
       }
       queue.push(chosen);
       var chosenTag=questionSimilarityTag(ENDLESS_POOL[chosen].q);
-      if(chosenTag){ recentTags.push(chosenTag);recentTags=recentTags.slice(-6); }
+      if(chosenTag){ recentTags.push(chosenTag);recentTags=recentTags.slice(-6);usedFastTags.add(chosenTag); }
     }
     return queue;
   }
@@ -412,6 +434,10 @@ export const STORE_KEY = 'oopExamQuest_v3';
     if(!progress.endless.recentSimilarityTags) progress.endless.recentSimilarityTags=[];
     progress.endless.recentSimilarityTags.push(tag);
     progress.endless.recentSimilarityTags=progress.endless.recentSimilarityTags.slice(-6);
+    if(progress.settings.endlessFastMode){
+      if(!progress.endless.fastSeenSimilarityTags) progress.endless.fastSeenSimilarityTags=[];
+      if(progress.endless.fastSeenSimilarityTags.indexOf(tag)===-1) progress.endless.fastSeenSimilarityTags.push(tag);
+    }
   }
 
   export function currentEndlessPoolIndices(){
@@ -435,6 +461,7 @@ export const STORE_KEY = 'oopExamQuest_v3';
   }
 
   export function rebuildEndlessQueue(){
+    progress.endless.fastSeenSimilarityTags = [];
     progress.endless.queue = adaptiveEndlessQueue(currentEndlessPoolIndices(),progress.settings.endlessBatchSize);
     progress.endless.pos = 0;
     progress.endless.sessionCorrect = 0;
@@ -448,6 +475,7 @@ export const STORE_KEY = 'oopExamQuest_v3';
     }
   }
   export function reshuffleEndlessQueue(){
+    progress.endless.fastSeenSimilarityTags = [];
     var lastIdx = progress.endless.queue.length ? progress.endless.queue[progress.endless.queue.length-1] : -1;
     var next = adaptiveEndlessQueue(currentEndlessPoolIndices(),progress.settings.endlessBatchSize);
     if(next.length>1 && next[0]===lastIdx){
@@ -488,7 +516,7 @@ export const STORE_KEY = 'oopExamQuest_v3';
   }
 
 
-  export const state = {curQ:null, screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, activeQs:[], pickerSelection:[], pickerDiffSelection:[1,2,3,4], pickerTierSelection:[1,2,3,4,5], pickerBatchSize:0, pickerReturnScreen:'map', pickerReturnFocusId:null, reviewQueue:[], reviewPos:0, reviewStats:{correct:0, wrong:0}, dragPlacement:{}, dragSelected:null, dragQid:null, mobileLineOrder:[], mobileLineSelected:null, mobileLineQid:null, startTier:1, studyStep:0, studyPicked:null, studyCombo:0, studyBestCombo:0, studyWrongCount:0};
+  export const state = {curQ:null, screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, activeQs:[], pickerSelection:[], pickerDiffSelection:[1,2,3,4], pickerTierSelection:[1,2,3,4,5], pickerBatchSize:0, pickerFastMode:true, pickerReturnScreen:'map', pickerReturnFocusId:null, reviewQueue:[], reviewPos:0, reviewStats:{correct:0, wrong:0}, dragPlacement:{}, dragSelected:null, dragQid:null, mobileLineOrder:[], mobileLineSelected:null, mobileLineQid:null, startTier:1, studyStep:0, studyPicked:null, studyCombo:0, studyBestCombo:0, studyWrongCount:0};
 
 
   export function shuffle(arr){

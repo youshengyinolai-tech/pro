@@ -24,13 +24,13 @@ service cloud.firestore {
         && data.nickname.size() <= 16
         && data.overall is number && data.overall >= 0
         && data.dailyStreak is number && data.dailyStreak >= 0 && data.dailyStreak <= 370
-        && data.stars is number && data.stars >= 0 && data.stars <= 39
-        && data.clears is number && data.clears >= 0 && data.clears <= 13
+        && data.stars is number && data.stars >= 0 && data.stars <= 100
+        && data.clears is number && data.clears >= 0 && data.clears <= 30
         && data.correct is number && data.correct >= 0
         && data.accuracy is number && data.accuracy >= 0 && data.accuracy <= 100
         && data.streak is number && data.streak >= 0
-        && data.study is number && data.study >= 0 && data.study <= 13
-        && data.medals is number && data.medals >= 0 && data.medals <= 39;
+        && data.study is number && data.study >= 0 && data.study <= 30
+        && data.medals is number && data.medals >= 0 && data.medals <= 100;
     }
 
     match /rooms/{roomId} {

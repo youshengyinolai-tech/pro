@@ -5,7 +5,7 @@
 import {
   STAGES, DIFF_BATCH_LABEL, DIFF_WRONG_DMG, DIFF_CORRECT_DMG,
   TIER_LABEL, TIER_DESC, questionTier, questionIsRedundant, questionSimilarityTag
-} from '../data/questions.js?v=2026072110';
+} from '../data/questions.js?v=2026072112';
 import {
   state, progress, saveProgress, esc, shuffle, checkAnswer, normalize,
   UNIT_LIST, unitAttemptInfo, recommendDifficulty, weakUnitIds,
@@ -13,9 +13,9 @@ import {
   refreshUnlimitedEndlessQueue, refreshRemainingEndlessQueue,
   currentEndlessPoolIndices, ENDLESS_POOL, recordLearningActivity, recordEndlessSimilarity,
   questionDifficultyRating, unitDifficultyTarget
-} from '../core/state.js?v=2026072110';
+} from '../core/state.js?v=2026072112';
 import { icon, stageIcon } from '../core/icons.js';
-import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072110';
+import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072112';
 
   var exerciseKeyboardInstalled = false;
 
@@ -276,6 +276,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072110
     state.pickerDiffSelection = (curDiff && curDiff.length) ? curDiff.slice() : [1,2,3,4];
     state.pickerTierSelection = (curTier && curTier.length) ? curTier.slice() : [1,2,3,4,5];
     state.pickerBatchSize = progress.settings.endlessBatchSize;
+    state.pickerFastMode = progress.settings.endlessFastMode !== false;
     state.screen = 'unitPicker';
     render();
   }
@@ -301,6 +302,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072110
     var diffSel = state.pickerDiffSelection;
     var tierSel = state.pickerTierSelection;
     var batchSize = state.pickerBatchSize;
+    var fastMode = state.pickerFastMode;
     var chips = UNIT_LIST.map(function(u){
       var on = sel.indexOf(u.id) !== -1;
       var info = unitAttemptInfo(u.id);
@@ -345,6 +347,11 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072110
       '<button class="primary" id="btnPickerCram">'+icon('spark')+' 一夜漬けモード（鉄板・頻出のみ）→</button>'+
     '</div>'+
     '<div class="frame recobar">'+
+      '<div class="reco-text">'+icon('target')+' <b>快速モード</b>：似た問題はなるべく1問に絞り、違う内容をテンポよく出題します。'+
+        '<span class="reco-sub">難易度のユーザー指定には含まれず、内部レートの自動調整は毎問そのまま動きます。</span></div>'+
+      '<button type="button" class="ghost" id="btnPickerFast" aria-pressed="'+(fastMode?'true':'false')+'">快速モード：'+(fastMode?'ON':'OFF')+'</button>'+
+    '</div>'+
+    '<div class="frame recobar">'+
       '<div class="reco-text">'+icon('chip')+' 選択中の単元でのおすすめ難易度: <b>'+esc(DIFF_BATCH_LABEL[recoLevel])+'</b>'+
         '<span class="reco-sub">(正答実績から自動判定。データが少ない単元はまず初級から勧めます)</span></div>'+
       '<button class="ghost" id="btnPickerAuto">'+icon('target')+' 苦手分野+おすすめ難易度に自動設定</button>'+
@@ -386,7 +393,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072110
       state.pickerSelection = [];
       render();
     });
-    Array.prototype.forEach.call(app.querySelectorAll('.diffchip'), function(btn){
+    Array.prototype.forEach.call(app.querySelectorAll('[data-diff]'), function(btn){
       btn.addEventListener('click', function(){
         var lv = parseInt(btn.getAttribute('data-diff'),10);
         var idx = state.pickerDiffSelection.indexOf(lv);
@@ -416,6 +423,12 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072110
       state.pickerDiffSelection = [recommendDifficulty(weak)];
       render();
     });
+    document.getElementById('btnPickerFast').addEventListener('click', function(){
+      state.pickerFastMode = !state.pickerFastMode;
+      progress.settings.endlessFastMode = state.pickerFastMode;
+      saveProgress(progress);
+      render();
+    });
     document.getElementById('btnPickerCram').addEventListener('click', function(){
       state.pickerSelection = UNIT_LIST.map(function(u){ return u.id; });
       state.pickerDiffSelection = [1,2,3,4];
@@ -424,6 +437,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072110
       progress.settings.endlessDiffs = null;
       progress.settings.endlessTiers = [1,2];
       progress.settings.endlessBatchSize = state.pickerBatchSize;
+      progress.settings.endlessFastMode = state.pickerFastMode;
       saveProgress(progress);
       rebuildEndlessQueue();
       state.curQ = null;
@@ -439,6 +453,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072110
       progress.settings.endlessTiers = (state.pickerTierSelection.length===5)
         ? null : state.pickerTierSelection.slice();
       progress.settings.endlessBatchSize = state.pickerBatchSize;
+      progress.settings.endlessFastMode = state.pickerFastMode;
       saveProgress(progress);
       rebuildEndlessQueue();
       state.curQ = null;
