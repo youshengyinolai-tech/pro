@@ -95,10 +95,16 @@ export const STORE_KEY = 'oopExamQuest_v3';
     }catch(e){}
     return {unlocked:1, stars:{}};
   }
+  var progressSaveEventQueued=false;
   export function saveProgress(p){
     try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){}
     if(typeof window!=='undefined'&&window.dispatchEvent){
-      window.dispatchEvent(new CustomEvent('codecase:progress-saved'));
+      if(progressSaveEventQueued) return;
+      progressSaveEventQueued=true;
+      queueMicrotask(function(){
+        progressSaveEventQueued=false;
+        window.dispatchEvent(new CustomEvent('codecase:progress-saved'));
+      });
     }
   }
 

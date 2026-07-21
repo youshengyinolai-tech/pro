@@ -46,12 +46,13 @@ function roomCode(){
 }
 
 function ensureRanking(){
-  if(!progress.ranking) progress.ranking={};
-  if(!progress.ranking.playerId) progress.ranking.playerId=uid('player');
-  if(!progress.ranking.nickname) progress.ranking.nickname='あなた';
-  if(!Array.isArray(progress.ranking.rooms)) progress.ranking.rooms=[];
-  if(!progress.ranking.activeMetric) progress.ranking.activeMetric='overall';
-  saveProgress(progress);
+  var changed=false;
+  if(!progress.ranking){ progress.ranking={};changed=true; }
+  if(!progress.ranking.playerId){ progress.ranking.playerId=uid('player');changed=true; }
+  if(!progress.ranking.nickname){ progress.ranking.nickname='あなた';changed=true; }
+  if(!Array.isArray(progress.ranking.rooms)){ progress.ranking.rooms=[];changed=true; }
+  if(!progress.ranking.activeMetric){ progress.ranking.activeMetric='overall';changed=true; }
+  if(changed) saveProgress(progress);
   return progress.ranking;
 }
 

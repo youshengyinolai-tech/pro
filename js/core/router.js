@@ -1050,8 +1050,10 @@ import { setPlayerName } from './ranking.js?v=2026072115';
           btn.classList.add('opening');
           state.curQ = null;
           var idx = parseInt(btn.getAttribute('data-idx'),10);
-          if(progress.settings.studyModeActive) startStudy(idx);
-          else openLesson(idx, false);
+          requestAnimationFrame(function(){
+            if(progress.settings.studyModeActive) startStudy(idx);
+            else openLesson(idx, false);
+          });
         });
       });
       var soloCollapse=document.getElementById('btnSoloCollapse');
