@@ -4,16 +4,41 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>コード事件捜査局 — 期末試験ファイル</title>
-  <link rel="stylesheet" href="css/main.css?v=2026072113">
-<link rel="stylesheet" href="css/gamification.css?v=2026072113">
-<link rel="stylesheet" href="css/investigation.css?v=2026072113">
+  <link rel="stylesheet" href="css/main.css?v=2026072114">
+<link rel="stylesheet" href="css/gamification.css?v=2026072114">
+<link rel="stylesheet" href="css/investigation.css?v=2026072114">
 </head>
 <body>
-<div class="stage" id="app"></div>
+<div class="stage" id="app"><div class="frame" id="bootStatus" style="padding:18px 20px;">捜査画面を読み込んでいます…</div></div>
 
-<script type="module">
-  import { boot } from './js/core/router.js?v=2026072113';
-  boot();
+<script>
+  (async function(){
+    try{
+      var module = await import('./js/core/router.js?v=2026072114');
+      module.boot();
+    }catch(error){
+      console.error('アプリの起動に失敗しました', error);
+      var app = document.getElementById('app');
+      app.innerHTML = '';
+      var panel = document.createElement('div');
+      panel.className = 'frame';
+      panel.style.padding = '20px';
+      var title = document.createElement('h2');
+      title.textContent = '画面を読み込めませんでした';
+      var message = document.createElement('p');
+      message.textContent = '古いファイルが残っている可能性があります。下のボタンで最新版を読み込み直してください。';
+      var button = document.createElement('button');
+      button.className = 'primary';
+      button.textContent = '最新版を読み込み直す';
+      button.addEventListener('click', function(){
+        var url = new URL(location.href);
+        url.searchParams.set('reload', Date.now());
+        location.replace(url.toString());
+      });
+      panel.append(title, message, button);
+      app.appendChild(panel);
+    }
+  })();
 </script>
 
 </body>
