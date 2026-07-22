@@ -72,9 +72,9 @@ function pickEndlessQuestion(level, recentQids){
 }
 
 /* ---------- 速度(落下時間)テーブル ---------- */
-var NORMAL_FALL_MS = {1:9000, 2:7600, 3:6400, 4:5300, 5:4700};
+var NORMAL_FALL_MS = {1:10400, 2:8700, 3:7400, 4:6100, 5:5400};
 function endlessFallMs(level){
-  return Math.max(2800, 9200 - level*420); /* 操作不能にならないよう下限を設ける */
+  return Math.max(3200, 10600 - level*480); /* 操作不能にならないよう下限を設ける */
 }
 
 /* ---------- スコア計算(1箇所に集約) ---------- */
