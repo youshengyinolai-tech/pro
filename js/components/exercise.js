@@ -636,18 +636,27 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
       bodyHtml = '<pre class="codeblock">'+esc(q.before)+'<mark class="blank">______</mark>'+esc(q.after)+'</pre>';
     }
 
+    /* choice/order/dragfillは選択・操作でしか回答できない形式のため、
+       入力⇄選択の切替(ペーパーテスト再現用に維持)には関係なく常に本来のUIを出す。
+       切替の対象はfill/debug(自由記述で書ける形式)だけに限定する。 */
     var answerHtml;
-    if(type==='choice' && useSelection){
+    if(type==='choice'){
+      /* 正解が常にoptions[0]にあるデータのため、表示順だけをシャッフルする。
+         data-optは元のindexのままなので、正解判定(値比較)は一切変更しない。 */
+      if(state.choiceOrderQid !== q.qid){
+        state.choiceOrder = shuffle(q.options.map(function(_,i){ return i; }));
+        state.choiceOrderQid = q.qid;
+      }
       answerHtml = '<div class="choicegrid" id="choiceGrid">'+
-        q.options.map(function(opt,i){
-          return choiceButtonHtml(opt,i,'','data-opt="'+i+'"');
+        state.choiceOrder.map(function(origIdx,displayPos){
+          return choiceButtonHtml(q.options[origIdx],displayPos,'','data-opt="'+origIdx+'"');
         }).join('')+
       '</div>';
-    } else if(type==='order' && useSelection){
+    } else if(type==='order'){
       var orderComplete=q.lines.every(function(ln,index){ return !!state.dragPlacement['order-'+index]; });
       answerHtml='<div class="actionrow"><button class="ghost" id="btnDragReset" type="button">並び順をリセット</button>'+
         '<button class="primary" id="btnSubmit"'+(orderComplete?'':' disabled')+'>この順番で回答 →</button></div>';
-    } else if(type==='dragfill' && useSelection){
+    } else if(type==='dragfill'){
       var usedIds = Object.keys(state.dragPlacement).map(function(b){ return state.dragPlacement[b]; }).filter(Boolean);
       var trayHtml = q.pieces.map(function(p){
         var used = usedIds.indexOf(p.id)!==-1;
@@ -661,16 +670,17 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
           '<button class="ghost" id="btnDragReset" type="button">やり直す</button>'+
           '<button class="primary" id="btnSubmit"'+(allFilled?'':' disabled')+'>詠唱する →</button>'+
         '</div>';
-    } else if((type==='fill'||type==='debug') && useSelection && q.long && mobileLineBuilder(q)){
+    } else if(useSelection && q.long && mobileLineBuilder(q)){
       answerHtml=mobileLineBuilder(q);
-    } else if((type==='fill'||type==='debug') && useSelection){
+    } else if(useSelection){
       answerHtml='<div class="mobile-choicegrid">'+mobileChoiceAnswers(q).map(function(answer,index){
         return choiceButtonHtml(answer,index,'mobile-answer-choice','data-mobile-answer="'+index+'"');
       }).join('')+'</div>';
     } else {
       answerHtml=textInputAnswerHtml(q);
     }
-    return {qlead:qlead, bodyHtml:bodyHtml, answerHtml:answerModeToggleHtml(useSelection)+answerHtml};
+    var showModeToggle = (type==='fill'||type==='debug');
+    return {qlead:qlead, bodyHtml:bodyHtml, answerHtml:(showModeToggle?answerModeToggleHtml(useSelection):'')+answerHtml};
   }
 
 
