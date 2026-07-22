@@ -820,3 +820,109 @@
   body.performance-mode .shake{
     animation:none!important;
   }
+
+  /* ---------- DROP CASE ---------- */
+
+  .dropcase-menu{ max-width:640px; margin:0 auto; padding:16px; }
+  .dropcase-hero{ text-align:center; }
+  .dropcase-hero h2{ display:flex; align-items:center; justify-content:center; gap:8px; margin:6px 0; }
+  .dropcase-modes{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
+  .dropcase-mode-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:16px; text-align:left; cursor:pointer; color:var(--ink);
+  }
+  .dropcase-mode-card:hover:not(.locked){ border-color:var(--accent); }
+  .dropcase-mode-card.locked{ opacity:.6; cursor:default; }
+  .dropcase-mode-card h3{ display:flex; align-items:center; gap:6px; margin:0 0 6px; }
+  .dropcase-mode-card p{ color:var(--ink-dim); font-size:.85rem; margin:0 0 8px; }
+  .dc-best{ font-size:.78rem; color:var(--accent); }
+  .dropcase-help-list{ margin:10px 0 18px; padding-left:1.2em; color:var(--ink-dim); }
+  .dropcase-help-list li{ margin-bottom:6px; }
+
+  /* dropcase-play-active: topbar+HUD+選択肢を固定高さにし、落下エリアが
+     残り全部を使い切るようにする。フルスクリーンからはみ出してスクロールが
+     発生しないよう、画面全体を100dvhのflex縦積みで組む。 */
+  body.dropcase-play-active{ height:100dvh; overflow:hidden; }
+  body.dropcase-play-active .stage{ height:100%; max-height:100%; min-height:0; display:flex; flex-direction:column; }
+  .dropcase-play-screen{ display:flex; flex-direction:column; flex:1; min-height:0; }
+
+  .dropcase-hud{
+    display:flex; align-items:center; gap:16px; padding:10px 16px; flex:none;
+    font-family:var(--font-mono); font-size:.8rem; color:var(--ink-dim);
+    border-bottom:1px solid var(--line);
+  }
+  .dropcase-hud .dc-stat{ display:flex; flex-direction:column; gap:2px; }
+  .dropcase-hud .dc-stat small{ font-size:.66rem; letter-spacing:.08em; color:var(--ink-dim); }
+  .dropcase-hud b{ display:block; color:var(--ink); font-size:1rem; }
+  .dropcase-hud .dc-life{ font-size:1.2rem; letter-spacing:3px; color:var(--danger); font-weight:900; }
+  .dropcase-hud .dc-pause{ margin-left:auto; }
+
+  .dropcase-field{
+    position:relative; flex:1; min-height:0; margin:10px 16px;
+    background:var(--panel-2); border:1px solid var(--line); border-radius:10px; overflow:hidden;
+  }
+  .dropcase-fallcard{
+    position:absolute; left:50%; top:0; transform:translate(-50%,0);
+    width:min(90%,440px); background:var(--panel); border:2px solid var(--accent);
+    border-radius:10px; padding:14px 16px; box-shadow:0 6px 18px var(--shadow);
+    transition:top .05s linear;
+  }
+  .dropcase-fallcard.boss{ border-color:var(--danger); }
+  .dropcase-fallcard.correct{ border-color:var(--hero); }
+  .dropcase-fallcard.wrong{ border-color:var(--danger); animation:dropcase-shake .3s; }
+  .dropcase-fallcard .dc-code{ margin:0 0 8px; font-size:.82rem; }
+  .dropcase-fallcard .dc-lead{ font-size:.95rem; color:var(--ink); }
+  .dc-boss-badge{
+    position:absolute; top:-10px; right:10px; background:var(--danger); color:var(--accent-ink);
+    font-size:.68rem; padding:2px 8px; border-radius:4px; letter-spacing:.08em;
+  }
+  .dc-stamp{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-size:1.3rem; font-weight:700; color:var(--hero);
+    background:color-mix(in srgb, var(--panel) 70%, transparent);
+    animation:dropcase-stamp .5s ease-out;
+  }
+  @keyframes dropcase-shake{ 0%,100%{transform:translate(-50%,0);} 25%{transform:translate(calc(-50% - 6px),0);} 75%{transform:translate(calc(-50% + 6px),0);} }
+  @keyframes dropcase-stamp{ from{opacity:0; transform:scale(1.4) rotate(-8deg);} to{opacity:1; transform:scale(1) rotate(-8deg);} }
+
+  .dropcase-options{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px;
+    padding:14px 16px; touch-action:none; flex:none;
+  }
+  .dropcase-option{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:12px 10px; font-size:.88rem; color:var(--ink); cursor:grab;
+    touch-action:none; user-select:none;
+  }
+  .dropcase-option.dragging{ cursor:grabbing; z-index:20; box-shadow:0 8px 20px var(--shadow); border-color:var(--accent); }
+
+  .dropcase-pause-overlay{
+    position:fixed; inset:0; background:color-mix(in srgb, var(--bg) 55%, transparent);
+    display:flex; align-items:center; justify-content:center; z-index:50;
+  }
+  .dropcase-pause-overlay .frame{ padding:20px; display:flex; flex-direction:column; gap:10px; align-items:stretch; }
+  .dropcase-help-modal{ max-width:420px; margin:0 16px; }
+  .dropcase-help-modal h2{ display:flex; align-items:center; gap:8px; margin:0; }
+
+  .dropcase-result-grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin:16px 0;
+  }
+  .dropcase-result-grid div{ background:var(--panel-2); border-radius:8px; padding:10px; text-align:center; }
+  .dropcase-result-grid small{ display:block; color:var(--ink-dim); font-size:.72rem; }
+  .dropcase-result-grid b{ font-size:1.1rem; }
+  .dc-newrecord,.dc-unlock{
+    text-align:center; font-family:var(--font-display); font-weight:700; color:var(--accent);
+    margin:8px 0; padding:8px; border:1px dashed var(--accent); border-radius:8px;
+  }
+  .dropcase-result-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+
+  @media (prefers-reduced-motion: reduce){
+    .dropcase-fallcard{ transition:none; }
+    .dropcase-fallcard.wrong{ animation:none; }
+    .dc-stamp{ animation:none; }
+  }
+  @media (max-width:640px){
+    .dropcase-modes{ grid-template-columns:1fr; }
+    .dropcase-field{ margin:10px 8px; }
+    .dropcase-options{ padding:12px 8px; grid-template-columns:repeat(2,1fr); }
+  }

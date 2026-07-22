@@ -23,6 +23,10 @@ import {
   renderRankingHome, renderRankingRoom, wireRankingHome, wireRankingRoom
 } from '../components/ranking.js?v=2026072115';
 import { setPlayerName } from './ranking.js?v=2026072115';
+import {
+  renderDropCaseMenu, wireDropCaseMenu, renderDropCasePlay, wireDropCasePlay,
+  renderDropCaseResult, wireDropCaseResult
+} from '../components/dropcase.js?v=2026072115';
 
   var globalKeyboardReady = false;
   var caseScrollCleanup = null;
@@ -901,6 +905,7 @@ import { setPlayerName } from './ranking.js?v=2026072115';
         '<button class="case-nav" id="btnEndless"><span>'+icon('terminal')+'</span><b>総合捜査</b><small>1000本ノック</small></button>'+
         '<button class="case-nav" id="btnReview2"><span>'+icon('review')+'</span><b>未解決</b><small>'+missedN+'件</small></button>'+
         '<button class="case-nav" id="btnUnitPicker"><span>'+icon('target')+'</span><b>捜査条件</b><small>'+esc(DIFF_BATCH_LABEL[overallReco])+'</small></button>'+
+        '<button class="case-nav" id="btnDropCaseNav"><span>'+icon('terminal')+'</span><b>DROP CASE</b><small>特別捜査</small></button>'+
         '<div class="case-stats"><h3>捜査記録</h3><dl><div><dt>解決評価</dt><dd class="num">'+totalStarsEarned()+' / '+TOTAL_STARS+'</dd></div><div><dt>連続正解</dt><dd class="num">'+e.streak+'</dd></div><div><dt>正答率</dt><dd class="num">'+acc+'%</dd></div></dl></div>'+
         '<button class="mode-file '+(studyMode?'study':'quest')+'" id="btnModeToggle" aria-pressed="'+(studyMode?'true':'false')+'"><span>'+icon(studyMode?'book':'sword')+'</span><b>'+(studyMode?'証拠を読む':'推理に挑む')+'</b><small>章選択時の動作</small></button>'+
         '<button class="alt-file'+(progress.settings.allowAlt?' on':'')+'" id="btnAltToggle" aria-pressed="'+(progress.settings.allowAlt?'true':'false')+'">'+
@@ -1041,6 +1046,7 @@ import { setPlayerName } from './ranking.js?v=2026072115';
     var app = document.getElementById('app');
     if(caseScrollCleanup){ caseScrollCleanup(); caseScrollCleanup=null; }
     document.body.classList.toggle('case-map-screen',state.screen==='map');
+    document.body.classList.toggle('dropcase-play-active',state.screen==='dropcase-play');
     if(state.screen==='map'){
       app.innerHTML = renderMap();
       Array.prototype.forEach.call(app.querySelectorAll('.stagecard:not(.locked)'), function(btn){
@@ -1055,6 +1061,10 @@ import { setPlayerName } from './ranking.js?v=2026072115';
             else openLesson(idx, false);
           });
         });
+      });
+      var btnDropCaseNav=document.getElementById('btnDropCaseNav');
+      if(btnDropCaseNav) btnDropCaseNav.addEventListener('click', function(){
+        state.screen='dropcase-menu'; render();
       });
       var soloCollapse=document.getElementById('btnSoloCollapse');
       if(soloCollapse) soloCollapse.addEventListener('click',function(){
@@ -1191,6 +1201,15 @@ import { setPlayerName } from './ranking.js?v=2026072115';
       if(next) next.addEventListener('click', function(){ state.curQ=null; startStage(state.stageIndex+1, state.startTier); });
       var map = document.getElementById('btnMap');
       if(map) map.addEventListener('click', function(){ state.curQ=null; state.screen='map'; render(); });
+    } else if(state.screen==='dropcase-menu'){
+      app.innerHTML = renderDropCaseMenu();
+      wireDropCaseMenu(app);
+    } else if(state.screen==='dropcase-play'){
+      app.innerHTML = renderDropCasePlay();
+      wireDropCasePlay(app);
+    } else if(state.screen==='dropcase-result'){
+      app.innerHTML = renderDropCaseResult();
+      wireDropCaseResult(app);
     }
   }
 

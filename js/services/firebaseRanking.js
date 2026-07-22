@@ -16,6 +16,8 @@ function memberPayload(name,snapshot,serverTimestamp,clientId){
     streak:snapshot.streak||0,
     study:snapshot.study||0,
     medals:snapshot.medals||0,
+    dropCaseNormal:snapshot.dropCaseNormal||0,
+    dropCaseEndless:snapshot.dropCaseEndless||0,
     updatedAt:serverTimestamp()
   };
 }

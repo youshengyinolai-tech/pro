@@ -224,6 +224,15 @@ export function isStorageWriteLocked(){ return storageWriteLocked; }
   if(!progress.unitStats){
     progress.unitStats = {};
   }
+  if(!progress.dropCase || typeof progress.dropCase!=='object'){
+    progress.dropCase = {};
+  }
+  if(!progress.dropCase.normal || typeof progress.dropCase.normal!=='object'){
+    progress.dropCase.normal = {cleared:false, bestScore:0, bestTimeMs:null, bestCombo:0, bestAccuracy:0, lastPlayedAt:null};
+  }
+  if(!progress.dropCase.endless || typeof progress.dropCase.endless!=='object'){
+    progress.dropCase.endless = {unlocked:false, bestScore:0, bestSolved:0, bestCombo:0, bestLevel:0, lastPlayedAt:null};
+  }
   if(!progress.missed){
     progress.missed = {};
   }
@@ -562,7 +571,7 @@ export function isStorageWriteLocked(){ return storageWriteLocked; }
   }
 
 
-  export const state = {curQ:null, screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, activeQs:[], pickerSelection:[], pickerDiffSelection:[1,2,3,4], pickerTierSelection:[1,2,3,4,5], pickerBatchSize:0, pickerFastMode:true, pickerReturnScreen:'map', pickerReturnFocusId:null, reviewQueue:[], reviewPos:0, reviewStats:{correct:0, wrong:0}, dragPlacement:{}, dragSelected:null, dragQid:null, choiceOrder:null, choiceOrderQid:null, mobileLineOrder:[], mobileLineSelected:null, mobileLineQid:null, startTier:1, studyStep:0, studyPicked:null, studyCombo:0, studyBestCombo:0, studyWrongCount:0};
+  export const state = {curQ:null, screen:'map', stageIndex:0, order:[], qIndex:0, heroHP:100, monsterHP:100, wrong:0, locked:false, failReason:null, lessonFromBattle:false, activeQs:[], pickerSelection:[], pickerDiffSelection:[1,2,3,4], pickerTierSelection:[1,2,3,4,5], pickerBatchSize:0, pickerFastMode:true, pickerReturnScreen:'map', pickerReturnFocusId:null, reviewQueue:[], reviewPos:0, reviewStats:{correct:0, wrong:0}, dragPlacement:{}, dragSelected:null, dragQid:null, choiceOrder:null, choiceOrderQid:null, dropCaseRun:null, mobileLineOrder:[], mobileLineSelected:null, mobileLineQid:null, startTier:1, studyStep:0, studyPicked:null, studyCombo:0, studyBestCombo:0, studyWrongCount:0};
 
 
   export function shuffle(arr){

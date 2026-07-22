@@ -14,7 +14,9 @@ export const RANKING_METRICS = [
   {id:'accuracy', label:'正答率', unit:'%'},
   {id:'streak', label:'最高連続正解', unit:'問'},
   {id:'study', label:'学習完了', unit:'章'},
-  {id:'medals', label:'学習メダル', unit:'pt'}
+  {id:'medals', label:'学習メダル', unit:'pt'},
+  {id:'dropCaseNormal', label:'DROP CASE:通常捜査', unit:'pt'},
+  {id:'dropCaseEndless', label:'DROP CASE:終わりなき捜査', unit:'pt'}
 ];
 
 function hashString(text){
@@ -95,7 +97,14 @@ export function captureProgress(){
   var streak=(progress.endless&&progress.endless.bestStreak)||0;
   var dailyStreak=learningActivitySummary().streak||0;
   var overall=stars*100+clears*80+correct*4+accuracy*3+streak*20+study*70+medals*35;
-  return {overall:overall,dailyStreak:dailyStreak,stars:stars,clears:clears,correct:correct,accuracy:accuracy,streak:streak,study:study,medals:medals,updatedAt:new Date().toISOString()};
+  /* DROP CASEは本編の内部レートと分離した専用スコアなので、overallには加算しない。
+     通常捜査は「クリア済みか」を最優先で比較したいが、既存ランキングは単一の数値で
+     ソートする作りのため、クリア済みに大きな加点をしてスコアより先に効かせる。 */
+  var dcNormal=(progress.dropCase&&progress.dropCase.normal)||{};
+  var dcEndless=(progress.dropCase&&progress.dropCase.endless)||{};
+  var dropCaseNormal=(dcNormal.cleared?1000000:0)+(dcNormal.bestScore||0);
+  var dropCaseEndless=dcEndless.bestScore||0;
+  return {overall:overall,dailyStreak:dailyStreak,stars:stars,clears:clears,correct:correct,accuracy:accuracy,streak:streak,study:study,medals:medals,dropCaseNormal:dropCaseNormal,dropCaseEndless:dropCaseEndless,updatedAt:new Date().toISOString()};
 }
 
 var DEMO_NAMES=['NullHunter','Pointer侍','SegFault猫','ClassMaster','LoopRider','Bit探偵','Stack探偵','Lambda狐'];
@@ -110,9 +119,13 @@ function demoSnapshot(random, base, index){
   var dailyStreak=Math.max(1,Math.round((base.dailyStreak||3)*strength+random()*7));
   var study=Math.min(STAGES.length,Math.max(0,Math.round((base.study||4)*strength+random()*5)));
   var medals=Math.min(STAGES.length*3,Math.max(0,Math.round((base.medals||5)*strength+random()*8)));
+  var dropCaseCleared=random()>0.4;
+  var dropCaseNormal=(dropCaseCleared?1000000:0)+Math.round(8000*strength+random()*6000);
+  var dropCaseEndless=Math.round(dropCaseCleared?(4000*strength+random()*9000):0);
   return {
     overall:stars*100+clears*80+correct*4+accuracy*3+streak*20+study*70+medals*35,
     dailyStreak:dailyStreak,stars:stars,clears:clears,correct:correct,accuracy:accuracy,streak:streak,study:study,medals:medals,
+    dropCaseNormal:dropCaseNormal,dropCaseEndless:dropCaseEndless,
     updatedAt:new Date(Date.now()-index*3600000).toISOString()
   };
 }
