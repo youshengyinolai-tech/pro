@@ -134,7 +134,6 @@ function loadNextQuestion(run){
   run.order=shuffle(entry.q.options.map(function(_,i){ return i; }));
   run.startedAt=performance.now();
   run.pausedAt=null; run.totalPausedMs=0;
-  run.fieldHeightPx=0;
   run.status='playing';
 }
 
@@ -230,14 +229,13 @@ export function startDropCaseRun(mode){
 function tick(run){
   if(!run || run.status!=='playing' || run.paused){ return; }
   var el=document.getElementById('dropFallCard');
-  if(!el){ return; }
-  if(!run.fieldHeightPx){
-    var field=document.getElementById('dropField');
-    run.fieldHeightPx = field ? field.clientHeight : 0;
-  }
+  var field=document.getElementById('dropField');
+  if(!el || !field){ return; }
+  /* 高さは毎フレーム測り直す(モバイルでアドレスバーの伸縮等により
+     フィールドの高さが途中で変わっても追従できるようにするため)。 */
   var elapsed=performance.now()-run.startedAt-run.totalPausedMs;
   var ratio=Math.max(0,Math.min(1, elapsed/run.fallDurationMs));
-  el.style.setProperty('--fall-y', (ratio*run.fieldHeightPx)+'px');
+  el.style.setProperty('--fall-y', (ratio*field.clientHeight)+'px');
   if(ratio>=1){
     advanceAfterAnswer(run, false);
     return;
