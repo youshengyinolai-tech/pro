@@ -68,20 +68,43 @@
     bar.append(span, reloadBtn, laterBtn);
     document.body.appendChild(bar);
   }
-  function checkForUpdate(){
+  /* タブを開いた直後(まだ何も操作していない/プレイ中の状態が無いタイミング)
+     だけは、バナーを出さずその場で静かに1回だけ最新版に載せ替える。
+     それ以外(操作中のタブでの再チェック)はプレイ中の状態を壊さないよう
+     バナーで確認してから更新する。連続リロードにならないようguardする。 */
+  var AUTO_RELOAD_GUARD_KEY = 'ccbAutoReloadAt';
+  function recentlyAutoReloaded(){
+    try{
+      var t = sessionStorage.getItem(AUTO_RELOAD_GUARD_KEY);
+      return !!t && (Date.now() - parseInt(t, 10)) < 15000;
+    }catch(e){ return false; }
+  }
+  function markAutoReloaded(){
+    try{ sessionStorage.setItem(AUTO_RELOAD_GUARD_KEY, String(Date.now())); }catch(e){}
+  }
+  function checkForUpdate(isInitialLoad){
     fetch(location.pathname, { cache: 'no-store' })
       .then(function(res){ return res.text(); })
       .then(function(html){
         var latest = extractModuleUrl(html);
-        if(latest && latest !== CURRENT_MODULE_URL) showUpdateBanner();
+        if(!latest || latest === CURRENT_MODULE_URL) return;
+        if(isInitialLoad && !recentlyAutoReloaded()){
+          markAutoReloaded();
+          var url = new URL(location.href);
+          url.searchParams.set('_fresh', Date.now());
+          location.replace(url.toString());
+          return;
+        }
+        showUpdateBanner();
       })
       .catch(function(){});
   }
+  checkForUpdate(true);
   document.addEventListener('visibilitychange', function(){
-    if(!document.hidden) checkForUpdate();
+    if(!document.hidden) checkForUpdate(false);
   });
-  window.addEventListener('focus', checkForUpdate);
-  setInterval(checkForUpdate, 3*60*1000);
+  window.addEventListener('focus', function(){ checkForUpdate(false); });
+  setInterval(function(){ checkForUpdate(false); }, 3*60*1000);
 </script>
 
 </body>
