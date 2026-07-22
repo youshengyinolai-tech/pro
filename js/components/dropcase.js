@@ -103,7 +103,7 @@ function newRun(mode){
     score:0, combo:0, maxCombo:0, life:3,
     correctCount:0, wrongCount:0,
     level:1, levelQAnswered:0,
-    current:null, order:[],
+    current:null, order:[], history:[],
     fallDurationMs:9000, startedAt:0, pausedAt:null, totalPausedMs:0,
     runStartedAt:Date.now(), rafId:null, answered:false, paused:false
   };
@@ -137,8 +137,15 @@ function loadNextQuestion(run){
   run.status='playing';
 }
 
-function advanceAfterAnswer(run, correct){
+function advanceAfterAnswer(run, correct, chosenText){
   stopTicking(run);
+  var q=run.current.q;
+  run.history.push({
+    lead: q.lead||'', code: q.code||'',
+    yourAnswer: (chosenText===undefined?null:chosenText),
+    correctAnswer: q.answers[0], correct: correct,
+    explain: q.explain||'', isBoss: run.current.isBoss
+  });
   if(correct){
     run.combo++; run.maxCombo=Math.max(run.maxCombo,run.combo); run.correctCount++;
     var elapsed=performance.now()-run.startedAt-run.totalPausedMs;
@@ -375,7 +382,7 @@ function submitDropAnswer(run, origIdx){
   run.answered=true;
   var q=run.current.q;
   var correct = checkAnswer(q.options[origIdx], q.answers); /* 位置ではなくanswersと値で照合する */
-  advanceAfterAnswer(run, correct);
+  advanceAfterAnswer(run, correct, q.options[origIdx]);
 }
 
 export function wireDropCasePlay(app){
@@ -454,6 +461,22 @@ export function wireDropCasePlay(app){
 }
 
 /* ---------- 描画: 結果画面 ---------- */
+var resultReviewOpen=false;
+
+function dropCaseReviewListHtml(run){
+  return '<div class="dropcase-review-list">'+run.history.map(function(h,i){
+    var yourAnswerText = h.yourAnswer===null ? '(時間切れ・未回答)' : h.yourAnswer;
+    return '<div class="dropcase-review-item '+(h.correct?'correct':'wrong')+'">'+
+      '<div class="dc-review-num">No.'+(i+1)+(h.isBoss?' <span class="dc-boss-badge-inline">BOSS</span>':'')+' '+(h.correct?'○':'✕')+'</div>'+
+      (h.code?'<pre class="codeblock dc-code">'+esc(h.code)+'</pre>':'')+
+      '<div class="dc-review-q">'+esc(h.lead)+'</div>'+
+      '<div class="dc-review-your">あなたの回答: <b>'+esc(yourAnswerText)+'</b></div>'+
+      (h.correct?'':'<div class="dc-review-correct">正解: <b>'+esc(h.correctAnswer)+'</b></div>')+
+      (h.explain?'<div class="explain"><span class="tag">解説</span>'+esc(h.explain)+'</div>':'')+
+    '</div>';
+  }).join('')+'</div>';
+}
+
 export function renderDropCaseResult(){
   var run=state.dropCaseRun;
   if(!run) return renderDropCaseMenu();
@@ -478,13 +501,16 @@ export function renderDropCaseResult(){
         '<button class="ghost" id="btnDropRanking">ランキングを見る</button>'+
         '<button class="ghost" id="btnDropHome">本部へ戻る</button>'+
       '</div>'+
+      '<button class="ghost" id="btnDropReviewToggle" style="margin-top:10px;">'+icon('review')+' '+(resultReviewOpen?'解説を閉じる':'全ての解説を見る('+run.history.length+'問)')+'</button>'+
+      (resultReviewOpen ? dropCaseReviewListHtml(run) : '')+
     '</section></main>';
 }
 
 export function wireDropCaseResult(app){
   var run=state.dropCaseRun;
-  document.getElementById('btnDropAgain').addEventListener('click', function(){ startDropCaseRun(run.mode); });
-  document.getElementById('btnDropModeSelect').addEventListener('click', function(){ state.dropCaseRun=null; state.screen='dropcase-menu'; render(); });
-  document.getElementById('btnDropRanking').addEventListener('click', function(){ state.dropCaseRun=null; state.screen='ranking'; progress.ranking.activeMetric=(run.mode==='normal'?'dropCaseNormal':'dropCaseEndless'); saveProgress(progress); render(); });
-  document.getElementById('btnDropHome').addEventListener('click', function(){ state.dropCaseRun=null; state.screen='map'; render(); });
+  document.getElementById('btnDropAgain').addEventListener('click', function(){ resultReviewOpen=false; startDropCaseRun(run.mode); });
+  document.getElementById('btnDropModeSelect').addEventListener('click', function(){ resultReviewOpen=false; state.dropCaseRun=null; state.screen='dropcase-menu'; render(); });
+  document.getElementById('btnDropRanking').addEventListener('click', function(){ resultReviewOpen=false; state.dropCaseRun=null; state.screen='ranking'; progress.ranking.activeMetric=(run.mode==='normal'?'dropCaseNormal':'dropCaseEndless'); saveProgress(progress); render(); });
+  document.getElementById('btnDropHome').addEventListener('click', function(){ resultReviewOpen=false; state.dropCaseRun=null; state.screen='map'; render(); });
+  document.getElementById('btnDropReviewToggle').addEventListener('click', function(){ resultReviewOpen=!resultReviewOpen; render(); });
 }

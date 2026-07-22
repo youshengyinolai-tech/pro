@@ -916,6 +916,17 @@
   }
   .dropcase-result-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
 
+  .dropcase-review-list{ text-align:left; margin-top:14px; display:flex; flex-direction:column; gap:12px; }
+  .dropcase-review-item{ background:var(--panel-2); border:1px solid var(--line); border-left:4px solid var(--ink-dim); border-radius:8px; padding:12px 14px; }
+  .dropcase-review-item.correct{ border-left-color:var(--hero); }
+  .dropcase-review-item.wrong{ border-left-color:var(--danger); }
+  .dc-review-num{ font-family:var(--font-mono); font-size:.75rem; color:var(--ink-dim); margin-bottom:6px; }
+  .dc-boss-badge-inline{ background:var(--danger); color:var(--accent-ink); font-size:.65rem; padding:1px 6px; border-radius:4px; }
+  .dc-review-q{ font-size:.92rem; color:var(--ink); margin-bottom:6px; }
+  .dc-review-your,.dc-review-correct{ font-size:.85rem; color:var(--ink-dim); margin-bottom:2px; }
+  .dropcase-review-item .explain{ margin:8px 0 0; color:var(--ink); border-top:1px dashed var(--line); padding-top:8px; font-size:.85rem; }
+  .dropcase-review-item .explain .tag{ display:block; font-size:.68rem; color:var(--accent); letter-spacing:.1em; text-transform:uppercase; margin-bottom:4px; }
+
   @media (prefers-reduced-motion: reduce){
     .dropcase-fallcard{ transition:none; }
     .dropcase-fallcard.wrong{ animation:none; }
