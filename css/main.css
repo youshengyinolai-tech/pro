@@ -862,10 +862,11 @@
     background:var(--panel-2); border:1px solid var(--line); border-radius:10px; overflow:hidden;
   }
   .dropcase-fallcard{
-    position:absolute; left:50%; top:0; transform:translate(-50%,0);
+    position:absolute; left:50%; top:0; --fall-y:0px;
+    transform:translate(-50%, var(--fall-y));
     width:min(90%,440px); background:var(--panel); border:2px solid var(--accent);
     border-radius:10px; padding:14px 16px; box-shadow:0 6px 18px var(--shadow);
-    transition:top .05s linear;
+    will-change:transform;
   }
   .dropcase-fallcard.boss{ border-color:var(--danger); }
   .dropcase-fallcard.correct{ border-color:var(--hero); }
@@ -882,7 +883,7 @@
     background:color-mix(in srgb, var(--panel) 70%, transparent);
     animation:dropcase-stamp .5s ease-out;
   }
-  @keyframes dropcase-shake{ 0%,100%{transform:translate(-50%,0);} 25%{transform:translate(calc(-50% - 6px),0);} 75%{transform:translate(calc(-50% + 6px),0);} }
+  @keyframes dropcase-shake{ 0%,100%{transform:translate(-50%, var(--fall-y));} 25%{transform:translate(calc(-50% - 6px), var(--fall-y));} 75%{transform:translate(calc(-50% + 6px), var(--fall-y));} }
   @keyframes dropcase-stamp{ from{opacity:0; transform:scale(1.4) rotate(-8deg);} to{opacity:1; transform:scale(1) rotate(-8deg);} }
 
   .dropcase-options{
@@ -928,7 +929,6 @@
   .dropcase-review-item .explain .tag{ display:block; font-size:.68rem; color:var(--accent); letter-spacing:.1em; text-transform:uppercase; margin-bottom:4px; }
 
   @media (prefers-reduced-motion: reduce){
-    .dropcase-fallcard{ transition:none; }
     .dropcase-fallcard.wrong{ animation:none; }
     .dc-stamp{ animation:none; }
   }

@@ -134,6 +134,7 @@ function loadNextQuestion(run){
   run.order=shuffle(entry.q.options.map(function(_,i){ return i; }));
   run.startedAt=performance.now();
   run.pausedAt=null; run.totalPausedMs=0;
+  run.fieldHeightPx=0;
   run.status='playing';
 }
 
@@ -223,13 +224,20 @@ export function startDropCaseRun(mode){
 }
 
 /* ---------- 落下アニメーション(1問ごとに開始し、回答/タイムアウトで停止) ---------- */
+/* top(レイアウトプロパティ)を毎フレーム書き換えるとレイアウト再計算が走り続け、
+   同時に行うドラッグ操作(pointermove)がカクつく原因になるため、
+   GPU合成のみで済むtransform(CSSカスタムプロパティ経由)で位置を更新する。 */
 function tick(run){
   if(!run || run.status!=='playing' || run.paused){ return; }
   var el=document.getElementById('dropFallCard');
   if(!el){ return; }
+  if(!run.fieldHeightPx){
+    var field=document.getElementById('dropField');
+    run.fieldHeightPx = field ? field.clientHeight : 0;
+  }
   var elapsed=performance.now()-run.startedAt-run.totalPausedMs;
   var ratio=Math.max(0,Math.min(1, elapsed/run.fallDurationMs));
-  el.style.top=(ratio*100)+'%';
+  el.style.setProperty('--fall-y', (ratio*run.fieldHeightPx)+'px');
   if(ratio>=1){
     advanceAfterAnswer(run, false);
     return;
