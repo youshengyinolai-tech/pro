@@ -7,7 +7,7 @@ import {
   TIER_LABEL, TIER_DESC, questionTier, questionIsRedundant, questionSimilarityTag
 } from '../data/questions.js?v=2026072115';
 import {
-  state, progress, saveProgress, esc, shuffle, checkAnswer, normalize,
+  state, progress, saveProgress, esc, shuffle, checkAnswer, checkAnswerStrict, normalize,
   UNIT_LIST, unitAttemptInfo, recommendDifficulty, weakUnitIds,
   recordUnitAnswer, recordMissed, rebuildEndlessQueue, reshuffleEndlessQueue,
   refreshUnlimitedEndlessQueue, refreshRemainingEndlessQueue,
@@ -695,7 +695,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
         '<div class="hpnum"><span>HP</span><span class="num">'+state.monsterHP+' / 100</span></div></div>'+
     '</div>'+
     '<div class="frame qcard" id="qcard">'+
-      '<div class="qmeta"><span>設問 '+(state.qIndex+1)+' / '+total+' <span class="tierbadge t'+questionTier(state.curQ)+'">'+esc(TIER_LABEL[questionTier(state.curQ)])+'</span></span><span>'+esc(st.title)+' ・ 今: '+esc(DIFF_BATCH_LABEL[state.curQ.diff]||'')+'</span></div>'+
+      '<div class="qmeta"><span>設問 '+(state.qIndex+1)+' / '+total+' <span class="tierbadge t'+questionTier(state.curQ)+'">重要度: '+esc(TIER_LABEL[questionTier(state.curQ)])+'</span></span><span>'+esc(st.title)+' ・ 難易度: '+esc(DIFF_BATCH_LABEL[state.curQ.diff]||'')+'</span></div>'+
       '<div class="qlead">'+qb.qlead+'</div>'+
       qb.bodyHtml+
       qb.answerHtml+
@@ -732,7 +732,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
         (progress.settings.endlessBatchSize===0?'制限なし（毎問調整）':(progress.endless.queue.length-progress.endless.pos)+' / '+progress.endless.queue.length)+'</span></div>'+
     '</div>'+
     '<div class="frame qcard" id="qcard">'+
-      '<div class="qmeta"><span>1000本ノック <span class="tierbadge t'+state.endlessSrc.tier+'">'+esc(TIER_LABEL[state.endlessSrc.tier])+'</span></span><span>'+esc(state.endlessSrc.srcSub)+'</span></div>'+
+      '<div class="qmeta"><span>1000本ノック <span class="tierbadge t'+state.endlessSrc.tier+'">重要度: '+esc(TIER_LABEL[state.endlessSrc.tier])+'</span></span><span>'+esc(state.endlessSrc.srcSub)+' ・ 難易度: '+esc(DIFF_BATCH_LABEL[state.curQ.diff]||'')+'</span></div>'+
       '<div class="qlead">'+qb.qlead+'</div>'+
       qb.bodyHtml+
       qb.answerHtml+
@@ -960,9 +960,16 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
 
     var isEndless = state.screen==='endless';
     var isReview = state.screen==='review';
-    var answerPool = (progress.settings.allowAlt && state.curQ.altAnswers && state.curQ.altAnswers.length)
-      ? state.curQ.answers.concat(state.curQ.altAnswers) : state.curQ.answers;
-    var correct = checkAnswer(val, answerPool);
+    var allowAlt = !!progress.settings.allowAlt;
+    /* 授業準拠モード(allowAlt=false)では、各問題の先頭に登録された正式解答
+       (answers[0])だけを正解として扱い、大文字小文字・std::・末尾セミコロンを
+       自動では同一視しない。別解許容モードでは従来通りanswers全体+altAnswersを
+       使い、表記揺れも吸収する。 */
+    var answerPool = allowAlt
+      ? ((state.curQ.altAnswers && state.curQ.altAnswers.length)
+          ? state.curQ.answers.concat(state.curQ.altAnswers) : state.curQ.answers)
+      : [state.curQ.answers[0]];
+    var correct = allowAlt ? checkAnswer(val, answerPool) : checkAnswerStrict(val, answerPool);
     var slot = document.getElementById('feedbackSlot');
     var qcard = document.getElementById('qcard');
 
@@ -1029,10 +1036,11 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
           correctAnsChip = '';
         } else {
           var canonicalAnswer=state.curQ.answers[0];
-          correctAnsChip='<div class="correctans accepted-variant"><span class="label">教材の模範表記（どちらも正解）</span>'+
+          var variantLabel = allowAlt ? '教材の模範表記（どちらも正解）' : '授業準拠モードの正解表記（書式の違いのみ）';
+          correctAnsChip='<div class="correctans accepted-variant"><span class="label">'+esc(variantLabel)+'</span>'+
             '<button type="button" class="ghost-badge copyable" data-copy="'+esc(canonicalAnswer)+'">'+esc(canonicalAnswer)+'</button></div>';
         }
-      } else {
+      } else if(allowAlt){
         var altList = (state.curQ.altAnswers && state.curQ.altAnswers.length) ? state.curQ.altAnswers : [];
         var primaryBadges = state.curQ.answers.map(function(a){
           return '<button type="button" class="ghost-badge copyable" data-copy="'+esc(a)+'">'+esc(a)+'</button>';
@@ -1041,6 +1049,10 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
           return '<button type="button" class="ghost-badge copyable alt" data-copy="'+esc(a)+'">'+esc(a)+' <small>(別解)</small></button>';
         }).join('');
         correctAnsChip = '<div class="correctans"><span class="label">正解例(クリックでコピー)</span>'+primaryBadges+altBadges+'</div>';
+      } else {
+        correctAnsChip = '<div class="correctans"><span class="label">授業準拠モードの正解</span>'+
+          '<button type="button" class="ghost-badge copyable" data-copy="'+esc(state.curQ.answers[0])+'">'+esc(state.curQ.answers[0])+'</button></div>'+
+          '<div class="explain"><span class="tag">授業準拠モード</span>この解答は授業で扱った表記と一致しません。授業準拠モードでは先頭の正式解答のみが正解になります。別解許容モードに切り替えると、他の書き方も正解として扱われる場合があります。</div>';
       }
     }
 

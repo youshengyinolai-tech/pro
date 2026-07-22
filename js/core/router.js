@@ -904,7 +904,7 @@ import { setPlayerName } from './ranking.js?v=2026072115';
         '<div class="case-stats"><h3>捜査記録</h3><dl><div><dt>解決評価</dt><dd class="num">'+totalStarsEarned()+' / '+TOTAL_STARS+'</dd></div><div><dt>連続正解</dt><dd class="num">'+e.streak+'</dd></div><div><dt>正答率</dt><dd class="num">'+acc+'%</dd></div></dl></div>'+
         '<button class="mode-file '+(studyMode?'study':'quest')+'" id="btnModeToggle" aria-pressed="'+(studyMode?'true':'false')+'"><span>'+icon(studyMode?'book':'sword')+'</span><b>'+(studyMode?'証拠を読む':'推理に挑む')+'</b><small>章選択時の動作</small></button>'+
         '<button class="alt-file'+(progress.settings.allowAlt?' on':'')+'" id="btnAltToggle" aria-pressed="'+(progress.settings.allowAlt?'true':'false')+'">'+
-          '<span class="alt-file-label">'+icon(progress.settings.allowAlt?'unlock':'lock')+' 別解 '+(progress.settings.allowAlt?'採用':'不採用')+'</span>'+
+          '<span class="alt-file-label">'+icon(progress.settings.allowAlt?'unlock':'lock')+' '+(progress.settings.allowAlt?'別解許容モード':'授業準拠モード')+'</span>'+
           '<span class="alt-switch" aria-hidden="true"><span class="alt-switch-knob"></span></span>'+
         '</button>'+
       '</aside>'+
@@ -1112,7 +1112,7 @@ import { setPlayerName } from './ranking.js?v=2026072115';
         this.setAttribute('aria-pressed', String(progress.settings.allowAlt));
         this.innerHTML =
           '<span class="alt-file-label">'+icon(progress.settings.allowAlt?'unlock':'lock')+
-          ' 別解 '+(progress.settings.allowAlt?'採用':'不採用')+'</span>'+
+          ' '+(progress.settings.allowAlt?'別解許容モード':'授業準拠モード')+'</span>'+
           '<span class="alt-switch" aria-hidden="true"><span class="alt-switch-knob"></span></span>';
       });
       document.getElementById('btnUnitPicker').addEventListener('click', function(){

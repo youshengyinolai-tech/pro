@@ -11,6 +11,16 @@ import {
 
 export const STORE_KEY = 'oopExamQuest_v3';
 
+/* 保存データのスキーマバージョン。既存キー(STORE_KEY)は変更せず、中身に
+   storageSchemaVersionを持たせて世代を管理する。3(無印)→4への移行時だけ、
+   移行前の生データをBACKUP_KEYへ一度だけ複製する。壊れた保存データを検知した
+   場合は、デフォルト値で上書きしてしまわないようsaveProgressを一時停止する。 */
+export const STORAGE_SCHEMA_VERSION = 4;
+export const STORAGE_BACKUP_KEY = STORE_KEY + '_backup_before_schema4';
+const BACKUP_KEY = STORAGE_BACKUP_KEY;
+let storageWriteLocked = false;
+export function isStorageWriteLocked(){ return storageWriteLocked; }
+
 
   /* 1000本ノック用の全問プール。BASE_STAGESの通常+難問を1つのプールにまとめ、
      出典(章タイトル)を添えて扱えるようにしておく。ボス戦は元ステージの問題を
@@ -89,14 +99,41 @@ export const STORE_KEY = 'oopExamQuest_v3';
 
 
   export function loadProgress(){
+    var raw;
+    try{ raw = localStorage.getItem(STORE_KEY); }catch(e){ raw = null; }
+
+    if(!raw){
+      storageWriteLocked = false;
+      return {unlocked:1, stars:{}, storageSchemaVersion: STORAGE_SCHEMA_VERSION};
+    }
+
+    var parsed;
     try{
-      var raw = localStorage.getItem(STORE_KEY);
-      if(raw) return JSON.parse(raw);
-    }catch(e){}
-    return {unlocked:1, stars:{}};
+      parsed = JSON.parse(raw);
+    }catch(e){
+      storageWriteLocked = true;
+      console.error('[codecase] 保存データの解析に失敗しました。既存データを保護するため自動保存を停止します。');
+      return {unlocked:1, stars:{}, storageSchemaVersion: STORAGE_SCHEMA_VERSION};
+    }
+    if(!parsed || typeof parsed!=='object' || Array.isArray(parsed)){
+      storageWriteLocked = true;
+      console.error('[codecase] 保存データの形式が不正です。既存データを保護するため自動保存を停止します。');
+      return {unlocked:1, stars:{}, storageSchemaVersion: STORAGE_SCHEMA_VERSION};
+    }
+
+    storageWriteLocked = false;
+    var priorVersion = typeof parsed.storageSchemaVersion==='number' ? parsed.storageSchemaVersion : 1;
+    if(priorVersion < STORAGE_SCHEMA_VERSION){
+      try{
+        if(localStorage.getItem(BACKUP_KEY)===null) localStorage.setItem(BACKUP_KEY, raw);
+      }catch(e){}
+    }
+    parsed.storageSchemaVersion = STORAGE_SCHEMA_VERSION;
+    return parsed;
   }
   var progressSaveEventQueued=false;
   export function saveProgress(p){
+    if(storageWriteLocked) return;
     try{ localStorage.setItem(STORE_KEY, JSON.stringify(p)); }catch(e){}
     if(typeof window!=='undefined'&&window.dispatchEvent){
       if(progressSaveEventQueued) return;
@@ -121,6 +158,9 @@ export const STORE_KEY = 'oopExamQuest_v3';
   }
 
   export const progress = loadProgress();
+  if(!progress.stars || typeof progress.stars!=='object' || Array.isArray(progress.stars)){
+    progress.stars = {};
+  }
   if(!progress.endless || !Array.isArray(progress.endless.queue)){
     progress.endless = {queue:[], pos:0, correct:0, wrong:0, streak:0, bestStreak:0};
   }
@@ -593,6 +633,17 @@ export const STORE_KEY = 'oopExamQuest_v3';
       var an3 = stripStd(an2);
       return n===an || n2===an2 || n3===an3 || sameNumericValue(n2,an2);
     });
+  }
+
+  /* 授業準拠モード用の厳密採点。空白・改行・インデントの違いだけは吸収するが、
+     大文字小文字・std::の省略・末尾セミコロンの有無は別解として扱い、
+     自動では同一視しない(教授が授業で使った表記だけを正解とするため)。 */
+  export function normalizeStrict(s){
+    return toHalfWidth(unwrapCodeFence(s)).replace(/[​-‍﻿]/g,'').trim().replace(/\s+/g,'');
+  }
+  export function checkAnswerStrict(input, answers){
+    var n = normalizeStrict(input);
+    return answers.some(function(a){ return n===normalizeStrict(a); });
   }
 
 export const STUDY_MEDAL_ICON = {gold:'🏅', silver:'🥈', bronze:'🥉'};

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkAnswer } from '../js/core/state.js';
+import { checkAnswer, checkAnswerStrict } from '../js/core/state.js';
 
 test('空白・改行・大文字小文字を表記揺れとして吸収する', function(){
   assert.equal(checkAnswer(' COUT << N << ENDL ; ', ['cout<<n<<endl;']), true);
@@ -28,4 +28,25 @@ test('演算子・変数名・数値が変わる誤答は許容しない', funct
   assert.equal(checkAnswer('a-b', ['a+b']), false);
   assert.equal(checkAnswer('cout<<x;', ['cout<<y;']), false);
   assert.equal(checkAnswer('3', ['2']), false);
+});
+
+test('授業準拠モード(checkAnswerStrict): 空白・改行・インデントは許容する', function(){
+  assert.equal(checkAnswerStrict('  cout\n    << n;  ', ['cout<<n;']), true);
+});
+
+test('授業準拠モード(checkAnswerStrict): 大文字小文字を勝手に同一視しない', function(){
+  assert.equal(checkAnswerStrict('COUT', ['cout']), false);
+});
+
+test('授業準拠モード(checkAnswerStrict): std::の省略を勝手に同一視しない', function(){
+  assert.equal(checkAnswerStrict('std::cout', ['cout']), false);
+  assert.equal(checkAnswerStrict('cout', ['std::cout']), false);
+});
+
+test('授業準拠モード(checkAnswerStrict): 末尾セミコロンの有無を勝手に同一視しない', function(){
+  assert.equal(checkAnswerStrict('cout', ['cout;']), false);
+});
+
+test('授業準拠モード(checkAnswerStrict): 完全一致は正解になる', function(){
+  assert.equal(checkAnswerStrict('cout', ['cout']), true);
 });
