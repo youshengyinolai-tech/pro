@@ -440,6 +440,7 @@ export function wireDropCasePlay(app){
       btn.removeEventListener('pointermove', onMove);
       btn.removeEventListener('pointerup', onUp);
       btn.removeEventListener('pointercancel', onUp);
+      btn.removeEventListener('lostpointercapture', onUp);
       btn.classList.remove('dragging');
       btn.style.transform='';
       var origIdx=parseInt(btn.getAttribute('data-opt'),10);
@@ -462,6 +463,11 @@ export function wireDropCasePlay(app){
       btn.addEventListener('pointermove', onMove);
       btn.addEventListener('pointerup', onUp);
       btn.addEventListener('pointercancel', onUp);
+      /* pointerup/pointercancel can be lost if the cursor leaves the window
+         or focus shifts mid-drag, leaving the option stuck off-screen with
+         the round frozen. lostpointercapture fires whenever capture ends
+         for any reason, so it's the reliable fallback that always cleans up. */
+      btn.addEventListener('lostpointercapture', onUp);
     });
   });
 }
