@@ -14,7 +14,7 @@ service cloud.firestore {
     function validSnapshot(data) {
       return data.keys().hasOnly([
           'clientId', 'nickname', 'overall', 'dailyStreak', 'stars', 'clears', 'correct',
-          'accuracy', 'streak', 'study', 'medals', 'updatedAt'
+          'accuracy', 'streak', 'study', 'medals', 'dropCaseNormal', 'dropCaseEndless', 'updatedAt'
         ])
         && data.clientId is string
         && data.clientId.size() > 0
@@ -30,7 +30,9 @@ service cloud.firestore {
         && data.accuracy is number && data.accuracy >= 0 && data.accuracy <= 100
         && data.streak is number && data.streak >= 0
         && data.study is number && data.study >= 0 && data.study <= 30
-        && data.medals is number && data.medals >= 0 && data.medals <= 100;
+        && data.medals is number && data.medals >= 0 && data.medals <= 100
+        && data.dropCaseNormal is number && data.dropCaseNormal >= 0
+        && data.dropCaseEndless is number && data.dropCaseEndless >= 0;
     }
 
     match /rooms/{roomId} {
