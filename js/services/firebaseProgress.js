@@ -33,13 +33,19 @@ export async function joinProgressLink(code){
   return {syncId:syncId,code:normalized,payload:profile.data().payload||{},revision:profile.data().revision||0};
 }
 
-export async function pushProgressLink(syncId,payload,revision){
+export async function pushProgressLink(syncId,payload){
   var ctx=await getFirebaseContext();
   if(!ctx||!syncId) return;
-  var f=ctx.firestore;
-  await f.setDoc(f.doc(ctx.db,'syncProfiles',syncId),{
-    payload:payload,revision:(revision||0)+1,updatedAt:f.serverTimestamp()
-  },{merge:true});
+  var f=ctx.firestore,profileRef=f.doc(ctx.db,'syncProfiles',syncId);
+  return f.runTransaction(ctx.db,async function(transaction){
+    var profile=await transaction.get(profileRef);
+    if(!profile.exists()) throw new Error('同期データが見つかりません。');
+    var nextRevision=((profile.data().revision||0)+1);
+    transaction.update(profileRef,{
+      payload:payload,revision:nextRevision,updatedAt:f.serverTimestamp()
+    });
+    return nextRevision;
+  });
 }
 
 export async function subscribeProgressLink(syncId,onUpdate,onError){

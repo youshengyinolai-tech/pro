@@ -21,9 +21,12 @@ import { icon } from '../core/icons.js';
 var realtimeRoomId=null;
 var stopRealtimeRoom=null;
 var REMOTE_SYNC_INTERVAL=60*1000;
-var MAX_AUTO_SYNCS_PER_DAY=100;
-var MAX_PROGRESS_SYNCS_PER_DAY=100;
-var MAX_REALTIME_STARTS_PER_DAY=20;
+/* 150人が両方の自動同期上限まで使っても、Firestore無料枠の
+   20,000 writes/dayに対して最大18,000件に収まる設定。
+   手動の「現在の進捗を反映」は、この自動同期上限では止めない。 */
+var MAX_AUTO_SYNCS_PER_DAY=80;
+var MAX_PROGRESS_SYNCS_PER_DAY=40;
+var MAX_REALTIME_STARTS_PER_DAY=5;
 var progressSyncTimer=null,progressSyncStop=null,progressSyncRevision=0,applyingRemoteProgress=false,lastProgressPayloadKey='';
 var rankingSyncTimer=null;
 var roomReconcilePromise=null;
@@ -81,7 +84,7 @@ function scheduleProgressCloudSync(){
       var payload=syncPayload();
       var payloadKey=JSON.stringify(payload);
       if(payloadKey===lastProgressPayloadKey) return;
-      await pushProgressLink(link.syncId,payload,progressSyncRevision);
+      progressSyncRevision=await pushProgressLink(link.syncId,payload);
       lastProgressPayloadKey=payloadKey;
       budget.count++;saveProgress(progress);
     }
@@ -141,7 +144,8 @@ if(typeof window!=='undefined'){
 
 function dailyBudget(name){
   if(!progress.ranking.autoUpdateBudget) progress.ranking.autoUpdateBudget={};
-  var today=new Date().toISOString().slice(0,10);
+  var now=new Date();
+  var today=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
   var budget=progress.ranking.autoUpdateBudget[name];
   if(!budget||budget.day!==today) budget={day:today,count:0};
   progress.ranking.autoUpdateBudget[name]=budget;
@@ -166,11 +170,11 @@ async function syncProgressIfDue(room,force){
     return false;
   }
   var budget=dailyBudget('syncs');
-  if(budget.count>=MAX_AUTO_SYNCS_PER_DAY) return false;
+  if(!force&&budget.count>=MAX_AUTO_SYNCS_PER_DAY) return false;
   await syncFirebaseProgress(room.id,playerIdentity().name,captureProgress(),rankingIdentityId());
   progress.ranking.remoteSyncAt[room.id]=Date.now();
   progress.ranking.remoteSnapshotKeys[room.id]=snapshotKey;
-  budget.count++;
+  if(!force) budget.count++;
   saveProgress(progress);
   return true;
 }
