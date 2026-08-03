@@ -607,7 +607,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
         var used=orderUsed.indexOf(ln.label)!==-1;
         var selected=state.dragSelected===ln.label;
         return '<button type="button" class="dragpiece orderpiece'+(used?' used':'')+(selected?' selected':'')+
-          '" data-piece="'+esc(ln.label)+'" draggable="'+(used?'false':'true')+'"'+(used?' disabled':'')+'>'+
+          '" data-piece="'+esc(ln.label)+'" draggable="false"'+(used?' disabled':'')+'>'+
           '<b>'+esc(ln.label)+'</b><code>'+esc(ln.code)+'</code></button>';
       }).join('');
       var orderSlots=q.lines.map(function(ln,index){
@@ -665,7 +665,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
       var trayHtml = q.pieces.map(function(p){
         var used = usedIds.indexOf(p.id)!==-1;
         var selected = state.dragSelected===p.id;
-        return '<button class="dragpiece'+(used?' used':'')+(selected?' selected':'')+'" data-piece="'+p.id+'" draggable="'+(used?'false':'true')+'"'+(used?' disabled':'')+'>'+esc(p.code)+'</button>';
+        return '<button class="dragpiece'+(used?' used':'')+(selected?' selected':'')+'" data-piece="'+p.id+'" draggable="false"'+(used?' disabled':'')+'>'+esc(p.code)+'</button>';
       }).join('');
       var blankIds = q.lines.filter(function(ln){ return ln.blank!==undefined; }).map(function(ln){ return ln.blank; });
       var allFilled = blankIds.every(function(b){ return !!state.dragPlacement[b]; });
@@ -919,15 +919,99 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
   }
 
   export function wireDragfillControls(app){
+    function placePiece(pid,slot){
+      if(!pid || !slot || state.locked) return false;
+      state.dragPlacement[slot.getAttribute('data-blank')] = pid;
+      state.dragSelected = null;
+      render();
+      return true;
+    }
+
+    function installPointerDrag(btn){
+      var active=false, moved=false, ignoreClick=false, pointerId=null;
+      var startX=0, startY=0, ghost=null, highlighted=null;
+
+      function slotAt(x,y){
+        var target=document.elementFromPoint(x,y);
+        return target&&target.closest ? target.closest('.dragslot') : null;
+      }
+      function highlight(slot){
+        if(highlighted===slot) return;
+        if(highlighted) highlighted.classList.remove('dragover');
+        highlighted=slot;
+        if(highlighted) highlighted.classList.add('dragover');
+      }
+      function makeGhost(){
+        var rect=btn.getBoundingClientRect();
+        ghost=btn.cloneNode(true);
+        ghost.disabled=false;
+        ghost.classList.add('dragpiece-ghost');
+        ghost.style.left=rect.left+'px';
+        ghost.style.top=rect.top+'px';
+        ghost.style.width=rect.width+'px';
+        ghost.style.height=rect.height+'px';
+        document.body.appendChild(ghost);
+        btn.classList.add('drag-source');
+      }
+      function cleanup(){
+        window.removeEventListener('pointermove',onMove,true);
+        window.removeEventListener('pointerup',onUp,true);
+        window.removeEventListener('pointercancel',onCancel,true);
+        highlight(null);
+        if(ghost&&ghost.parentNode) ghost.parentNode.removeChild(ghost);
+        ghost=null;
+        btn.classList.remove('drag-source');
+        active=false;
+        pointerId=null;
+      }
+      function onMove(event){
+        if(!active||event.pointerId!==pointerId) return;
+        var dx=event.clientX-startX,dy=event.clientY-startY;
+        if(!moved&&(Math.abs(dx)>7||Math.abs(dy)>7)){
+          moved=true;
+          makeGhost();
+        }
+        if(!moved) return;
+        event.preventDefault();
+        ghost.style.transform='translate3d('+dx+'px,'+dy+'px,0)';
+        highlight(slotAt(event.clientX,event.clientY));
+      }
+      function onUp(event){
+        if(!active||event.pointerId!==pointerId) return;
+        var slot=moved?slotAt(event.clientX,event.clientY):null;
+        if(moved){ event.preventDefault(); ignoreClick=true; }
+        cleanup();
+        if(slot) placePiece(btn.getAttribute('data-piece'),slot);
+      }
+      function onCancel(event){
+        if(!active||event.pointerId!==pointerId) return;
+        ignoreClick=moved;
+        cleanup();
+      }
+
+      btn.addEventListener('pointerdown',function(event){
+        if(state.locked||active||(event.pointerType==='mouse'&&event.button!==0)) return;
+        active=true; moved=false; pointerId=event.pointerId;
+        startX=event.clientX; startY=event.clientY;
+        window.addEventListener('pointermove',onMove,{capture:true,passive:false});
+        window.addEventListener('pointerup',onUp,{capture:true,passive:false});
+        window.addEventListener('pointercancel',onCancel,true);
+      });
+      btn.addEventListener('click',function(event){
+        if(!ignoreClick) return;
+        ignoreClick=false;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      },true);
+    }
+
     Array.prototype.forEach.call(app.querySelectorAll('.dragpiece:not(.used)'), function(btn){
+      installPointerDrag(btn);
       btn.addEventListener('click', function(){
         if(state.locked) return;
         var pid = btn.getAttribute('data-piece');
         state.dragSelected = (state.dragSelected===pid) ? null : pid;
         render();
-      });
-      btn.addEventListener('dragstart', function(e){
-        if(e.dataTransfer) e.dataTransfer.setData('text/plain', btn.getAttribute('data-piece'));
       });
     });
     Array.prototype.forEach.call(app.querySelectorAll('.dragslot'), function(slot){
@@ -941,17 +1025,6 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
           state.dragSelected = null;
         }
         render();
-      });
-      slot.addEventListener('dragover', function(e){ e.preventDefault(); });
-      slot.addEventListener('drop', function(e){
-        e.preventDefault();
-        if(state.locked) return;
-        var pid = e.dataTransfer ? e.dataTransfer.getData('text/plain') : null;
-        if(pid){
-          state.dragPlacement[slot.getAttribute('data-blank')] = pid;
-          state.dragSelected = null;
-          render();
-        }
       });
     });
     var resetBtn = document.getElementById('btnDragReset');
