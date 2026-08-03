@@ -5,7 +5,7 @@
  表示するだけに徹する(演出はUI側だけに閉じ込め、内容の正確性はデータ側に委ねる)。
 */
 import { STAGES } from '../data/questions.js?v=2026072115';
-import { state, progress, saveProgress, esc, MEDAL_RANK, recordLearningActivity } from '../core/state.js?v=2026072115';
+import { state, progress, saveProgress, esc, MEDAL_RANK, recordLearningActivity, recordMissed } from '../core/state.js?v=2026072115';
 import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115';
 import { icon, stageIcon } from '../core/icons.js';
 
@@ -264,6 +264,7 @@ import { icon, stageIcon } from '../core/icons.js';
         } else {
           state.studyCombo = 0;
           state.studyWrongCount++;
+          recordMissed('study:'+st.id+':'+state.studyStep, false);
         }
         saveProgress(progress);
         render();
