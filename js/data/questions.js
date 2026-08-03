@@ -11,6 +11,18 @@
    answers        : 正解として受け付ける入力(複数可)。空白の有無・大小文字は自動で吸収する。
    explain        : 完全初学者向けの解説。
   */
+  /* w2:qsHardのポインタ/参照output予測問題群(15問)が共有する、読み取り専用の参考コード。
+     15問すべてに同じ文字列を貼り付けると差分がずれた際に食い違うリスクがあるため、1箇所にまとめる。 */
+  var PTR_REF_18OUTPUT_CODE =
+    'int a = 10;\nint b = 20;\nint* ptr;\nint& ref = a;\n\n'+
+    'cout << ptr << endl;     // output1\ncout << &ptr << endl;    // output2\ncout << &ref << endl;    // output3\n\n'+
+    'cout << ref << endl;     // output4\ncout << *&ref << endl;   // output5\ncout << &a << endl;      // output6\n\n'+
+    'ptr = &a;\n*ptr = b;\n\n'+
+    'cout << a << endl;   // output7\ncout << b << endl;   // output8\ncout << ref << endl;  // output9\n\n'+
+    'b=30;\ncout << *ptr << endl;   // output10\ncout << ptr << endl;    // output11\ncout << &ptr << endl;   // output12\n'+
+    'cout << *&ptr << endl;  // output13\ncout << &*ptr << endl;  // output14\n\n'+
+    'cout << ref << endl;    // output15\ncout << &ref << endl;   // output16\ncout << *&ref << endl;  // output17\ncout << &*&ref << endl; // output18';
+
   export const BASE_STAGES = [
     {id:'w1', title:'CASE 01「消えた出力」', sub:'Week1 C++の入出力', emoji:'👺', mon:'何も表示しない男',
       lesson:[
@@ -66,7 +78,16 @@
          explain:'coutは画面(コンソール)に文字や数値を出力するための標準オブジェクトです。'},
         {before:'// キーボードからの入力を受け取るために使うC++の標準オブジェクト名を書きなさい\n', after:'',
          answers:['cin'],
-         explain:'cinはキーボードからの入力を受け取るための標準オブジェクトです。'}
+         explain:'cinはキーボードからの入力を受け取るための標準オブジェクトです。'},
+        {before:'10進数表示で 2000 という数値は、16進数表示では ', after:' である。(半角小文字で答えること)',
+         answers:['7d0'],
+         explain:'2000 ÷ 16 = 125 あまり 0、125 ÷ 16 = 7 あまり 13(d)、7 はそのまま。あまりを下から並べると 7d0 になります。'},
+        {before:'16進数表示で 4fb1 という数値は、10進数表示では ', after:' である。',
+         answers:['20401'],
+         explain:'4×16³ + 15(f)×16² + 11(b)×16 + 1 = 16384 + 3840 + 176 + 1 = 20401 です。'},
+        {before:'// 16進数で17adの数値を2進数で表しなさい\n', after:'',
+         answers:['1011110101101'],
+         explain:'16進数の1桁はちょうど2進数4桁に対応します。1→0001, 7→0111, a→1010, d→1101 を並べて 0001 0111 1010 1101、先頭の0を除くと 1011110101101 です。'}
       ],
       qsHard:[
         {type:'debug', before:'#include <iostream>\nint main(){\n  ', after:' << "Hi" << std::endl;\n} // using namespace stdを書かない前提で、正しくstd::を補いなさい',
@@ -556,7 +577,10 @@
          explain:'アドレス(住所)を保管する変数の型をポインタと呼びます。'},
         {before:'// 別の変数の別名として振る舞う仕組みを何と呼ぶか(カタカナで)\n', after:'',
          answers:['参照'],
-         explain:'別の変数の別名(あだ名)として振る舞う仕組みを参照(リファレンス)と呼びます。'}
+         explain:'別の変数の別名(あだ名)として振る舞う仕組みを参照(リファレンス)と呼びます。'},
+        {before:'// 32bitマシンでのポインタ変数(int*など)のサイズは何バイトか、半角数字で答えなさい\nint pointerSize32 = ', after:';',
+         answers:['4'],
+         explain:'ポインタのサイズはアドレス空間のビット幅で決まります。32bit環境ではアドレスを32bit=4byteで表現できるため、ポインタ変数のサイズは4バイトになります(64bit環境では8バイトです)。'}
       ],
       qsHard:[
         {type:'debug', before:'int a = 10;\nint* p = &a;\ncout << ', after:' << endl; // pの指す先の値(10)を表示したいのに、住所が表示されてしまうバグを直しなさい',
@@ -634,7 +658,53 @@
         {type:'choice', lead:'sizeof(int*)とsizeof(double*)の関係として正しいものを選びなさい。',
          options:['同じ64bit環境なら基本的に同じサイズになる(どちらもアドレスを保持するだけだから)','sizeof(double*)の方が必ず大きい','sizeof(int*)の方が必ず大きい','型ごとに全く関係のないサイズになる'],
          answers:['同じ64bit環境なら基本的に同じサイズになる(どちらもアドレスを保持するだけだから)'],
-         explain:'ポインタが保持しているのは指す先の型に関わらず「アドレス」という数値だけなので、同じ環境であればint*でもdouble*でもポインタ自体のサイズは変わりません。'}
+         explain:'ポインタが保持しているのは指す先の型に関わらず「アドレス」という数値だけなので、同じ環境であればint*でもdouble*でもポインタ自体のサイズは変わりません。'},
+        {type:'choice', code:'int* p;\ncout << p << endl;        // output1\np = new int(10);\ncout << *p << endl;       // output2\ncout << p << endl;        // output3\ncout << &p << endl;       // output4\ndelete p;',
+         lead:'output1〜4が output1:0x13 / output2:10 / output3:0x600003780020 / output4:0x7ff7ba14b570 だったとき、newで動的に確保され10で初期化されたメモリのアドレス範囲(int型=4byte)として正しいのはどれか。',
+         options:['0x13〜0x16','10〜13','0x600003780020〜0x600003780023','0x7ff7ba14b570〜0x7ff7ba14b573'],
+         answers:['0x600003780020〜0x600003780023'],
+         explain:'newで確保されるのはヒープ上の領域で、そのアドレスはpに代入されます(output3=0x600003780020)。int型は4byteなので、確保された領域は0x600003780020〜0x600003780023です。output4のpのアドレス(&p)はpという変数自身がスタック上のどこにあるかを示す別のアドレスなので、この設問の答えにはなりません。'},
+        {type:'choice', code:'p = new int(10);\n// ...(pはaを指すよう更新済み・値は10のまま)\ncout << [?] << endl; // output5(30を表示したい)\ndelete p;',
+         lead:'output5が30(=10+20)となるように[?]を埋めるなら、正しいのはどれか。',
+         options:['p+20','*p+20','&p+20'],
+         answers:['*p+20'],
+         explain:'pはアドレス(住所)を保持しているだけなので、p+20はアドレスの計算になってしまい期待した値になりません。中身の値(10)を取り出すには*pとして間接参照し、そこに20を足す*p+20が正解です。'},
+        {type:'choice', code:'int* a;\nint n; cin >> n; // 5を入力\na = new int[n];\nfor(int i=0;i<n;i++) a[i]=i*3;\n// a = {0,3,6,9,12}、aのアドレス自体は0x600000530000',
+         lead:'配列要素a[1](値3)が入っているメモリ領域の先頭アドレスとして正しいのはどれか。',
+         options:['0x13','0x17','0x7ff7baa0e570','0x7ff7baa0e574','0x600000530000','0x600000530004'],
+         answers:['0x600000530004'],
+         explain:'配列はメモリ上に連続して並びます。a[0]がa自身のアドレス0x600000530000から始まり、int型(4byte)なのでa[1]はその4byte先、0x600000530004になります。'},
+        {before:'int* a = new int[5];\nfor(int i=0;i<5;i++) a[i]=i*3; // a = {0,3,6,9,12}\ncout << *(a+4) << endl; // この出力を半角数字で答えなさい\nint result = ', after:';',
+         answers:['12'],
+         explain:'ポインタ演算のa+4は「aから4要素分先」、つまり&a[4]と同じ場所を指します。*(a+4)はa[4]の値なので12になります。'},
+        {code:PTR_REF_18OUTPUT_CODE,
+         before:'// output1:0x13 / output2:0x7ff7b3606470 / output3:0x7ff7b360647c だったとき、output4の値を答えなさい\n', after:'',
+         answers:['10'],
+         explain:'refはaの別名(参照)なので、refを読むとaの中身である10がそのまま表示されます。'},
+        {code:PTR_REF_18OUTPUT_CODE,
+         before:'// ptr = &a; *ptr = b; の直後、output7(aの値)を答えなさい\n', after:'',
+         answers:['20'],
+         explain:'ptrはaを指しているので、*ptr = b; は「aの場所にbの値(20)を書き込む」ことになります。よってaは20に変わります。'},
+        {code:PTR_REF_18OUTPUT_CODE,
+         before:'// output8(bの値)を答えなさい\n', after:'',
+         answers:['20'],
+         explain:'*ptr = b; はbの値をaにコピーしただけで、bとaのつながりはできません。bはこの後も20のままです。'},
+        {code:PTR_REF_18OUTPUT_CODE,
+         before:'// output9(refの値)を答えなさい\n', after:'',
+         answers:['20'],
+         explain:'refはaの別名なので、aが20になった以上refを読んでも20です。'},
+        {code:PTR_REF_18OUTPUT_CODE,
+         before:'// b=30; の後、output10(*ptrの値)を答えなさい。ptrはaを指したままであることに注意\n', after:'',
+         answers:['20'],
+         explain:'b=30;はbという変数の中身を書き換えるだけです。ptrは(bではなく)aを指したままなので、*ptrは変わらずaの値である20です。'},
+        {code:PTR_REF_18OUTPUT_CODE,
+         before:'// output12(&ptr、ptr自身のアドレス)を答えなさい。output2(この時点の&ptr)=0x7ff7b3606470\n', after:'',
+         answers:['0x7ff7b3606470'],
+         explain:'&ptrはptrという変数自身が置かれている場所のアドレスです。ptrの中身(指す先)が変わってもptr自身の置き場所は変わらないので、output2と同じ0x7ff7b3606470のままです。'},
+        {code:PTR_REF_18OUTPUT_CODE,
+         before:'// output14(&*ptr)を答えなさい\n', after:'',
+         answers:['0x7ff7b360647c'],
+         explain:'&*ptrはptrの指す先(*ptr、つまりa)のアドレスなので、aのアドレスである0x7ff7b360647cになります。'}
       ],
       qsExtra:[
         {before:'int* p = ', after:'; // まだどこも指していないことを表す、ポインタの安全な初期化に使う特別な値',
@@ -2089,7 +2159,15 @@
          explain:'getline(cin, line);と書くと、キーボードから入力された1行全体(スペースを含む)をlineに読み込めます。'},
         {before:'// 文字列の終わりを示す特別な値を持つのは、char配列とstring型のどちらか(答えを書く)\n', after:'',
          answers:['char配列'],
-         explain:'char配列は末尾にヌル文字(\\0)を持って文字列の終わりを示しますが、string型は内部でサイズを自動管理しているため、ヌル文字を意識する必要はありません。'}
+         explain:'char配列は末尾にヌル文字(\\0)を持って文字列の終わりを示しますが、string型は内部でサイズを自動管理しているため、ヌル文字を意識する必要はありません。'},
+        {code:'char chr[50];\ncin >> chr; // "こんにちは"と入力された場合',
+         before:'// "こんにちは"をC++の文字列(char配列)で表す時、何バイトのメモリが必要か(ヌル文字を含めて半角数字で答えなさい)\nint bytesNeeded = ', after:';',
+         answers:['16'],
+         explain:'「こんにちは」は5文字で、UTF-8ではひらがな1文字が3byteになるので5×3=15byte、さらに文字列の終わりを示すヌル文字が1byte必要なので、合計16byteになります。'},
+        {code:'char chr[50];\ncin >> chr; // "こんにちは"と入力された場合\nfor (int i=0; chr[i]!=0 ; i++){\n  cout << dec << i+1 << " バイト目 : "\n       << hex << (int)(unsigned char) chr[i] << endl;\n}',
+         before:'// "こんにちは"の文字列の8バイト目の値を16進数で答えなさい\nint byte8 = 0x', after:';',
+         answers:['81'],
+         explain:'UTF-8ではひらがな1文字が3byteで表現されます。1〜3byte目が「こ」、4〜6byte目が「ん」、7〜9byte目が「に」なので、8バイト目は「に」の2byte目にあたり、値は0x81になります。'}
       ],
       qsHard:[
         {type:'debug', before:'// 次の説明の誤りを直しなさい\n// 「char word[] = "hi"; のとき sizeof(word) は文字数と同じ2になる」\n// 正しくは全部で何バイトになるか、半角数字で書きなさい\n', after:'',
@@ -3053,7 +3131,11 @@
          explain:'コンストラクタを外部から呼べるようにするには、public:の後に定義する必要があります。'},
         {before:'// 同じクラスから作られた複数のオブジェクトが持つデータメンバは、共有されるか独立しているか(答えを書く)\n', after:'',
          answers:['独立している','独立'],
-         explain:'同じクラスから作られたオブジェクトでも、それぞれが自分専用のデータメンバを持ち、独立しています。'}
+         explain:'同じクラスから作られたオブジェクトでも、それぞれが自分専用のデータメンバを持ち、独立しています。'},
+        {code:'class Flower{\n  string name;\npublic:\n  Flower(string f);\n  void showFlowerName();\n};\nFlower::Flower(string f){ name = f; }',
+         before:'void ', after:'showFlowerName(){\n  cout << name << endl;\n} // クラス外でメンバ関数showFlowerNameを定義する',
+         answers:['Flower::'],
+         explain:'クラスの外でメンバ関数を定義するときは、関数名の前に「クラス名::」をつけて「このクラスのメンバである」ことを示す必要があります。'}
       ],
       qsHard:[
         {type:'debug', before:'class Hero{\n  string name;\n  int HP;\npublic:\n  Hero(string n){ name=n; HP=50; }\n};\nint main(){\n  ', after:' // Heroには引数ありのコンストラクタしか無いため、これはコンパイルエラーになる。文字列"勇者"を渡して正しく生成する行に直しなさい',
@@ -4987,7 +5069,7 @@
          explain:'純粋仮想関数は中身(実装)を持たず、派生クラスでの実装を義務づけるだけの宣言です。'},
         {before:'// ソースコードを機械語に変換するプログラムを何と呼ぶか(カタカナで)\n', after:'',
          answers:['コンパイラ'],
-         explain:'ソースコードを機械語に変換するプログラムをコンパイラと呼びます。'}
+         explain:'ソースコードを機械語に変換するプログラムをコンパイラと呼びます。'},
       ],
       qsHard:[
         {type:'debug', before:'class Creature{\npublic:\n  virtual int attack()=0;\n};\nint main(){\n  Creature c;\n} // このコードはコンパイルエラーになる。理由を「抽象クラス」という語を使って一言で書きなさい\n', after:'',

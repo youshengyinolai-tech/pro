@@ -633,7 +633,11 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
       });
       bodyHtml = '<pre class="codeblock dragcode">'+codeLines.join('\n')+'</pre>';
     } else {
-      bodyHtml = '<pre class="codeblock">'+esc(q.before)+'<mark class="blank">______</mark>'+esc(q.after)+'</pre>';
+      /* q.codeは「複数の設問が同じプログラムを共有する」ケース(1つの長いコードに
+         対して出力を何個も予想させる問題など)向けの、読み取り専用の参考コード。
+         通常のbefore/before内の空欄コードとは別枠で、その上に表示する。 */
+      bodyHtml = (q.code ? '<pre class="codeblock">'+esc(q.code)+'</pre>' : '')+
+        '<pre class="codeblock">'+esc(q.before)+'<mark class="blank">______</mark>'+esc(q.after)+'</pre>';
     }
 
     /* choice/order/dragfillは選択・操作でしか回答できない形式のため、
