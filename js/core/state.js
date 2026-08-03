@@ -154,10 +154,18 @@ export function isStorageWriteLocked(){ return storageWriteLocked; }
     if(!progress.settings) progress.settings={};
     if(localLink) progress.settings.progressSync=localLink;
     if(localRanking) progress.ranking=localRanking;
+    /* remoteは別端末(古いキャッシュ済みバンドルの可能性がある)が保存した
+       progressそのものなので、新しいフィールド(dropCase等)が欠けているかも
+       しれない。normalizeProgress()を再度通して不足分を補ってから保存する。
+       これを怠ると、同期直後にdropCase等が復元されず該当機能が
+       (エラーが握りつぶされて)無反応になる。 */
+    normalizeProgress();
     saveProgress(progress);
   }
 
-  export const progress = loadProgress();
+  /* progressの欠けているフィールドへ既定値を補う。初回ロード時に加え、
+     applySyncedProgress()での同期後にも呼び直す必要があるため関数化している。 */
+  function normalizeProgress(){
   if(!progress.stars || typeof progress.stars!=='object' || Array.isArray(progress.stars)){
     progress.stars = {};
   }
@@ -260,6 +268,10 @@ export function isStorageWriteLocked(){ return storageWriteLocked; }
   if(!progress.showcase || typeof progress.showcase !== 'object'){
     progress.showcase = {achievementLabels:null};
   }
+  }
+
+  export const progress = loadProgress();
+  normalizeProgress();
   saveProgress(progress);
 
   function activityDateKey(date){
