@@ -914,6 +914,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
     return blankIds.map(function(b){ return b+'='+(state.dragPlacement[b]||''); }).join('|');
   }
 
+  /* order-dragfix3: 並べ替えは回答モードに関係なくポインタ操作で配置できる。 */
   export function wireDragfillControls(app){
     function placePiece(pid,slot){
       if(!pid || !slot || state.locked) return false;
