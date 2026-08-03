@@ -5,7 +5,7 @@
  表示するだけに徹する(演出はUI側だけに閉じ込め、内容の正確性はデータ側に委ねる)。
 */
 import { STAGES } from '../data/questions.js?v=2026072115';
-import { state, progress, saveProgress, esc, MEDAL_RANK, recordLearningActivity } from '../core/state.js?v=2026072115';
+import { state, progress, saveProgress, esc, MEDAL_RANK, recordLearningActivity, recordMissed, registerStudyBeatQuestion } from '../core/state.js?v=2026072115';
 import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115';
 import { icon, stageIcon } from '../core/icons.js';
 
@@ -273,6 +273,10 @@ import { icon, stageIcon } from '../core/icons.js';
         } else {
           state.studyCombo = 0;
           state.studyWrongCount++;
+          /* 学習モードの誤答も、通常の問題と同じ「間違いノート」に集約する。
+             beatをchoice形式の問題として1回だけ登録し、そのqidで記録する。 */
+          var qid = registerStudyBeatQuestion(st.id, state.studyStep, beat);
+          recordMissed(qid, false);
         }
         saveProgress(progress);
         render();

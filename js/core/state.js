@@ -351,6 +351,30 @@ export function isStorageWriteLocked(){ return storageWriteLocked; }
     if(!qid) return;
     if(!correct) progress.missed[qid] = true;
   }
+
+  /* 学習モード(物語形式のbeat)は、通常のqs/qsHardと違いstudyBeats.jsという
+     別データ・別の{q,options,correct,explain}という形を持つため、そのままでは
+     ENDLESS_POOL/POOL_INDEX_BY_QIDに乗らず、間違いノートを開いても復元できない。
+     間違えた瞬間(または後で間違いノートを開いた時)にqid("study:週id:beat番号")
+     付きのchoice形式の問題として1回だけ登録し、以降は通常の問題と同じ経路
+     (POOL_INDEX_BY_QID→ENDLESS_POOL)で復習できるようにする。 */
+  export function registerStudyBeatQuestion(stageId, beatIndex, beat){
+    var qid = 'study:'+stageId+':'+beatIndex;
+    if(POOL_INDEX_BY_QID[qid] !== undefined) return qid;
+    var q = {
+      type:'choice',
+      lead: beat.quiz.q,
+      options: beat.quiz.options,
+      answers: [beat.quiz.options[beat.quiz.correct]],
+      explain: beat.quiz.explain,
+      qid: qid,
+      unit: stageId,
+      diff: 2
+    };
+    POOL_INDEX_BY_QID[qid] = ENDLESS_POOL.length;
+    ENDLESS_POOL.push({q:q, unit:stageId, diff:2, tier:2, srcTitle:'学習パート', srcSub:'物語形式の確認問題'});
+    return qid;
+  }
   export function missedCount(){
     return Object.keys(progress.missed).length;
   }

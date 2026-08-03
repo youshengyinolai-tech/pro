@@ -9,7 +9,7 @@ import {
   state, progress, saveProgress, esc, totalStarsEarned, missedCount,
   recommendDifficulty, starString, UNIT_LIST, ENDLESS_POOL,
   shuffle, POOL_INDEX_BY_QID, ensureEndlessQueue, reshuffleEndlessQueue,
-  learningActivitySummary, investigatorRank
+  learningActivitySummary, investigatorRank, registerStudyBeatQuestion
 } from './state.js?v=2026072115';
 import { renderStudy, renderStudyLoading, startStudy, wireStudy } from '../components/study.js?v=2026072115';
 import { icon, stageIcon } from './icons.js';
@@ -939,9 +939,30 @@ import {
 
 
   /* 「間違いノート」に載っている問題(progress.missed)だけを出題する復習モード。
-     正解するとノートから消え、誤答すると残り続けるので、繰り返すほどノートが薄くなる。 */
-  export function openReview(){
+     正解するとノートから消え、誤答すると残り続けるので、繰り返すほどノートが薄くなる。
+     学習モード(物語形式)の誤答は"study:週id:beat番号"というqidで記録されるが、
+     ENDLESS_POOLはstudyBeats.jsを起動時に読み込まない(初期表示を軽くするため)ため、
+     ページを開き直した直後はPOOL_INDEX_BY_QIDにまだ登録されていないことがある。
+     復習を開く直前に、その分だけstudyBeats.jsを遅延読み込みして登録してから
+     キューを組み立てる。 */
+  export async function openReview(){
     var qids = Object.keys(progress.missed);
+    var pendingStudyQids = qids.filter(function(qid){
+      return qid.indexOf('study:')===0 && POOL_INDEX_BY_QID[qid]===undefined;
+    });
+    if(pendingStudyQids.length){
+      try{
+        var studyModule = await import('../data/studyBeats.js?v=2026072115');
+        pendingStudyQids.forEach(function(qid){
+          var parts = qid.split(':');
+          var beats = studyModule.GENERATED_BEATS[parts[1]];
+          var beat = beats && beats[parseInt(parts[2],10)];
+          if(beat) registerStudyBeatQuestion(parts[1], parseInt(parts[2],10), beat);
+        });
+      }catch(error){
+        console.error('学習モードの復習データを読み込めませんでした', error);
+      }
+    }
     state.reviewQueue = shuffle(qids.map(function(qid){ return POOL_INDEX_BY_QID[qid]; }).filter(function(i){ return i!==undefined; }));
     state.reviewPos = 0;
     state.reviewStats = {correct:0, wrong:0};
