@@ -187,6 +187,12 @@ import { icon, stageIcon } from '../core/icons.js';
     }
 
     var beat = beats[state.studyStep];
+    /* 同じ章の1つのトピックから複数の確認問題が作られるため、隣り合うビートが
+       全く同じstoryを持つことがある。毎回同じ長文を開いた状態で出し直すと
+       ただの再読み込みになってしまうので、直前のビートと本文が同一の場合だけ
+       折りたたんだ「もう一度読む」アコーディオンに変えて、無駄な再読を減らす。 */
+    var prevBeat = state.studyStep > 0 ? beats[state.studyStep-1] : null;
+    var repeatStory = !!(prevBeat && prevBeat.story === beat.story);
     var answered = state.studyPicked !== null;
     var good = answered && state.studyPicked === beat.quiz.correct;
     var expPct = Math.round((state.studyStep/total)*100);
@@ -231,8 +237,11 @@ import { icon, stageIcon } from '../core/icons.js';
     '<div class="studydots">'+dots+'<span class="studystep">'+(state.studyStep+1)+' / '+total+'</span></div>'+
     '<div class="frame storycard">'+
       '<span class="sicon">'+icon('chip')+'</span>'+
-      '<div class="sstory">'+renderStoryHtml(beat.story)+'</div>'+
-      '<pre class="codeblock">'+esc(beat.code)+'</pre>'+
+      (repeatStory
+        ? '<details class="accordion"><summary>'+icon('book')+' 同じ範囲の続きの確認問題(内容をもう一度読む)<span class="chev">▸</span></summary>'+
+            '<div class="accordion-body"><div class="sstory">'+renderStoryHtml(beat.story)+'</div><pre class="codeblock">'+esc(beat.code)+'</pre></div></details>'
+        : '<div class="sstory">'+renderStoryHtml(beat.story)+'</div>'+
+          '<pre class="codeblock">'+esc(beat.code)+'</pre>')+
     '</div>'+
     quizHtml;
   }
