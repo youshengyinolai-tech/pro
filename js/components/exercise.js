@@ -597,11 +597,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
     }
 
     var bodyHtml;
-    if(type==='order' && !useSelection){
-      bodyHtml='<div class="order-reference" aria-label="並べ替えるコード">'+q.lines.map(function(ln){
-        return '<div><b>'+esc(ln.label)+'</b><code>'+esc(ln.code)+'</code></div>';
-      }).join('')+'</div>';
-    } else if(type==='order'){
+    if(type==='order'){
       var orderUsed=Object.keys(state.dragPlacement).map(function(key){ return state.dragPlacement[key]; }).filter(Boolean);
       var orderCards=q.lines.map(function(ln){
         var used=orderUsed.indexOf(ln.label)!==-1;
