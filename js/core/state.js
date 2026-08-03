@@ -8,6 +8,10 @@ import {
   BASE_STAGES, STAGES, BOSS_GROUPS, BOSS_LONG_QS, questionTier,
   questionIsRedundant, questionSimilarityTag
 } from '../data/questions.js?v=2026072115';
+import { GENERATED_BEATS } from '../data/studyBeats.js?v=2026072115';
+import { curateStudyBeats } from '../data/studyQuizCuration.js?v=2026080301';
+
+curateStudyBeats(GENERATED_BEATS);
 
 export const STORE_KEY = 'oopExamQuest_v3';
 
@@ -38,6 +42,39 @@ export function isStorageWriteLocked(){ return storageWriteLocked; }
   BOSS_GROUPS.forEach(function(group){
     (BOSS_LONG_QS[group.id] || []).forEach(function(q){
       addEndlessQuestion({q:q, unit:q.unit, diff:q.diff, tier:questionTier(q,'boss'), srcTitle:group.title, srcSub:group.sub+' ・ 総復習'});
+    });
+  });
+
+  /* 学習モードの確認問題も通常の復習エンジンで扱える形に変換する。
+     qidは章ID+ビート番号で固定し、学習中に実際に間違えた選択問題そのものが
+     次回起動後も「未解決」に残るようにする。 */
+  export const REVIEW_ENTRY_BY_QID = {};
+  ENDLESS_POOL.forEach(function(entry){ REVIEW_ENTRY_BY_QID[entry.q.qid]=entry; });
+
+  BASE_STAGES.forEach(function(st){
+    (GENERATED_BEATS[st.id]||[]).forEach(function(beat, beatIndex){
+      var quiz=beat&&beat.quiz;
+      if(!quiz || !Array.isArray(quiz.options) || quiz.correct===undefined) return;
+      var correctOption=quiz.options[quiz.correct];
+      if(correctOption===undefined) return;
+      var reviewEntry={
+        q:{
+          qid:'study:'+st.id+':'+beatIndex,
+          unit:st.id,
+          diff:1,
+          type:'choice',
+          lead:quiz.q,
+          options:quiz.options.slice(),
+          answers:[correctOption],
+          explain:quiz.explain||beat.story||''
+        },
+        unit:st.id,
+        diff:1,
+        tier:1,
+        srcTitle:st.title,
+        srcSub:st.sub+' ・ 学習モードの復習'
+      };
+      REVIEW_ENTRY_BY_QID[reviewEntry.q.qid]=reviewEntry;
     });
   });
 
@@ -244,6 +281,11 @@ export function isStorageWriteLocked(){ return storageWriteLocked; }
   if(!progress.missed){
     progress.missed = {};
   }
+  /* 品質監査で出題対象外になった旧問題が「未解決件数」にだけ残らないよう、
+     現在も復習可能なqidだけを保持する。通常問題のqid自体は変更しない。 */
+  Object.keys(progress.missed).forEach(function(qid){
+    if(!REVIEW_ENTRY_BY_QID[qid]) delete progress.missed[qid];
+  });
   if(!progress.studyCompleted){
     progress.studyCompleted = {};
   }
