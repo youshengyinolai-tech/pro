@@ -8,7 +8,7 @@ import { BASE_STAGES, BOSS_GROUPS, STAGES, TOTAL_STARS, DIFF_BATCH_LABEL, TIER_L
 import {
   state, progress, saveProgress, esc, totalStarsEarned, missedCount,
   recommendDifficulty, starString, UNIT_LIST, ENDLESS_POOL,
-  shuffle, POOL_INDEX_BY_QID, ensureEndlessQueue, reshuffleEndlessQueue,
+  shuffle, REVIEW_ENTRY_BY_QID, ensureEndlessQueue, reshuffleEndlessQueue,
   learningActivitySummary, investigatorRank
 } from './state.js?v=2026072115';
 import { renderStudy, renderStudyLoading, startStudy, wireStudy } from '../components/study.js?v=2026072115';
@@ -942,7 +942,7 @@ import {
      正解するとノートから消え、誤答すると残り続けるので、繰り返すほどノートが薄くなる。 */
   export function openReview(){
     var qids = Object.keys(progress.missed);
-    state.reviewQueue = shuffle(qids.map(function(qid){ return POOL_INDEX_BY_QID[qid]; }).filter(function(i){ return i!==undefined; }));
+    state.reviewQueue = shuffle(qids.filter(function(qid){ return REVIEW_ENTRY_BY_QID[qid]!==undefined; }));
     state.reviewPos = 0;
     state.reviewStats = {correct:0, wrong:0};
     state.curQ = null;
@@ -953,8 +953,8 @@ import {
 
 
   export function currentReviewQuestion(){
-    var idx = state.reviewQueue[state.reviewPos];
-    return ENDLESS_POOL[idx];
+    var qid = state.reviewQueue[state.reviewPos];
+    return REVIEW_ENTRY_BY_QID[qid];
   }
 
 
@@ -964,7 +964,7 @@ import {
       '<div class="battlebar"><button class="backbtn" id="btnHome">← 地図へ戻る</button></div>'+
       '<div class="frame result">'+
         '<span class="bigemoji">'+icon('check')+'</span><h2>間違いノートは空っぽです</h2>'+
-        '<p>今のところ間違えた問題は記録されていません。各章の戦闘や1000本ノックで間違えると、その問題が自動的にここへ集まってきます。</p>'+
+        '<p>今のところ間違えた問題は記録されていません。学習モード・各章の戦闘・1000本ノックで間違えると、その問題が自動的にここへ集まってきます。</p>'+
         '<div class="resultbtns"><button class="ghost" id="btnMap">地図へ戻る</button></div>'+
       '</div>';
     }
