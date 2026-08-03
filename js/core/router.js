@@ -18,7 +18,7 @@ import {
   closeUnitPicker,
   renderBattle, renderEndless, renderEndlessResult, renderQuestionBody, wireQuestionControls,
   startStage, installExerciseKeyboardShortcuts
-} from '../components/exercise.js?v=20260803-order-dragfix1';
+} from '../components/exercise.js?v=20260803-order-dragfix2';
 import {
   renderRankingHome, renderRankingRoom, wireRankingHome, wireRankingRoom
 } from '../components/ranking.js?v=2026072115';
