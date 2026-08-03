@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import './helpers/localstorage-polyfill.js';
 
 const stateModule = await import('../js/core/state.js');
-const { GENERATED_BEATS } = await import('../js/data/studyBeats.js');
+// state.js と同じモジュールURLを使い、実際の画面で厳選済みになったデータを検査する。
+const { GENERATED_BEATS } = await import('../js/data/studyBeats.js?v=2026072115');
 
 test('学習モードの確認問題は通常出題に混ざらず、復習用には登録される', function(){
   const studyQid = 'study:w1:0';
