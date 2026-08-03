@@ -12,11 +12,11 @@
 <div class="stage" id="app"><div class="frame" id="bootStatus" style="padding:18px 20px;">捜査画面を読み込んでいます…</div></div>
 
 <script>
-  var CURRENT_MODULE_URL = './dist/app-2026080300.js?v=20260803-dropcase-sync-fix';
+  var CURRENT_MODULE_URL = './js/core/router.js?v=20260803-study-review-quality';
 
   (async function(){
     try{
-      var module = await import('./dist/app-2026080300.js?v=20260803-dropcase-sync-fix');
+      var module = await import('./js/core/router.js?v=20260803-study-review-quality');
       module.boot();
     }catch(error){
       console.error('アプリの起動に失敗しました', error);
