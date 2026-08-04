@@ -602,8 +602,15 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
         return '<div><b>'+esc(ln.label)+'</b><code>'+esc(ln.code)+'</code></div>';
       }).join('')+'</div>';
     } else if(type==='order'){
+      /* 正解は常にq.linesの並び順そのものなので、トレイの表示順だけをシャッフルする。
+         data-pieceはln.labelのままなので、正解判定(順序比較)は一切変更しない。 */
+      if(state.orderTrayQid !== q.qid){
+        state.orderTrayOrder = shuffle(q.lines.map(function(_,i){ return i; }));
+        state.orderTrayQid = q.qid;
+      }
       var orderUsed=Object.keys(state.dragPlacement).map(function(key){ return state.dragPlacement[key]; }).filter(Boolean);
-      var orderCards=q.lines.map(function(ln){
+      var orderCards=state.orderTrayOrder.map(function(idx){
+        var ln=q.lines[idx];
         var used=orderUsed.indexOf(ln.label)!==-1;
         var selected=state.dragSelected===ln.label;
         return '<button type="button" class="dragpiece orderpiece'+(used?' used':'')+(selected?' selected':'')+
