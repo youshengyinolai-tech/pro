@@ -1077,6 +1077,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
         yourAnsChip+
         correctAnsChip+
         '<div class="explain"><span class="tag">解説</span>'+esc(state.curQ.explain)+'</div>'+
+        (!correct && state.curQ.explainWrong ? '<div class="explain explain-detail"><span class="tag">くわしい解説</span>'+esc(state.curQ.explainWrong)+'</div>' : '')+
         '<label class="missedcheck"><input type="checkbox" id="missedToggle"'+(missedNow?' checked':'')+'> '+icon('review')+' この問題を復習ノートに入れる</label>'+
       '</div>'+
       '<div class="actionrow"><button class="primary" id="btnContinue">つづける →</button></div>';
