@@ -510,8 +510,9 @@
   .feedback .accepted-variant{padding:8px 10px;border-left:3px solid var(--hero);background:color-mix(in srgb,var(--hero) 8%,transparent)}
   .feedback .accepted-variant .label{color:var(--hero);font-weight:700;text-transform:none}
   .feedback .chip{font-family:var(--font-mono); background:var(--bg-2); border:1px solid var(--line); padding:2px 8px; border-radius:3px;}
-  .feedback .explain{margin:12px 0 0; color:var(--ink); border-top:1px dashed var(--line); padding-top:12px;}
+  .feedback .explain{margin:12px 0 0; color:var(--ink); border-top:1px dashed var(--line); padding-top:12px; white-space:pre-wrap;}
   .feedback .explain .tag{display:block; font-size:.72rem; color:var(--accent); letter-spacing:.1em; text-transform:uppercase; margin-bottom:6px;}
+  .feedback .explain.explain-detail{border-top-style:solid; border-top-color:var(--accent);}
 
   /* ---- study: wrong-answer guidance (gentle, points back to the text just read) ---- */
   .guidance{
@@ -925,7 +926,7 @@
   .dc-boss-badge-inline{ background:var(--danger); color:var(--accent-ink); font-size:.65rem; padding:1px 6px; border-radius:4px; }
   .dc-review-q{ font-size:.92rem; color:var(--ink); margin-bottom:6px; }
   .dc-review-your,.dc-review-correct{ font-size:.85rem; color:var(--ink-dim); margin-bottom:2px; }
-  .dropcase-review-item .explain{ margin:8px 0 0; color:var(--ink); border-top:1px dashed var(--line); padding-top:8px; font-size:.85rem; }
+  .dropcase-review-item .explain{ margin:8px 0 0; color:var(--ink); border-top:1px dashed var(--line); padding-top:8px; font-size:.85rem; white-space:pre-wrap; }
   .dropcase-review-item .explain .tag{ display:block; font-size:.68rem; color:var(--accent); letter-spacing:.1em; text-transform:uppercase; margin-bottom:4px; }
 
   @media (prefers-reduced-motion: reduce){
