@@ -7125,17 +7125,24 @@
            {code:'    def __init__(self, hp):'},
            {code:'        self.hp = hp'},
            {blank:'b1'},
-           {blank:'b2'}
+           {blank:'b2'},
+           {blank:'b3'},
+           {blank:'b4'}
          ],
          pieces:[
            {id:'p1', code:'class Boss(Monster):'},
-           {id:'p2', code:'    def __init__(self, hp, name):\n        super().__init__(hp)\n        self.name = name'},
-           {id:'p3', code:'class Boss(self, Monster):'}
+           {id:'p2', code:'    def __init__(self, hp, name):'},
+           {id:'p3', code:'        super().__init__(hp)'},
+           {id:'p4', code:'        self.name = name'},
+           {id:'p5', code:'class Boss(self, Monster):'},
+           {id:'p6', code:'    def __init__(hp, name):'},
+           {id:'p7', code:'        super().__init__(self, hp)'},
+           {id:'p8', code:'        name = name'}
          ],
-         answerMap:{b1:'p1', b2:'p2'},
-         answers:['b1=p1|b2=p2'],
-         explain:'pythonで継承するときは、クラス名の後ろの括弧に親クラス名だけを書きます(p1)。p3のようにselfを書いてしまうのは文法として誤りです(selfはメソッドの引数として使うもので、クラス宣言には登場しません)。コンストラクタはsuper().__init__(hp)で親の初期化を再利用しつつ、self.nameを追加します(p2)。',
-         explainWrong:'pythonで継承するときは、class Boss(Monster):のように、クラス名の後ろの括弧に親クラス名だけを書きます(p1)。p3のclass Boss(self, Monster):は、selfを書いてしまっている点が文法として誤りです。selfはメソッドの引数として使うものであり、クラス宣言の括弧に書くものではありません。コンストラクタの中身は、super().__init__(hp)で親の初期化処理を再利用しつつ、self.name = nameでBoss独自の属性を追加します(p2)。\n【ここがポイント】\n・クラスの継承にはselfは登場しない、書くのはあくまで親クラス名だけ。'}
+         answerMap:{b1:'p1', b2:'p2', b3:'p3', b4:'p4'},
+         answers:['b1=p1|b2=p2|b3=p3|b4=p4'],
+         explain:'pythonで継承するときは、クラス名の後ろの括弧に親クラス名だけを書きます(p1)。コンストラクタの第一引数には必ずselfを書き(p2)、super().__init__(hp)で親の初期化を再利用し(p3)、self.name = nameでBoss独自の属性を追加します(p4)。',
+         explainWrong:'pythonで継承するときは、class Boss(Monster):のように、クラス名の後ろの括弧に親クラス名だけを書きます(p1)。p5のclass Boss(self, Monster):は、selfを書いてしまっている点が文法として誤りです。selfはメソッドの引数として使うものであり、クラス宣言の括弧に書くものではありません。\nコンストラクタの定義def __init__(self, hp, name):には、他のメソッドと同じく必ず第一引数にselfが必要です(p2)。p6のようにselfを省略してしまうと、hpに渡したはずの値が実際にはインスタンス自身(self)として扱われてしまい、正しく動作しません。\nsuper().__init__(hp)は、親クラスの__init__を引数hpだけ渡して呼び出します(p3)。p7のsuper().__init__(self, hp)のようにselfまで渡してしまうと、親の__init__側で自動的に渡されるselfと二重になり、引数の数が合わずエラーになります。\n最後にself.name = nameでBoss独自の属性を追加します(p4)。p8のname = nameのようにselfを付け忘れると、__init__の中だけのローカル変数になってしまい、生成したインスタンスには保存されません。\n【ここがポイント】\n・クラス宣言にselfは書かない、__init__の第一引数には必ずselfが要る、super().__init__には呼び出し元のselfを渡さない、属性への代入は必ずself.をつける。'}
       ]},
     {id:'tk', title:'CASE 13「硝子窓の向こう側」', sub:'Week D/E Tkinterウィジェット', emoji:'🪟', mon:'押しても反応しないボタン',
       lesson:[
