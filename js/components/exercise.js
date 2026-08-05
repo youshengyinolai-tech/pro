@@ -16,6 +16,7 @@ import {
 } from '../core/state.js?v=2026072115';
 import { icon, stageIcon } from '../core/icons.js';
 import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115';
+import { loadStudyBeats } from './study.js?v=2026072115';
 
   var exerciseKeyboardInstalled = false;
 
@@ -204,9 +205,22 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
     var lessonToggle = document.getElementById('btnLessonToggleStudy');
     if(lessonToggle) lessonToggle.addEventListener('click', function(){
       /* studyStep/studyPickedはリセットしない。前回学習パートを離れた地点から
-         そのまま再開できるよう、画面だけを切り替える即時トグル。 */
-      state.screen = 'study';
+         そのまま再開できるよう、画面だけを切り替える即時トグル。
+         ただしstudyBeats.jsがまだ読み込まれていない(startStudyを経由せず訓練場から
+         直接ここへ来た)場合があるため、切り替える前に必ず読み込みを済ませる。 */
+      state.screen = 'studyLoading';
       render();
+      loadStudyBeats().then(function(){
+        if(state.screen!=='studyLoading') return;
+        state.screen = 'study';
+        render();
+      }).catch(function(error){
+        console.error('学習データを読み込めませんでした',error);
+        if(state.screen!=='studyLoading') return;
+        state.screen = 'lesson';
+        render();
+        window.alert('学習データを読み込めませんでした。通信を確認して、もう一度お試しください。');
+      });
     });
     var toBattleBtn = document.getElementById('btnToBattle');
     if(toBattleBtn){
@@ -598,8 +612,15 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
 
     var bodyHtml;
     if(type==='order'){
+      /* 正解は常にq.linesの並び順そのものなので、トレイの表示順だけをシャッフルする。
+         data-pieceはln.labelのままなので、正解判定(順序比較)は一切変更しない。 */
+      if(state.orderTrayQid !== q.qid){
+        state.orderTrayOrder = shuffle(q.lines.map(function(_,i){ return i; }));
+        state.orderTrayQid = q.qid;
+      }
       var orderUsed=Object.keys(state.dragPlacement).map(function(key){ return state.dragPlacement[key]; }).filter(Boolean);
-      var orderCards=q.lines.map(function(ln){
+      var orderCards=state.orderTrayOrder.map(function(idx){
+        var ln=q.lines[idx];
         var used=orderUsed.indexOf(ln.label)!==-1;
         var selected=state.dragSelected===ln.label;
         return '<button type="button" class="dragpiece orderpiece'+(used?' used':'')+(selected?' selected':'')+
@@ -1147,6 +1168,7 @@ import { render, renderTopbar, openLesson } from '../core/router.js?v=2026072115
         yourAnsChip+
         correctAnsChip+
         '<div class="explain"><span class="tag">解説</span>'+esc(state.curQ.explain)+'</div>'+
+        (!correct && state.curQ.explainWrong ? '<div class="explain explain-detail"><span class="tag">くわしい解説</span>'+esc(state.curQ.explainWrong)+'</div>' : '')+
         '<label class="missedcheck"><input type="checkbox" id="missedToggle"'+(missedNow?' checked':'')+'> '+icon('review')+' この問題を復習ノートに入れる</label>'+
       '</div>'+
       '<div class="actionrow"><button class="primary" id="btnContinue">つづける →</button></div>';

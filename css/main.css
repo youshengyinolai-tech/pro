@@ -498,12 +498,12 @@
   .dragslot.filled{border:1px solid #80603d;color:#241b14;font-style:normal;background:#f4e2bd;box-shadow:inset 4px 0 0 #762f28;}
   .dragslot:hover{border-color:var(--danger);}
   .dragslot.dragover{outline:3px solid rgba(181,139,67,.48);background:#fff3d5;border-color:#b58b43;}
-  .dragtray{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:6px;}
+  .dragtray{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; margin-bottom:6px;}
   .dragpiece{
-    font-family:var(--font-mono); font-size:.88rem; cursor:grab;
-    background:var(--bg-2); color:var(--ink); border:1px solid var(--line); padding:8px 14px;
+    display:block; width:100%; font-family:var(--font-mono); font-size:.88rem; cursor:grab;
+    background:var(--bg-2); color:var(--ink); border:1px solid var(--line); border-radius:3px; padding:10px 14px;
+    text-align:left; white-space:pre-wrap; overflow-wrap:anywhere;
     touch-action:none; user-select:none; -webkit-user-select:none;
-    clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
     transition:background .15s ease, border-color .15s ease;
   }
   .dragpiece:hover:not(.used){border-color:var(--accent); background:var(--panel-2);}
@@ -521,8 +521,18 @@
   .feedback .accepted-variant{padding:8px 10px;border-left:3px solid var(--hero);background:color-mix(in srgb,var(--hero) 8%,transparent)}
   .feedback .accepted-variant .label{color:var(--hero);font-weight:700;text-transform:none}
   .feedback .chip{font-family:var(--font-mono); background:var(--bg-2); border:1px solid var(--line); padding:2px 8px; border-radius:3px;}
-  .feedback .explain{margin:12px 0 0; color:var(--ink); border-top:1px dashed var(--line); padding-top:12px;}
+  .ghost-badge{
+    display:inline-block; font-family:var(--font-mono); font-size:.85rem; line-height:1.5;
+    background:var(--bg-2); color:var(--ink); border:1px solid var(--line); border-radius:3px;
+    padding:4px 10px; margin:2px 0; cursor:pointer; text-align:left;
+  }
+  .ghost-badge:hover{border-color:var(--accent); background:var(--panel-2);}
+  .ghost-badge.alt{color:var(--ink-dim);}
+  .ghost-badge.alt small{color:var(--ink-dim); font-size:.8em;}
+  .ghost-badge.copied{border-color:var(--hero); color:var(--hero); background:color-mix(in srgb, var(--hero) 12%, var(--bg-2));}
+  .feedback .explain{margin:12px 0 0; color:var(--ink); border-top:1px dashed var(--line); padding-top:12px; white-space:pre-wrap;}
   .feedback .explain .tag{display:block; font-size:.72rem; color:var(--accent); letter-spacing:.1em; text-transform:uppercase; margin-bottom:6px;}
+  .feedback .explain.explain-detail{border-top-style:solid; border-top-color:var(--accent);}
 
   /* ---- study: wrong-answer guidance (gentle, points back to the text just read) ---- */
   .guidance{
@@ -936,7 +946,7 @@
   .dc-boss-badge-inline{ background:var(--danger); color:var(--accent-ink); font-size:.65rem; padding:1px 6px; border-radius:4px; }
   .dc-review-q{ font-size:.92rem; color:var(--ink); margin-bottom:6px; }
   .dc-review-your,.dc-review-correct{ font-size:.85rem; color:var(--ink-dim); margin-bottom:2px; }
-  .dropcase-review-item .explain{ margin:8px 0 0; color:var(--ink); border-top:1px dashed var(--line); padding-top:8px; font-size:.85rem; }
+  .dropcase-review-item .explain{ margin:8px 0 0; color:var(--ink); border-top:1px dashed var(--line); padding-top:8px; font-size:.85rem; white-space:pre-wrap; }
   .dropcase-review-item .explain .tag{ display:block; font-size:.68rem; color:var(--accent); letter-spacing:.1em; text-transform:uppercase; margin-bottom:4px; }
 
   @media (prefers-reduced-motion: reduce){

@@ -4,19 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>コード事件捜査局 — 期末試験ファイル</title>
-  <link rel="stylesheet" href="css/main.css?v=2026072222e">
-<link rel="stylesheet" href="css/gamification.css?v=2026072222e">
-<link rel="stylesheet" href="css/investigation.css?v=2026072222e">
+  <link rel="stylesheet" href="css/main.css?v=20260805-merge1">
+<link rel="stylesheet" href="css/gamification.css?v=20260805-merge1">
+<link rel="stylesheet" href="css/investigation.css?v=20260805-merge1">
 </head>
 <body class="performance-mode">
 <div class="stage" id="app"><div class="frame" id="bootStatus" style="padding:18px 20px;">捜査画面を読み込んでいます…</div></div>
 
 <script>
-  var CURRENT_MODULE_URL = './js/core/router.js?v=20260803-study-review-quality';
+  var CURRENT_MODULE_URL = './js/core/router.js?v=20260805-merge1';
 
   (async function(){
     try{
-      var module = await import('./js/core/router.js?v=20260803-study-review-quality');
+      var module = await import('./js/core/router.js?v=20260805-merge1');
       module.boot();
     }catch(error){
       console.error('アプリの起動に失敗しました', error);

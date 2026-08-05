@@ -144,7 +144,7 @@ function advanceAfterAnswer(run, correct, chosenText){
     lead: q.lead||'', code: q.code||'',
     yourAnswer: (chosenText===undefined?null:chosenText),
     correctAnswer: q.answers[0], correct: correct,
-    explain: q.explain||'', isBoss: run.current.isBoss
+    explain: (correct ? q.explain : (q.explainWrong||q.explain)) || '', isBoss: run.current.isBoss
   });
   if(correct){
     run.combo++; run.maxCombo=Math.max(run.maxCombo,run.combo); run.correctCount++;

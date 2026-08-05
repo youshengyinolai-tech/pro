@@ -939,7 +939,12 @@ import {
 
 
   /* 「間違いノート」に載っている問題(progress.missed)だけを出題する復習モード。
-     正解するとノートから消え、誤答すると残り続けるので、繰り返すほどノートが薄くなる。 */
+     正解するとノートから消え、誤答すると残り続けるので、繰り返すほどノートが薄くなる。
+     学習モード(物語形式)の誤答は"study:週id:beat番号"というqidで記録されるが、
+     ENDLESS_POOLはstudyBeats.jsを起動時に読み込まない(初期表示を軽くするため)ため、
+     ページを開き直した直後はPOOL_INDEX_BY_QIDにまだ登録されていないことがある。
+     復習を開く直前に、その分だけstudyBeats.jsを遅延読み込みして登録してから
+     キューを組み立てる。 */
   export function openReview(){
     var qids = Object.keys(progress.missed);
     state.reviewQueue = shuffle(qids.filter(function(qid){ return REVIEW_ENTRY_BY_QID[qid]!==undefined; }));
