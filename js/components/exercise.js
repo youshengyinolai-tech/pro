@@ -613,7 +613,11 @@ import { loadStudyBeats } from './study.js?v=2026072115';
     var bodyHtml;
     if(type==='order'){
       /* 正解は常にq.linesの並び順そのものなので、トレイの表示順だけをシャッフルする。
-         data-pieceはln.labelのままなので、正解判定(順序比較)は一切変更しない。 */
+         data-pieceはln.labelのままなので、正解判定(順序比較)は一切変更しない。
+         ln.label(A/B/C…)はほとんどの問題で「正解の順番そのもの」を意味してしまっている
+         (答えがA,B,C,D…とアルファベット順になっている問題が大半)ため、カード面に
+         ラベルを表示すると、コードを読まずに文字だけ並べ替えれば正解できてしまう。
+         そのため画面上はコードだけを見せ、ラベルは内部の識別・採点にのみ使う。 */
       if(state.orderTrayQid !== q.qid){
         state.orderTrayOrder = shuffle(q.lines.map(function(_,i){ return i; }));
         state.orderTrayQid = q.qid;
@@ -625,7 +629,7 @@ import { loadStudyBeats } from './study.js?v=2026072115';
         var selected=state.dragSelected===ln.label;
         return '<button type="button" class="dragpiece orderpiece'+(used?' used':'')+(selected?' selected':'')+
           '" data-piece="'+esc(ln.label)+'" draggable="false"'+(used?' disabled':'')+'>'+
-          '<b>'+esc(ln.label)+'</b><code>'+esc(ln.code)+'</code></button>';
+          '<code>'+esc(ln.code)+'</code></button>';
       }).join('');
       var orderSlots=q.lines.map(function(ln,index){
         var key='order-'+index;
@@ -633,7 +637,7 @@ import { loadStudyBeats } from './study.js?v=2026072115';
         var placed=q.lines.filter(function(candidate){ return candidate.label===placedLabel; })[0];
         return '<div class="orderrow"><span class="ordernum">'+(index+1)+'</span>'+
           '<button type="button" class="dragslot orderslot'+(placed?' filled':'')+'" data-blank="'+key+'">'+
-          (placed?'<b>'+esc(placed.label)+'</b><code>'+esc(placed.code)+'</code>':'ここへカードを置く')+
+          (placed?'<code>'+esc(placed.code)+'</code>':'ここへカードを置く')+
           '</button></div>';
       }).join('');
       bodyHtml='<div class="orderbuilder"><div class="ordertray">'+orderCards+'</div>'+

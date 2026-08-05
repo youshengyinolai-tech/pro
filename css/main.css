@@ -237,13 +237,12 @@
   /* ---- drag-to-order questions ---- */
   .orderbuilder{display:grid;gap:16px;margin:16px 0}
   .ordertray{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-  .orderpiece{display:grid!important;grid-template-columns:32px minmax(0,1fr);align-items:start;gap:9px;width:100%;min-height:58px;text-align:left}
-  .orderpiece b,.orderslot b{display:grid;place-items:center;width:28px;height:28px;background:#762f28;color:#fff8e8;border-radius:3px;font:800 .82rem var(--font-body)}
+  .orderpiece{display:grid!important;grid-template-columns:minmax(0,1fr);align-items:start;gap:9px;width:100%;min-height:58px;text-align:left}
   .orderpiece code,.orderslot code{white-space:pre-wrap;overflow-wrap:anywhere;font:.78rem/1.55 var(--font-mono);color:inherit}
   .orderanswer{display:grid;gap:7px;padding:12px;background:rgba(38,25,16,.1);border:1px dashed var(--line)}
   .orderrow{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:stretch;gap:8px}
   .ordernum{display:grid;place-items:center;color:var(--ink-dim);font:800 .76rem var(--font-mono)}
-  .orderslot{display:grid!important;grid-template-columns:32px minmax(0,1fr);align-items:center;gap:9px;min-height:52px;width:100%;text-align:left}
+  .orderslot{display:grid!important;grid-template-columns:minmax(0,1fr);align-items:center;gap:9px;min-height:52px;width:100%;text-align:left}
   .orderslot:not(.filled){display:block!important;text-align:center;color:var(--ink-dim)}
   .ordertray .orderpiece,.orderanswer .orderslot.filled{
     border:1px solid #514535!important;border-left:4px solid #8f3d34!important;border-radius:2px!important;
