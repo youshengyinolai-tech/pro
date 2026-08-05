@@ -261,6 +261,15 @@
   .answer-mode-btn:hover{background:#fff3d5;border-color:#74342d}
   .answer-mode-btn.active{background:#6f302b;color:#fff8e7;border-color:#4b201d;box-shadow:inset 0 0 0 2px rgba(255,255,255,.2)}
   .answer-mode-arrow{color:#795c3e;font-weight:800}
+  .mobile-code-builder{display:grid;gap:10px;margin-top:12px}.mobile-code-builder>p{margin:0;font-weight:700;font-size:.78rem}
+  .mobile-code-source,.mobile-code-answer{display:grid;grid-template-columns:1fr;gap:7px;padding:9px;border:1px dashed #8b6b48;background:rgba(255,248,225,.34)}
+  .mobile-code-line,.mobile-code-placed{display:grid;grid-template-columns:minmax(0,1fr);width:100%;padding:10px;text-align:left;border:1px solid #80603d;background:#f4e2bd;color:#241b14}
+  .mobile-code-line,.mobile-code-placed{touch-action:none;cursor:grab}.mobile-code-line.used{opacity:.35}.mobile-code-line.selected{outline:3px solid #315c42;background:#fff3d5}.mobile-code-line.touch-dragging,.mobile-code-placed.touch-dragging{opacity:.72;scale:1.02}
+  .mobile-code-line code,.mobile-code-placed code{white-space:pre-wrap;overflow-wrap:anywhere;font:.75rem/1.5 var(--font-mono)}
+  .mobile-code-slot{display:grid;grid-template-columns:25px minmax(0,1fr);align-items:stretch;gap:7px;min-height:48px;padding:5px;border:1px dashed #9a7954;background:rgba(255,255,255,.2)}
+  .mobile-code-slot>span{display:grid;place-items:center;width:23px;background:#762f28;color:white;font-weight:800}.mobile-code-slot.dragover{outline:3px solid #315c42;background:#fff3d5}
+  .mobile-code-placed,.mobile-code-placeholder{width:100%;border:0;background:#fff3d5;color:#241b14;text-align:left;padding:8px}.mobile-code-placeholder{text-align:center;color:var(--ink-dim);font-size:.7rem}
+  .mobile-code-empty{padding:14px;text-align:center;color:var(--ink-dim);font-size:.75rem}
   @media(max-width:760px){
     body:not(.case-map-screen){padding:7px 6px 34px!important}
     body:not(.case-map-screen) .stage{margin-top:4px!important;padding:12px 9px 24px!important;border-width:6px!important}
@@ -273,15 +282,6 @@
     .answer-mode-btn{min-width:0;width:100%;padding:10px 7px;font-size:.8rem}
     .mobile-choicegrid{display:grid;grid-template-columns:1fr;gap:9px;margin-top:12px}
     .mobile-choicegrid .choicebtn{min-height:52px;padding:12px 13px;text-align:left;font-size:.86rem;overflow-wrap:anywhere}
-    .mobile-code-builder{display:grid;gap:10px;margin-top:12px}.mobile-code-builder>p{margin:0;font-weight:700;font-size:.78rem}
-    .mobile-code-source,.mobile-code-answer{display:grid;gap:7px;padding:9px;border:1px dashed #8b6b48;background:rgba(255,248,225,.34)}
-    .mobile-code-line,.mobile-code-placed{display:grid;grid-template-columns:minmax(0,1fr);width:100%;padding:10px;text-align:left;border:1px solid #80603d;background:#f4e2bd;color:#241b14}
-    .mobile-code-line,.mobile-code-placed{touch-action:none;cursor:grab}.mobile-code-line.used{opacity:.35}.mobile-code-line.selected{outline:3px solid #315c42;background:#fff3d5}.mobile-code-line.touch-dragging,.mobile-code-placed.touch-dragging{opacity:.72;scale:1.02}
-    .mobile-code-line code,.mobile-code-placed code{white-space:pre-wrap;overflow-wrap:anywhere;font:.75rem/1.5 var(--font-mono)}
-    .mobile-code-slot{display:grid;grid-template-columns:25px minmax(0,1fr);align-items:stretch;gap:7px;min-height:48px;padding:5px;border:1px dashed #9a7954;background:rgba(255,255,255,.2)}
-    .mobile-code-slot>span{display:grid;place-items:center;width:23px;background:#762f28;color:white;font-weight:800}.mobile-code-slot.dragover{outline:3px solid #315c42;background:#fff3d5}
-    .mobile-code-placed,.mobile-code-placeholder{width:100%;border:0;background:#fff3d5;color:#241b14;text-align:left;padding:8px}.mobile-code-placeholder{text-align:center;color:var(--ink-dim);font-size:.7rem}
-    .mobile-code-empty{padding:14px;text-align:center;color:var(--ink-dim);font-size:.75rem}
     .answerrow{display:grid!important}.codeinput{width:100%;min-height:48px;font-size:16px!important}
     .feedback{padding:15px 12px!important}.feedback .chip,.ghost-badge{max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
   }
